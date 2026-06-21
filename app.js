@@ -1,5 +1,15 @@
 const MODEL_URL =
   "https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_full/float16/latest/pose_landmarker_full.task";
+const TASKS_VISION_SOURCES = [
+  {
+    module: "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.35",
+    wasm: "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.35/wasm",
+  },
+  {
+    module: "https://unpkg.com/@mediapipe/tasks-vision@0.10.35",
+    wasm: "https://unpkg.com/@mediapipe/tasks-vision@0.10.35/wasm",
+  },
+];
 
 const teacherVideo = document.querySelector("#teacherVideo");
 const studentVideo = document.querySelector("#studentVideo");
@@ -389,36 +399,9 @@ async function initPose() {
 
   state.modelReadyPromise = (async () => {
     try {
-      const { FilesetResolver, PoseLandmarker } = await import(
-        "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.35"
-      );
-      const fileset = await FilesetResolver.forVisionTasks(
-        "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.35/wasm",
-      );
-
-      state.teacherLandmarker = await PoseLandmarker.createFromOptions(fileset, {
-        baseOptions: {
-          modelAssetPath: MODEL_URL,
-          delegate: "GPU",
-        },
-        runningMode: "IMAGE",
-        numPoses: 1,
-        minPoseDetectionConfidence: 0.45,
-        minPosePresenceConfidence: 0.45,
-        minTrackingConfidence: 0.45,
-      });
-
-      state.liveLandmarker = await PoseLandmarker.createFromOptions(fileset, {
-        baseOptions: {
-          modelAssetPath: MODEL_URL,
-          delegate: "GPU",
-        },
-        runningMode: "VIDEO",
-        numPoses: 1,
-        minPoseDetectionConfidence: 0.45,
-        minPosePresenceConfidence: 0.45,
-        minTrackingConfidence: 0.45,
-      });
+      const { PoseLandmarker, fileset } = await loadPoseRuntime();
+      state.teacherLandmarker = await createPoseLandmarker(PoseLandmarker, fileset, "IMAGE");
+      state.liveLandmarker = await createPoseLandmarker(PoseLandmarker, fileset, "VIDEO");
 
       els.modelStatus.textContent = "Модель готова";
       state.modelFailed = false;
@@ -441,6 +424,49 @@ async function initPose() {
   })();
 
   return state.modelReadyPromise;
+}
+
+async function loadPoseRuntime() {
+  let lastError = null;
+  for (const source of TASKS_VISION_SOURCES) {
+    try {
+      const { FilesetResolver, PoseLandmarker } = await import(source.module);
+      const fileset = await FilesetResolver.forVisionTasks(source.wasm);
+      return { PoseLandmarker, fileset };
+    } catch (error) {
+      lastError = error;
+      console.warn("MediaPipe runtime не загрузился", source.module, error);
+    }
+  }
+  throw lastError || new Error("MediaPipe runtime не загрузился");
+}
+
+async function createPoseLandmarker(PoseLandmarker, fileset, runningMode) {
+  const baseOptions = {
+    modelAssetPath: MODEL_URL,
+    delegate: "GPU",
+  };
+  const options = {
+    baseOptions,
+    runningMode,
+    numPoses: 1,
+    minPoseDetectionConfidence: 0.45,
+    minPosePresenceConfidence: 0.45,
+    minTrackingConfidence: 0.45,
+  };
+
+  try {
+    return await PoseLandmarker.createFromOptions(fileset, options);
+  } catch (error) {
+    console.warn(`MediaPipe ${runningMode} GPU не запустился, пробую CPU`, error);
+    return PoseLandmarker.createFromOptions(fileset, {
+      ...options,
+      baseOptions: {
+        modelAssetPath: MODEL_URL,
+        delegate: "CPU",
+      },
+    });
+  }
 }
 
 function setButtons(modelReady) {
@@ -824,13 +850,14 @@ async function scanTeacherVideo(options = {}) {
 
   for (let time = start; time <= end; time += step) {
     await seekTeacher(time);
+    await waitForMediaReady(teacherVideo);
     if (scanId !== state.scanId) {
       cancelTeacherScan();
       return;
     }
     resizeCanvasToVideo(teacherCanvas, teacherVideo);
     clearCanvas(teacherCtx, teacherCanvas);
-    const result = state.teacherLandmarker.detect(teacherVideo);
+    const result = safeDetectPose(state.teacherLandmarker, teacherVideo);
     const landmarks = result.landmarks?.[0];
     if (landmarks) {
       drawPose(teacherCtx, teacherCanvas, landmarks, "#f5c542");
@@ -1106,7 +1133,7 @@ function processFrame() {
   const canAnalyzeStudent = (state.cameraReady || state.studentVideoObjectUrl) && state.liveLandmarker;
   if (canAnalyzeStudent && studentVideo.currentTime !== state.lastVideoTime) {
     state.lastVideoTime = studentVideo.currentTime;
-    const result = state.liveLandmarker.detectForVideo(studentVideo, performance.now());
+    const result = safeDetectPoseForVideo(state.liveLandmarker, studentVideo, performance.now());
     const student = result.landmarks?.[0];
 
     clearCanvas(studentCtx, studentCanvas);
@@ -2282,7 +2309,7 @@ function renderTeacherPoseFrame(frameTime = teacherVideo.currentTime) {
   }
 
   if (teacherVideo.paused && state.teacherLandmarker) {
-    const result = state.teacherLandmarker.detect(teacherVideo);
+    const result = safeDetectPose(state.teacherLandmarker, teacherVideo);
     const teacher = result.landmarks?.[0];
     if (teacher) {
       drawPose(teacherCtx, teacherCanvas, teacher, "#f5c542");
@@ -2294,10 +2321,34 @@ function renderStudentPoseFrame() {
   if (!studentVideo.src || !state.liveLandmarker || !studentVideo.videoWidth) return;
   resizeCanvasToVideo(studentCanvas, studentVideo);
   clearCanvas(studentCtx, studentCanvas);
-  const result = state.liveLandmarker.detectForVideo(studentVideo, performance.now());
+  const result = safeDetectPoseForVideo(state.liveLandmarker, studentVideo, performance.now());
   const student = result.landmarks?.[0];
   if (student) {
     drawPose(studentCtx, studentCanvas, student, "#2dd4bf");
+  }
+}
+
+function safeDetectPose(landmarker, video) {
+  try {
+    if (!landmarker || !video.videoWidth || !video.videoHeight || video.readyState < HTMLMediaElement.HAVE_CURRENT_DATA) {
+      return { landmarks: [] };
+    }
+    return landmarker.detect(video);
+  } catch (error) {
+    console.warn("Кадр не считался", error);
+    return { landmarks: [] };
+  }
+}
+
+function safeDetectPoseForVideo(landmarker, video, timestamp) {
+  try {
+    if (!landmarker || !video.videoWidth || !video.videoHeight || video.readyState < HTMLMediaElement.HAVE_CURRENT_DATA) {
+      return { landmarks: [] };
+    }
+    return landmarker.detectForVideo(video, timestamp);
+  } catch (error) {
+    console.warn("Live-кадр не считался", error);
+    return { landmarks: [] };
   }
 }
 
@@ -2348,9 +2399,10 @@ async function buildStudentSkeleton() {
     for (let rawTime = start; rawTime <= end; rawTime += step) {
       if (scanId !== state.studentScanId) return;
       await seekStudentVideo(rawTime);
+      await waitForMediaReady(studentVideo);
       resizeCanvasToVideo(studentCanvas, studentVideo);
       clearCanvas(studentCtx, studentCanvas);
-      const result = state.teacherLandmarker.detect(studentVideo);
+      const result = safeDetectPose(state.teacherLandmarker, studentVideo);
       const landmarks = result.landmarks?.[0];
       if (landmarks) {
         drawPose(studentCtx, studentCanvas, landmarks, "#2dd4bf");

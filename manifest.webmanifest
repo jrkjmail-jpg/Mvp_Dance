@@ -2,7 +2,7 @@
   "name": "Танцуй",
   "short_name": "Танцуй",
   "description": "Домашняя тренировка танца с видео педагога, эталоном и сдачей.",
-  "start_url": "./index.html?v=20260621-16",
+  "start_url": "./index.html?v=20260621-17",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
