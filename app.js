@@ -1382,6 +1382,7 @@ function evaluateRecordedAttempt() {
   const coverage = references.length ? matchedFrames / references.length : 0;
   const rawTotal = average(totals) * coverage;
   const total = calibratedMatchTotal(rawTotal, coverage);
+  const filteredMistakes = filterReportedMistakes(mistakes, total, coverage);
   const result = {
     arms: average(groups.arms),
     legs: average(groups.legs),
@@ -1399,10 +1400,7 @@ function evaluateRecordedAttempt() {
     coverage: Math.round(coverage * 100),
     matchedFrames,
     referenceFrames: references.length,
-    mistakes: mistakes
-      .sort((a, b) => a.score - b.score)
-      .filter((item, index, list) => index === 0 || Math.abs(item.time - list[index - 1].time) > 0.8)
-      .slice(0, 6),
+    mistakes: filteredMistakes,
   };
 
   return result;
@@ -1410,6 +1408,7 @@ function evaluateRecordedAttempt() {
 
 function calibratedMatchTotal(total, coverage) {
   if (coverage < 0.82) return Math.round(total);
+  if (total >= 93 && coverage >= 0.98) return 100;
   if (total >= 96 && coverage >= 0.96) return 100;
   if (total >= 90 && coverage >= 0.94) {
     return Math.min(99, Math.round(94 + (total - 90) * 1.15));
@@ -1418,6 +1417,16 @@ function calibratedMatchTotal(total, coverage) {
     return Math.round(total + 3);
   }
   return Math.round(total);
+}
+
+function filterReportedMistakes(mistakes, total, coverage) {
+  if (total >= 98 && coverage >= 0.98) return [];
+  const severeThreshold = total >= 94 && coverage >= 0.96 ? 52 : 70;
+  return mistakes
+    .filter((item) => item.score < severeThreshold)
+    .sort((a, b) => a.score - b.score)
+    .filter((item, index, list) => index === 0 || Math.abs(item.time - list[index - 1].time) > 0.8)
+    .slice(0, 6);
 }
 
 function reconcileMicroJitterScores(scores) {
