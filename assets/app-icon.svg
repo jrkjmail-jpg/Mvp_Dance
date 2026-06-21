@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Танцуй">
+  <rect width="512" height="512" rx="112" fill="#0d1110"/>
+  <circle cx="172" cy="140" r="54" fill="#ffd45a"/>
+  <path d="M154 209c42-35 92-35 139 0l-34 57c-21-18-43-19-68-1l-37-56Z" fill="#24d6b5"/>
+  <path d="M218 259l-64 113" stroke="#fbf8ef" stroke-width="42" stroke-linecap="round"/>
+  <path d="M255 260l83 96" stroke="#fbf8ef" stroke-width="42" stroke-linecap="round"/>
+  <path d="M189 298l-78-30" stroke="#24d6b5" stroke-width="36" stroke-linecap="round"/>
+  <path d="M269 299l108-30" stroke="#ffd45a" stroke-width="36" stroke-linecap="round"/>
+  <path d="M137 401h95" stroke="#24d6b5" stroke-width="38" stroke-linecap="round"/>
+  <path d="M308 397h91" stroke="#ffd45a" stroke-width="38" stroke-linecap="round"/>
+</svg>
