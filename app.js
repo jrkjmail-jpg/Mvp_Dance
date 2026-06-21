@@ -1385,20 +1385,30 @@ function evaluateRecordedAttempt() {
 
   const coverage = references.length ? matchedFrames / references.length : 0;
   const rawTotal = average(totals) * coverage;
-  const total = calibratedMatchTotal(rawTotal, coverage, isSameSourceVideoTest());
-  const filteredMistakes = filterReportedMistakes(mistakes, total, coverage);
-  const result = {
+  const quality = {
     arms: average(groups.arms),
     legs: average(groups.legs),
     body: average(groups.body),
+    position: average(groups.position),
+    timing: average(groups.timing) * coverage,
+    amplitude: average(groups.amplitude),
+    trajectory: average(groups.trajectory),
+    energy: average(groups.energy),
+  };
+  const total = calibratedMatchTotal(rawTotal, coverage, quality);
+  const filteredMistakes = filterReportedMistakes(mistakes, total, coverage);
+  const result = {
+    arms: quality.arms,
+    legs: quality.legs,
+    body: quality.body,
     chest: average(groups.chest),
     head: average(groups.head),
     fingers: average(groups.fingers),
-    position: weightedAverage([average(groups.position), average(groups.trajectory)], [0.58, 0.42]),
-    timing: calibratedMatchTotal(average(groups.timing) * coverage, coverage),
-    trajectory: average(groups.trajectory),
-    amplitude: average(groups.amplitude),
-    energy: average(groups.energy),
+    position: weightedAverage([quality.position, quality.trajectory], [0.82, 0.18]),
+    timing: calibratedMetricScore(quality.timing, coverage),
+    trajectory: quality.trajectory,
+    amplitude: quality.amplitude,
+    energy: quality.energy,
     total,
     score: Math.round(total * 12),
     coverage: Math.round(coverage * 100),
@@ -1410,9 +1420,9 @@ function evaluateRecordedAttempt() {
   return result;
 }
 
-function calibratedMatchTotal(total, coverage, sameSource = false) {
+function calibratedMatchTotal(total, coverage, quality = {}) {
   if (coverage < 0.82) return Math.round(total);
-  if (sameSource && total >= 82 && coverage >= 0.9) return 100;
+  if (isTeacherLevelMatch(total, coverage, quality)) return 100;
   if (total >= 88 && coverage >= 0.98) return 100;
   if (total >= 96 && coverage >= 0.96) return 100;
   if (total >= 92 && coverage >= 0.9) return 100;
@@ -1425,14 +1435,18 @@ function calibratedMatchTotal(total, coverage, sameSource = false) {
   return Math.round(total);
 }
 
-function isSameSourceVideoTest() {
-  return Boolean(
-    state.exam.fileName &&
-      state.studentVideoFileName &&
-      state.exam.fileName === state.studentVideoFileName &&
-      state.exam.fileSize > 0 &&
-      state.exam.fileSize === state.studentVideoFileSize,
+function calibratedMetricScore(total, coverage) {
+  if (coverage < 0.82) return Math.round(total);
+  if (total >= 88 && coverage >= 0.9) return 100;
+  return Math.round(total);
+}
+
+function isTeacherLevelMatch(total, coverage, quality) {
+  const poseCore = weightedAverage(
+    [quality.position || 0, quality.arms || 0, quality.legs || 0, quality.body || 0, quality.amplitude || 0],
+    [0.34, 0.2, 0.18, 0.16, 0.12],
   );
+  return coverage >= 0.9 && poseCore >= 82 && (quality.timing || 0) >= 82 && total >= 82;
 }
 
 function filterReportedMistakes(mistakes, total, coverage) {
