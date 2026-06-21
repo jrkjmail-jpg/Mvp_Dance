@@ -591,13 +591,16 @@ async function onStudentVideoUpload(event) {
   studentVideo.src = state.studentVideoObjectUrl;
   studentVideo.muted = true;
   studentVideo.controls = true;
+  studentVideo.autoplay = false;
   studentVideo.setAttribute("playsinline", "");
+  studentVideo.setAttribute("webkit-playsinline", "");
   studentVideo.preload = "metadata";
   studentVideo.load();
   resetClip(state.studentClip);
 
   try {
     await waitForMetadata(studentVideo);
+    await revealUploadedVideoFrame(studentVideo);
   } catch (error) {
     els.taskStatus.textContent = "видео ученика не читается";
     console.error(error);
@@ -616,6 +619,15 @@ async function onStudentVideoUpload(event) {
   updateStudentPlayButton();
   renderStudentPoseFrame();
   updateMirror();
+}
+
+async function revealUploadedVideoFrame(video) {
+  await waitForMediaReady(video);
+  if (!Number.isFinite(video.duration) || video.duration <= 0) return;
+  const previewTime = Math.min(0.05, Math.max(0, video.duration - 0.01));
+  if (video.currentTime < previewTime) {
+    await seekMedia(video, previewTime);
+  }
 }
 
 function clipFor(type) {
@@ -2314,6 +2326,66 @@ function waitForMetadata(video) {
 
     video.addEventListener("loadedmetadata", onLoaded, { once: true });
     video.addEventListener("error", onError, { once: true });
+  });
+}
+
+function waitForMediaReady(video) {
+  return new Promise((resolve) => {
+    if (video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) {
+      resolve();
+      return;
+    }
+
+    const timeout = window.setTimeout(() => {
+      cleanup();
+      resolve();
+    }, 2500);
+
+    function cleanup() {
+      window.clearTimeout(timeout);
+      video.removeEventListener("loadeddata", onReady);
+      video.removeEventListener("canplay", onReady);
+      video.removeEventListener("error", onReady);
+    }
+
+    function onReady() {
+      cleanup();
+      resolve();
+    }
+
+    video.addEventListener("loadeddata", onReady, { once: true });
+    video.addEventListener("canplay", onReady, { once: true });
+    video.addEventListener("error", onReady, { once: true });
+  });
+}
+
+function seekMedia(video, time) {
+  return new Promise((resolve) => {
+    const targetTime = Math.min(Math.max(0, time), Math.max(0, video.duration || 0));
+    if (Math.abs(video.currentTime - targetTime) < 0.02) {
+      resolve();
+      return;
+    }
+
+    const timeout = window.setTimeout(() => {
+      cleanup();
+      resolve();
+    }, 2500);
+
+    function cleanup() {
+      window.clearTimeout(timeout);
+      video.removeEventListener("seeked", onSeeked);
+      video.removeEventListener("error", onSeeked);
+    }
+
+    function onSeeked() {
+      cleanup();
+      resolve();
+    }
+
+    video.addEventListener("seeked", onSeeked, { once: true });
+    video.addEventListener("error", onSeeked, { once: true });
+    video.currentTime = targetTime;
   });
 }
 
