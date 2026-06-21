@@ -11,7 +11,7 @@
     <link rel="manifest" href="./manifest.webmanifest" />
     <link rel="icon" href="./assets/app-icon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="./assets/app-icon.svg" />
-    <link rel="stylesheet" href="./styles.css?v=20260621-12" />
+    <link rel="stylesheet" href="./styles.css?v=20260621-13" />
   </head>
   <body>
     <main class="app-shell">
@@ -279,7 +279,7 @@
           </label>
 
           <div class="video-frame">
-            <video id="studentVideo" playsinline muted controls preload="metadata"></video>
+            <video id="studentVideo" playsinline webkit-playsinline muted controls preload="auto"></video>
             <canvas id="studentCanvas"></canvas>
             <div id="studentEmpty" class="empty-state">Камера</div>
           </div>
@@ -475,6 +475,6 @@
         });
       }
     </script>
-    <script type="module" src="./app.js?v=20260621-12"></script>
+    <script type="module" src="./app.js?v=20260621-13"></script>
   </body>
 </html>

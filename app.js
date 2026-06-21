@@ -594,9 +594,11 @@ async function onStudentVideoUpload(event) {
   studentVideo.autoplay = false;
   studentVideo.setAttribute("playsinline", "");
   studentVideo.setAttribute("webkit-playsinline", "");
-  studentVideo.preload = "metadata";
+  studentVideo.preload = "auto";
   studentVideo.load();
   resetClip(state.studentClip);
+  els.studentEmpty.hidden = true;
+  els.taskStatus.textContent = "загружаю видео ученика";
 
   try {
     await waitForMetadata(studentVideo);
@@ -608,16 +610,21 @@ async function onStudentVideoUpload(event) {
   }
 
   state.cameraReady = false;
-  els.studentEmpty.hidden = true;
   els.taskStatus.textContent = "видео ученика загружено";
   state.studentClip.duration = studentVideo.duration || 0;
   normalizeClipRange(state.studentClip);
   resizeCanvasToVideo(studentCanvas, studentVideo);
   syncStudentTimeline();
-  await seekStudentVideo(state.studentClip.start);
+  if (state.studentClip.start > 0.02) {
+    await seekStudentVideo(state.studentClip.start);
+  }
   studentVideo.pause();
   updateStudentPlayButton();
-  renderStudentPoseFrame();
+  try {
+    renderStudentPoseFrame();
+  } catch (error) {
+    console.warn("Не удалось отрисовать скелет на первом кадре ученика", error);
+  }
   updateMirror();
 }
 
@@ -627,6 +634,12 @@ async function revealUploadedVideoFrame(video) {
   const previewTime = Math.min(0.05, Math.max(0, video.duration - 0.01));
   if (video.currentTime < previewTime) {
     await seekMedia(video, previewTime);
+  }
+  try {
+    await video.play();
+    video.pause();
+  } catch (error) {
+    console.warn("Safari не разрешил авто-предпросмотр видео", error);
   }
 }
 
