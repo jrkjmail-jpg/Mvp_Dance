@@ -2040,7 +2040,7 @@ function updateLevelDisplay() {
     : "максимальный уровень";
   els.scoreValue.title = `${stars} звезд всего`;
   els.levelCardButton.title = "Открыть историю уровней";
-  els.studentStarsBadge.textContent = `всего ${stars} ${pluralizeStars(stars)}`;
+  els.studentStarsBadge.textContent = `★ ${stars}`;
 }
 
 function showLevelOverlay() {
