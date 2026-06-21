@@ -11,7 +11,7 @@
     <link rel="manifest" href="./manifest.webmanifest" />
     <link rel="icon" href="./assets/app-icon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="./assets/app-icon.svg" />
-    <link rel="stylesheet" href="./styles.css?v=20260622-5" />
+    <link rel="stylesheet" href="./styles.css?v=20260622-6" />
   </head>
   <body>
     <main class="app-shell">
@@ -24,27 +24,22 @@
           <button class="role-tab active" data-view="student" type="button">Танцор</button>
           <button class="role-tab" data-view="teacher" type="button">Педагог</button>
         </nav>
-        <button id="levelCardButton" class="score-pill level-card" type="button" aria-live="polite">
-          <span id="scoreValue" class="level-badge">Ур. 1</span>
-          <strong id="levelNameValue">Новичок</strong>
-          <div class="level-progress"><span id="levelProgressBar"></span></div>
-          <small id="levelNextValue">0 из 5 до уровня 2</small>
-          <small class="level-open-hint">История уровней</small>
-        </button>
       </header>
 
       <section class="student-dashboard" data-panel="student">
-        <article class="cabinet-card student-card">
-          <div class="profile-badge" aria-hidden="true">Т</div>
-          <div>
-            <p class="eyebrow">Кабинет танцора</p>
-            <h2>Выбери танец</h2>
-            <span>Группа 6 · тренировка дома</span>
-          </div>
-          <div class="cabinet-progress" aria-live="polite">
-            <strong id="studentLevelBadge">★1</strong>
-            <span id="studentStarsBadge">0 звезд</span>
-          </div>
+        <article class="cabinet-card student-card level-profile-card">
+          <button id="levelCardButton" class="score-pill level-card" type="button" aria-live="polite">
+            <div class="profile-badge" aria-hidden="true">T</div>
+            <div class="level-profile-main">
+              <p class="eyebrow">Студия Todos</p>
+              <h2>6 группа</h2>
+              <strong id="levelNameValue">Новичок</strong>
+            </div>
+            <span id="scoreValue" class="level-badge">Ур. 1</span>
+            <div class="level-progress"><span id="levelProgressBar"></span></div>
+            <small id="levelNextValue">0 из 5 до уровня 2</small>
+            <small id="studentStarsBadge" class="level-total-stars">всего 0 звезд</small>
+          </button>
         </article>
 
         <section class="lesson-flow" aria-label="Путь урока">
@@ -486,6 +481,6 @@
         });
       }
     </script>
-    <script type="module" src="./app.js?v=20260622-5"></script>
+    <script type="module" src="./app.js?v=20260622-6"></script>
   </body>
 </html>

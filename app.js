@@ -70,7 +70,6 @@ const els = {
   levelNameValue: document.querySelector("#levelNameValue"),
   levelProgressBar: document.querySelector("#levelProgressBar"),
   levelNextValue: document.querySelector("#levelNextValue"),
-  studentLevelBadge: document.querySelector("#studentLevelBadge"),
   studentStarsBadge: document.querySelector("#studentStarsBadge"),
   matchValue: document.querySelector("#matchValue"),
   matchLabel: document.querySelector("#matchLabel"),
@@ -2041,8 +2040,7 @@ function updateLevelDisplay() {
     : "максимальный уровень";
   els.scoreValue.title = `${stars} звезд всего`;
   els.levelCardButton.title = "Открыть историю уровней";
-  els.studentLevelBadge.textContent = `★${current.level}`;
-  els.studentStarsBadge.textContent = `${stars} ${pluralizeStars(stars)}`;
+  els.studentStarsBadge.textContent = `всего ${stars} ${pluralizeStars(stars)}`;
 }
 
 function showLevelOverlay() {

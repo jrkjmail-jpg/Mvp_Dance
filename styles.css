@@ -166,13 +166,14 @@ h2 {
 }
 
 .score-pill {
-  min-width: 172px;
-  min-height: 86px;
+  min-width: 100%;
+  min-height: 112px;
   border-radius: 8px;
   display: grid;
-  align-content: center;
-  gap: 3px;
-  padding: 10px 16px;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px 14px;
+  padding: 14px 16px;
   background:
     radial-gradient(circle at 12% 8%, rgba(255, 255, 255, 0.66), transparent 4.5rem),
     linear-gradient(135deg, #fff4b0, var(--accent-2));
@@ -187,7 +188,8 @@ h2 {
 }
 
 .score-pill .level-badge {
-  font-size: 2.1rem;
+  justify-self: end;
+  font-size: 1.9rem;
   font-weight: 900;
   line-height: 1;
 }
@@ -204,6 +206,49 @@ h2 {
 
 .level-open-hint {
   opacity: 0.78;
+}
+
+.level-profile-card {
+  padding: 0;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+}
+
+.level-profile-main {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.level-profile-main h2 {
+  color: #16110a;
+  font-size: 1.35rem;
+}
+
+.level-profile-main .eyebrow {
+  color: rgba(22, 17, 10, 0.78);
+  margin: 0;
+}
+
+.level-profile-main strong {
+  color: #3d444d;
+}
+
+.level-card .profile-badge {
+  background: rgba(22, 17, 10, 0.9);
+  color: #fff4b0;
+}
+
+.level-card .level-progress,
+.level-card #levelNextValue {
+  grid-column: 1 / -1;
+}
+
+.level-total-stars {
+  grid-column: 2 / -1;
+  justify-self: end;
+  align-self: end;
 }
 
 .level-progress {
@@ -1571,10 +1616,6 @@ meter::-webkit-meter-optimum-value {
     order: 2;
   }
 
-  .topbar .score-pill {
-    order: 3;
-  }
-
   h1 {
     font-size: 2rem;
   }
@@ -1582,14 +1623,14 @@ meter::-webkit-meter-optimum-value {
   .score-pill {
     width: 100%;
     min-height: 92px;
-    grid-template-columns: auto 1fr;
+    grid-template-columns: auto 1fr auto;
     align-items: center;
     column-gap: 12px;
   }
 
   .score-pill .level-badge {
-    grid-row: 1 / 5;
-    font-size: 2.6rem;
+    grid-row: auto;
+    font-size: 1.8rem;
   }
 
   .score-pill .level-progress,
