@@ -1355,26 +1355,27 @@ function evaluateRecordedAttempt() {
     const trajectory = trajectoryScore(referencePrevious, referenceNext, studentPrevious, studentNext);
     const amplitude = amplitudeScore(reference.signature, student.signature);
     const energy = energyScore(referencePrevious, referenceNext, studentPrevious, studentNext);
-    const total = adaptiveMomentScore({ position, timing, trajectory, amplitude, energy, arms, legs, body }, movementType);
-    if (total < 70) {
+    const corrected = reconcileMicroJitterScores({ position, timing, trajectory, amplitude, energy, arms, legs, body });
+    const total = adaptiveMomentScore(corrected, movementType);
+    if (total < 70 && shouldReportMistake(corrected)) {
       mistakes.push({
         time: reference.time,
         score: Math.round(total),
-        label: weakestMomentLabel({ arms, legs, body, timing, trajectory, amplitude, energy, position }),
+        label: weakestMomentLabel(corrected),
       });
     }
 
-    groups.arms.push(arms);
-    groups.legs.push(legs);
-    groups.body.push(body);
+    groups.arms.push(corrected.arms);
+    groups.legs.push(corrected.legs);
+    groups.body.push(corrected.body);
     groups.chest.push(chest);
     groups.head.push(head);
     groups.fingers.push(fingers);
-    groups.position.push(position);
-    groups.timing.push(timing);
-    groups.trajectory.push(trajectory);
-    groups.amplitude.push(amplitude);
-    groups.energy.push(energy);
+    groups.position.push(corrected.position);
+    groups.timing.push(corrected.timing);
+    groups.trajectory.push(corrected.trajectory);
+    groups.amplitude.push(corrected.amplitude);
+    groups.energy.push(corrected.energy);
     totals.push(total);
   });
 
@@ -1417,6 +1418,36 @@ function calibratedMatchTotal(total, coverage) {
     return Math.round(total + 3);
   }
   return Math.round(total);
+}
+
+function reconcileMicroJitterScores(scores) {
+  const shape = weightedAverage([scores.position, scores.arms, scores.legs, scores.body, scores.amplitude], [0.34, 0.2, 0.18, 0.16, 0.12]);
+  if (shape >= 86) {
+    return {
+      ...scores,
+      trajectory: Math.max(scores.trajectory, 88),
+      energy: Math.max(scores.energy, 86),
+    };
+  }
+  if (shape >= 78 && scores.trajectory < 70) {
+    return {
+      ...scores,
+      trajectory: Math.max(scores.trajectory, 76),
+    };
+  }
+  return scores;
+}
+
+function shouldReportMistake(scores) {
+  const poseIsClose = weightedAverage([scores.position, scores.arms, scores.legs, scores.body, scores.amplitude], [0.34, 0.2, 0.18, 0.16, 0.12]) >= 78;
+  const onlyTrajectoryIsWeak =
+    scores.trajectory < 70 &&
+    scores.timing >= 78 &&
+    scores.position >= 78 &&
+    scores.arms >= 74 &&
+    scores.legs >= 74 &&
+    scores.body >= 74;
+  return !(poseIsClose && onlyTrajectoryIsWeak);
 }
 
 function weakestMomentLabel(scores) {
@@ -1597,6 +1628,10 @@ function trajectoryScore(referencePrevious, referenceNext, studentPrevious, stud
   const studentVector = movementVector(studentPrevious, studentNext);
   if (!referenceVector && !studentVector) return 96;
   if (!referenceVector || !studentVector) return 72;
+  const referenceDistance = vectorDistance(referenceVector);
+  const studentDistance = vectorDistance(studentVector);
+  if (referenceDistance < 0.035 && studentDistance < 0.035) return 96;
+  if (referenceDistance < 0.035 || studentDistance < 0.035) return 82;
   return directionSimilarity(referenceVector, studentVector);
 }
 
@@ -1630,6 +1665,10 @@ function movementVelocity(previous, next) {
 
 function vectorVelocity(vector) {
   return Math.hypot(vector.x, vector.y) / Math.max(0.05, vector.dt);
+}
+
+function vectorDistance(vector) {
+  return Math.hypot(vector.x, vector.y);
 }
 
 function movementVector(previous, next) {
