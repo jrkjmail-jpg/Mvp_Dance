@@ -1408,20 +1408,20 @@ function evaluateRecordedAttempt() {
 
 function calibratedMatchTotal(total, coverage) {
   if (coverage < 0.82) return Math.round(total);
-  if (total >= 93 && coverage >= 0.98) return 100;
+  if (total >= 88 && coverage >= 0.98) return 100;
   if (total >= 96 && coverage >= 0.96) return 100;
   if (total >= 90 && coverage >= 0.94) {
-    return Math.min(99, Math.round(94 + (total - 90) * 1.15));
+    return Math.min(99, Math.round(96 + (total - 90) * 0.7));
   }
   if (total >= 84 && coverage >= 0.9) {
-    return Math.round(total + 3);
+    return Math.round(total + 5);
   }
   return Math.round(total);
 }
 
 function filterReportedMistakes(mistakes, total, coverage) {
-  if (total >= 98 && coverage >= 0.98) return [];
-  const severeThreshold = total >= 94 && coverage >= 0.96 ? 52 : 70;
+  if (total >= 92 && coverage >= 0.96) return [];
+  const severeThreshold = 50;
   return mistakes
     .filter((item) => item.score < severeThreshold)
     .sort((a, b) => a.score - b.score)
@@ -1431,32 +1431,25 @@ function filterReportedMistakes(mistakes, total, coverage) {
 
 function reconcileMicroJitterScores(scores) {
   const shape = weightedAverage([scores.position, scores.arms, scores.legs, scores.body, scores.amplitude], [0.34, 0.2, 0.18, 0.16, 0.12]);
-  if (shape >= 86) {
+  if (shape >= 72) {
     return {
       ...scores,
-      trajectory: Math.max(scores.trajectory, 88),
-      energy: Math.max(scores.energy, 86),
+      trajectory: Math.max(scores.trajectory, 92),
+      energy: Math.max(scores.energy, 90),
     };
   }
-  if (shape >= 78 && scores.trajectory < 70) {
+  if (shape >= 62 && scores.trajectory < 70) {
     return {
       ...scores,
-      trajectory: Math.max(scores.trajectory, 76),
+      trajectory: Math.max(scores.trajectory, 84),
+      energy: Math.max(scores.energy, 80),
     };
   }
   return scores;
 }
 
 function shouldReportMistake(scores) {
-  const poseIsClose = weightedAverage([scores.position, scores.arms, scores.legs, scores.body, scores.amplitude], [0.34, 0.2, 0.18, 0.16, 0.12]) >= 78;
-  const onlyTrajectoryIsWeak =
-    scores.trajectory < 70 &&
-    scores.timing >= 78 &&
-    scores.position >= 78 &&
-    scores.arms >= 74 &&
-    scores.legs >= 74 &&
-    scores.body >= 74;
-  return !(poseIsClose && onlyTrajectoryIsWeak);
+  return grossMistakeScore(scores) < 50;
 }
 
 function weakestMomentLabel(scores) {
@@ -1470,8 +1463,20 @@ function weakestMomentLabel(scores) {
     energy: "скорость/энергия движения другая",
     position: "форма позы отличается",
   };
-  const [key] = Object.entries(scores).sort((a, b) => a[1] - b[1])[0] || ["position"];
+  const [key] =
+    Object.entries({
+      arms: scores.arms,
+      legs: scores.legs,
+      body: scores.body,
+      timing: scores.timing,
+      amplitude: scores.amplitude,
+      position: scores.position,
+    }).sort((a, b) => a[1] - b[1])[0] || ["position"];
   return labels[key] || labels.position;
+}
+
+function grossMistakeScore(scores) {
+  return Math.min(scores.position, scores.arms, scores.legs, scores.body, scores.timing, scores.amplitude);
 }
 
 function nearestStudentSample(time) {
@@ -1598,11 +1603,11 @@ function poseShapeScore(reference, student) {
 
 function categoryOrNumberScore(reference, student) {
   if (typeof reference === "number" && typeof student === "number") {
-    return numericSimilarity(reference, student, 0.035, 34);
+    return numericSimilarity(reference, student, 0.06, 22);
   }
   if (reference === student) return 100;
-  if (String(reference).split("_")[0] === String(student).split("_")[0]) return 82;
-  return 36;
+  if (String(reference).split("_")[0] === String(student).split("_")[0]) return 92;
+  return 68;
 }
 
 function classifyMovementMoment(current, previous, next) {
@@ -1617,10 +1622,10 @@ function classifyMovementMoment(current, previous, next) {
 function adaptiveMomentScore(scores, movementType) {
   const weights =
     movementType === "accent"
-      ? { position: 0.38, timing: 0.26, trajectory: 0.14, amplitude: 0.12, energy: 0.1 }
+      ? { position: 0.54, timing: 0.24, trajectory: 0.04, amplitude: 0.12, energy: 0.06 }
       : movementType === "transition"
-        ? { position: 0.22, timing: 0.22, trajectory: 0.28, amplitude: 0.14, energy: 0.14 }
-        : { position: 0.42, timing: 0.24, trajectory: 0.12, amplitude: 0.12, energy: 0.1 };
+        ? { position: 0.44, timing: 0.2, trajectory: 0.08, amplitude: 0.18, energy: 0.1 }
+        : { position: 0.58, timing: 0.22, trajectory: 0.02, amplitude: 0.14, energy: 0.04 };
 
   const base =
     scores.position * weights.position +
@@ -1629,7 +1634,8 @@ function adaptiveMomentScore(scores, movementType) {
     scores.amplitude * weights.amplitude +
     scores.energy * weights.energy;
   const limbGuard = Math.min(scores.arms, scores.legs, scores.body);
-  return Math.round(base * 0.86 + limbGuard * 0.14);
+  const guardedBase = limbGuard < 45 ? base * 0.78 + limbGuard * 0.22 : base * 0.94 + limbGuard * 0.06;
+  return Math.round(guardedBase);
 }
 
 function trajectoryScore(referencePrevious, referenceNext, studentPrevious, studentNext) {
@@ -1647,10 +1653,10 @@ function trajectoryScore(referencePrevious, referenceNext, studentPrevious, stud
 function amplitudeScore(reference, student) {
   return weightedAverage(
     [
-      numericSimilarity(reference.armSpread, student.armSpread, 0.04, 24),
-      numericSimilarity(reference.reach, student.reach, 0.04, 28),
-      numericSimilarity(reference.stance, student.stance, 0.04, 26),
-      numericSimilarity(reference.level, student.level, 0.035, 32),
+      numericSimilarity(reference.armSpread, student.armSpread, 0.08, 16),
+      numericSimilarity(reference.reach, student.reach, 0.08, 18),
+      numericSimilarity(reference.stance, student.stance, 0.08, 18),
+      numericSimilarity(reference.level, student.level, 0.07, 20),
     ],
     [0.3, 0.26, 0.24, 0.2],
   );
