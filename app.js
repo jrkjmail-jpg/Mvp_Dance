@@ -68,7 +68,6 @@ const els = {
   studentEmpty: document.querySelector("#studentEmpty"),
   scoreValue: document.querySelector("#scoreValue"),
   levelNameValue: document.querySelector("#levelNameValue"),
-  totalStarsValue: document.querySelector("#totalStarsValue"),
   levelProgressBar: document.querySelector("#levelProgressBar"),
   levelNextValue: document.querySelector("#levelNextValue"),
   studentLevelBadge: document.querySelector("#studentLevelBadge"),
@@ -110,6 +109,11 @@ const els = {
   resultLevelBadge: document.querySelector("#resultLevelBadge"),
   resultLevelName: document.querySelector("#resultLevelName"),
   resultCloseButton: document.querySelector("#resultCloseButton"),
+  levelCardButton: document.querySelector("#levelCardButton"),
+  levelOverlay: document.querySelector("#levelOverlay"),
+  levelOverlayDetails: document.querySelector("#levelOverlayDetails"),
+  levelHistoryList: document.querySelector("#levelHistoryList"),
+  levelOverlayCloseButton: document.querySelector("#levelOverlayCloseButton"),
 };
 
 const BONES = [
@@ -331,6 +335,10 @@ els.teacherVideoToggle.addEventListener("change", updateTeacherLayerVisibility);
 els.teacherSkeletonToggle.addEventListener("change", updateTeacherLayerVisibility);
 els.resultCloseButton.addEventListener("click", () => {
   els.resultOverlay.hidden = true;
+});
+els.levelCardButton.addEventListener("click", showLevelOverlay);
+els.levelOverlayCloseButton.addEventListener("click", () => {
+  els.levelOverlay.hidden = true;
 });
 els.showMistakesButton.addEventListener("click", toggleMistakes);
 els.practiceButton.addEventListener("click", startPractice);
@@ -2022,15 +2030,67 @@ function updateLevelDisplay() {
   const previousStars = current.stars;
   const nextStars = next?.stars || current.stars;
   const progress = next ? ((stars - previousStars) / Math.max(1, nextStars - previousStars)) * 100 : 100;
+  const levelEarned = stars - previousStars;
+  const levelTarget = Math.max(0, nextStars - previousStars);
 
-  els.scoreValue.textContent = `★${current.level}`;
+  els.scoreValue.textContent = `Ур. ${current.level}`;
   els.levelNameValue.textContent = current.name;
-  els.totalStarsValue.textContent = String(stars);
   els.levelProgressBar.style.width = `${Math.min(100, Math.max(0, progress))}%`;
-  els.levelNextValue.textContent = next ? `до уровня ${next.level}: ${next.stars - stars}` : "максимальный уровень";
+  els.levelNextValue.textContent = next
+    ? `${Math.max(0, levelTarget - levelEarned)} из ${levelTarget} ${pluralizeStars(levelTarget)} до уровня ${next.level}`
+    : "максимальный уровень";
   els.scoreValue.title = `${stars} звезд всего`;
+  els.levelCardButton.title = "Открыть историю уровней";
   els.studentLevelBadge.textContent = `★${current.level}`;
   els.studentStarsBadge.textContent = `${stars} ${pluralizeStars(stars)}`;
+}
+
+function showLevelOverlay() {
+  renderLevelHistory();
+  els.levelOverlay.hidden = false;
+}
+
+function renderLevelHistory() {
+  const stars = totalStars();
+  const { current, next } = levelInfoFromStars(stars);
+  const nextStars = next?.stars || current.stars;
+  const currentProgress = next ? `${Math.max(0, next.stars - stars)} из ${Math.max(1, nextStars - current.stars)} до уровня ${next.level}` : "все уровни открыты";
+  els.levelOverlayDetails.textContent = `Сейчас уровень ${current.level}: ${current.name}. ${currentProgress}.`;
+  els.levelHistoryList.innerHTML = "";
+
+  LEVELS.forEach((level, index) => {
+    const nextLevel = LEVELS[index + 1] || null;
+    const row = document.createElement("div");
+    const isCompleted = stars >= (nextLevel?.stars ?? level.stars);
+    const isCurrent = level.level === current.level;
+    row.className = `level-row ${isCurrent ? "current" : isCompleted ? "completed" : "locked"}`;
+
+    const badge = document.createElement("span");
+    badge.textContent = isCompleted ? "✓" : isCurrent ? "★" : "•";
+
+    const text = document.createElement("div");
+    const title = document.createElement("strong");
+    title.textContent = `Уровень ${level.level}: ${level.name}`;
+    const subtitle = document.createElement("small");
+    subtitle.textContent = levelStatusText(level, nextLevel, stars, isCurrent, isCompleted);
+    text.append(title, subtitle);
+
+    const required = document.createElement("small");
+    required.textContent = `${level.stars}+`;
+    row.append(badge, text, required);
+    els.levelHistoryList.append(row);
+  });
+}
+
+function levelStatusText(level, nextLevel, stars, isCurrent, isCompleted) {
+  if (!nextLevel) return isCurrent ? "максимальный уровень" : "финальный уровень";
+  const levelSpan = nextLevel.stars - level.stars;
+  if (isCompleted) return "пройден";
+  if (isCurrent) {
+    const earned = Math.max(0, stars - level.stars);
+    return `${earned} из ${levelSpan} ${pluralizeStars(levelSpan)} внутри уровня`;
+  }
+  return `открывается с ${level.stars} ${pluralizeStars(level.stars)}`;
 }
 
 function pluralizeStars(value) {

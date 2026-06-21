@@ -11,7 +11,7 @@
     <link rel="manifest" href="./manifest.webmanifest" />
     <link rel="icon" href="./assets/app-icon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="./assets/app-icon.svg" />
-    <link rel="stylesheet" href="./styles.css?v=20260622-4" />
+    <link rel="stylesheet" href="./styles.css?v=20260622-5" />
   </head>
   <body>
     <main class="app-shell">
@@ -24,13 +24,13 @@
           <button class="role-tab active" data-view="student" type="button">Танцор</button>
           <button class="role-tab" data-view="teacher" type="button">Педагог</button>
         </nav>
-        <div class="score-pill level-card" aria-live="polite">
-          <span id="scoreValue">★1</span>
+        <button id="levelCardButton" class="score-pill level-card" type="button" aria-live="polite">
+          <span id="scoreValue" class="level-badge">Ур. 1</span>
           <strong id="levelNameValue">Новичок</strong>
-          <small><span id="totalStarsValue">0</span> звезд</small>
           <div class="level-progress"><span id="levelProgressBar"></span></div>
-          <small id="levelNextValue">до уровня 2: 5</small>
-        </div>
+          <small id="levelNextValue">0 из 5 до уровня 2</small>
+          <small class="level-open-hint">История уровней</small>
+        </button>
       </header>
 
       <section class="student-dashboard" data-panel="student">
@@ -395,6 +395,16 @@
           <button id="resultCloseButton" class="primary" type="button">Продолжить</button>
         </section>
       </div>
+
+      <div id="levelOverlay" class="result-overlay" hidden>
+        <section class="result-card progress-card" role="dialog" aria-modal="true" aria-labelledby="levelOverlayTitle">
+          <p class="eyebrow">Прогресс</p>
+          <h2 id="levelOverlayTitle">История уровней</h2>
+          <p id="levelOverlayDetails">Уровни танцора</p>
+          <div id="levelHistoryList" class="level-history"></div>
+          <button id="levelOverlayCloseButton" class="primary" type="button">Закрыть</button>
+        </section>
+      </div>
     </main>
 
     <script>
@@ -476,6 +486,6 @@
         });
       }
     </script>
-    <script type="module" src="./app.js?v=20260622-4"></script>
+    <script type="module" src="./app.js?v=20260622-5"></script>
   </body>
 </html>

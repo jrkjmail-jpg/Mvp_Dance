@@ -178,9 +178,15 @@ h2 {
     linear-gradient(135deg, #fff4b0, var(--accent-2));
   color: #16110a;
   border: 1px solid rgba(255, 255, 255, 0.5);
+  text-align: left;
+  cursor: pointer;
 }
 
-.score-pill span {
+.score-pill:hover {
+  filter: brightness(1.02);
+}
+
+.score-pill .level-badge {
   font-size: 2.1rem;
   font-weight: 900;
   line-height: 1;
@@ -193,6 +199,11 @@ h2 {
 .score-pill small {
   color: #3d444d;
   font-weight: 700;
+  font-size: 0.72rem;
+}
+
+.level-open-hint {
+  opacity: 0.78;
 }
 
 .level-progress {
@@ -208,6 +219,57 @@ h2 {
   height: 100%;
   background: #16110a;
   transition: width 220ms ease;
+}
+
+.progress-card {
+  max-width: min(620px, calc(100vw - 28px));
+}
+
+.level-history {
+  width: 100%;
+  max-height: min(58vh, 620px);
+  overflow: auto;
+  display: grid;
+  gap: 8px;
+  padding-right: 4px;
+}
+
+.level-row {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 10px 12px;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.045);
+}
+
+.level-row strong {
+  font-size: 0.95rem;
+}
+
+.level-row span {
+  color: var(--muted);
+  font-weight: 800;
+}
+
+.level-row small {
+  color: var(--muted);
+  font-weight: 800;
+}
+
+.level-row.completed {
+  border-color: rgba(45, 212, 191, 0.45);
+}
+
+.level-row.current {
+  border-color: rgba(255, 212, 90, 0.65);
+  background: rgba(255, 212, 90, 0.1);
+}
+
+.level-row.locked {
+  opacity: 0.68;
 }
 
 .stage-grid {
@@ -1525,7 +1587,7 @@ meter::-webkit-meter-optimum-value {
     column-gap: 12px;
   }
 
-  .score-pill span {
+  .score-pill .level-badge {
     grid-row: 1 / 5;
     font-size: 2.6rem;
   }
