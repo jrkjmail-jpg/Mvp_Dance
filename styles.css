@@ -919,6 +919,10 @@ h2 {
   grid-template-rows: auto minmax(240px, 1fr) auto;
 }
 
+.student-studio-panel {
+  grid-template-rows: auto auto minmax(240px, 1fr) auto;
+}
+
 .panel-head {
   min-height: 72px;
   padding: 14px 16px;
@@ -952,7 +956,7 @@ h2 {
 }
 
 .student-upload {
-  margin: 0 14px 12px;
+  margin: 12px 14px 0;
   border: 1px solid var(--line);
   border-radius: 8px;
   padding: 10px 12px;

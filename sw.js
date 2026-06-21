@@ -1,9 +1,9 @@
-const CACHE_NAME = "tantsuy-mvp-20260621-5";
+const CACHE_NAME = "tantsuy-mvp-20260621-6";
 const APP_SHELL = [
   "./",
-  "./index.html?v=20260621-10",
-  "./styles.css?v=20260621-10",
-  "./app.js?v=20260621-10",
+  "./index.html?v=20260621-11",
+  "./styles.css?v=20260621-11",
+  "./app.js?v=20260621-11",
   "./manifest.webmanifest",
   "./assets/app-icon.svg",
   "./assets/dance-lesson-thumb.png"
