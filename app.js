@@ -1282,6 +1282,7 @@ function evaluateRecordedAttempt() {
   const references = state.reference.filter((item) => item.time >= start && item.time <= end);
   const totals = [];
   const mistakes = [];
+  let matchedFrames = 0;
   const groups = {
     arms: [],
     legs: [],
@@ -1298,7 +1299,7 @@ function evaluateRecordedAttempt() {
 
   references.forEach((reference) => {
     const student = nearestStudentSample(reference.time);
-    if (!student || Math.abs(student.time - reference.time) > 0.22) {
+    if (!student || Math.abs(student.time - reference.time) > 0.28) {
       Object.values(groups).forEach((values) => values.push(0));
       totals.push(0);
       mistakes.push({
@@ -1308,6 +1309,7 @@ function evaluateRecordedAttempt() {
       });
       return;
     }
+    matchedFrames += 1;
 
     const referencePrevious = previousReferenceSample(reference.time);
     const referenceNext = nextReferenceSample(reference.time);
@@ -1349,7 +1351,9 @@ function evaluateRecordedAttempt() {
     totals.push(total);
   });
 
-  const coverage = references.length ? Math.min(1, state.studentRecording.length / references.length) : 0;
+  const coverage = references.length ? matchedFrames / references.length : 0;
+  const rawTotal = average(totals) * coverage;
+  const total = calibratedMatchTotal(rawTotal, coverage);
   const result = {
     arms: average(groups.arms),
     legs: average(groups.legs),
@@ -1358,12 +1362,15 @@ function evaluateRecordedAttempt() {
     head: average(groups.head),
     fingers: average(groups.fingers),
     position: weightedAverage([average(groups.position), average(groups.trajectory)], [0.58, 0.42]),
-    timing: average(groups.timing) * coverage,
+    timing: calibratedMatchTotal(average(groups.timing) * coverage, coverage),
     trajectory: average(groups.trajectory),
     amplitude: average(groups.amplitude),
     energy: average(groups.energy),
-    total: Math.round(average(totals) * coverage),
-    score: Math.round(average(totals) * coverage * 12),
+    total,
+    score: Math.round(total * 12),
+    coverage: Math.round(coverage * 100),
+    matchedFrames,
+    referenceFrames: references.length,
     mistakes: mistakes
       .sort((a, b) => a.score - b.score)
       .filter((item, index, list) => index === 0 || Math.abs(item.time - list[index - 1].time) > 0.8)
@@ -1371,6 +1378,18 @@ function evaluateRecordedAttempt() {
   };
 
   return result;
+}
+
+function calibratedMatchTotal(total, coverage) {
+  if (coverage < 0.82) return Math.round(total);
+  if (total >= 96 && coverage >= 0.96) return 100;
+  if (total >= 90 && coverage >= 0.94) {
+    return Math.min(99, Math.round(94 + (total - 90) * 1.15));
+  }
+  if (total >= 84 && coverage >= 0.9) {
+    return Math.round(total + 3);
+  }
+  return Math.round(total);
 }
 
 function weakestMomentLabel(scores) {
@@ -1512,11 +1531,11 @@ function poseShapeScore(reference, student) {
 
 function categoryOrNumberScore(reference, student) {
   if (typeof reference === "number" && typeof student === "number") {
-    return Math.max(0, 100 - Math.abs(reference - student) * 48);
+    return numericSimilarity(reference, student, 0.035, 34);
   }
   if (reference === student) return 100;
-  if (String(reference).split("_")[0] === String(student).split("_")[0]) return 68;
-  return 22;
+  if (String(reference).split("_")[0] === String(student).split("_")[0]) return 82;
+  return 36;
 }
 
 function classifyMovementMoment(current, previous, next) {
@@ -1549,32 +1568,40 @@ function adaptiveMomentScore(scores, movementType) {
 function trajectoryScore(referencePrevious, referenceNext, studentPrevious, studentNext) {
   const referenceVector = movementVector(referencePrevious, referenceNext);
   const studentVector = movementVector(studentPrevious, studentNext);
-  if (!referenceVector || !studentVector) return 50;
+  if (!referenceVector && !studentVector) return 96;
+  if (!referenceVector || !studentVector) return 72;
   return directionSimilarity(referenceVector, studentVector);
 }
 
 function amplitudeScore(reference, student) {
   return weightedAverage(
     [
-      Math.max(0, 100 - Math.abs(reference.armSpread - student.armSpread) * 32),
-      Math.max(0, 100 - Math.abs(reference.reach - student.reach) * 36),
-      Math.max(0, 100 - Math.abs(reference.stance - student.stance) * 34),
-      Math.max(0, 100 - Math.abs(reference.level - student.level) * 42),
+      numericSimilarity(reference.armSpread, student.armSpread, 0.04, 24),
+      numericSimilarity(reference.reach, student.reach, 0.04, 28),
+      numericSimilarity(reference.stance, student.stance, 0.04, 26),
+      numericSimilarity(reference.level, student.level, 0.035, 32),
     ],
     [0.3, 0.26, 0.24, 0.2],
   );
 }
 
 function energyScore(referencePrevious, referenceNext, studentPrevious, studentNext) {
-  const referenceVelocity = movementVelocity(referencePrevious, referenceNext);
-  const studentVelocity = movementVelocity(studentPrevious, studentNext);
-  if (!referenceVelocity && !studentVelocity) return 80;
-  return Math.max(0, 100 - Math.abs(referenceVelocity - studentVelocity) * 22);
+  const referenceVector = movementVector(referencePrevious, referenceNext);
+  const studentVector = movementVector(studentPrevious, studentNext);
+  if (!referenceVector && !studentVector) return 96;
+  if (!referenceVector || !studentVector) return 74;
+  const referenceVelocity = vectorVelocity(referenceVector);
+  const studentVelocity = vectorVelocity(studentVector);
+  return numericSimilarity(referenceVelocity, studentVelocity, 0.08, 14);
 }
 
 function movementVelocity(previous, next) {
   const vector = movementVector(previous, next);
   if (!vector) return 0;
+  return vectorVelocity(vector);
+}
+
+function vectorVelocity(vector) {
   return Math.hypot(vector.x, vector.y) / Math.max(0.05, vector.dt);
 }
 
@@ -1589,10 +1616,15 @@ function movementVector(previous, next) {
 function directionSimilarity(reference, student) {
   const refMag = Math.hypot(reference.x, reference.y);
   const studentMag = Math.hypot(student.x, student.y);
-  if (refMag < 0.02 && studentMag < 0.02) return 90;
-  if (refMag < 0.02 || studentMag < 0.02) return 45;
+  if (refMag < 0.02 && studentMag < 0.02) return 96;
+  if (refMag < 0.02 || studentMag < 0.02) return 72;
   const dot = (reference.x * student.x + reference.y * student.y) / (refMag * studentMag);
   return Math.max(0, Math.min(100, ((dot + 1) / 2) * 100));
+}
+
+function numericSimilarity(reference, student, tolerance, penalty) {
+  const diff = Math.max(0, Math.abs(reference - student) - tolerance);
+  return Math.max(0, 100 - diff * penalty);
 }
 
 function averagePoint(landmarks, points) {
@@ -1648,7 +1680,8 @@ function angleGroupScore(referenceAngles, studentAngles) {
 
 function timingScore(referenceTime, currentTime) {
   const diff = Math.abs(referenceTime - currentTime);
-  return Math.max(0, 100 - diff * 260);
+  const tolerance = 0.035;
+  return Math.max(0, 100 - Math.max(0, diff - tolerance) * 190);
 }
 
 function landmarkGroupScore(referenceLandmarks, studentLandmarks) {
@@ -1937,7 +1970,8 @@ function showResultOverlay(attempt) {
 
   els.resultStars.textContent = renderStars(stars);
   els.resultTitle.textContent = stars >= 5 ? "Идеальная сдача" : stars >= 3 ? "Уровень пройден" : "Еще немного тренировки";
-  els.resultDetails.textContent = `${attempt.match}% совпадения · ${stars} из 5 звезд · ${tip}`;
+  const coverageText = Number.isFinite(attempt.scores?.coverage) ? ` · кадры ${attempt.scores.coverage}%` : "";
+  els.resultDetails.textContent = `${attempt.match}% совпадения · ${stars} из 5 звезд${coverageText} · ${tip}`;
   els.resultLevelBadge.textContent = `★${info.current.level}`;
   els.resultLevelName.textContent = info.current.name;
   renderMistakes(attempt.scores?.mistakes || []);
