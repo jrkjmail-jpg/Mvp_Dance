@@ -31,6 +31,7 @@ const els = {
   studentVideoTime: document.querySelector("#studentVideoTime"),
   markStudentStartButton: document.querySelector("#markStudentStartButton"),
   markStudentEndButton: document.querySelector("#markStudentEndButton"),
+  buildStudentSkeletonButton: document.querySelector("#buildStudentSkeletonButton"),
   studentStartMarkerTick: document.querySelector("#studentStartMarkerTick"),
   studentEndMarkerTick: document.querySelector("#studentEndMarkerTick"),
   teacherPlayButton: document.querySelector("#teacherPlayButton"),
@@ -231,6 +232,8 @@ const state = {
   countdownToken: 0,
   pendingExamScan: false,
   studentVideoObjectUrl: "",
+  studentSkeleton: [],
+  studentScanId: 0,
   studentClip: {
     duration: 0,
     start: 0,
@@ -304,6 +307,7 @@ els.studentPlayButton.addEventListener("click", toggleStudentPlayback);
 els.studentSeekRange.addEventListener("input", seekStudentFromTimeline);
 els.markStudentStartButton.addEventListener("click", markStudentStart);
 els.markStudentEndButton.addEventListener("click", markStudentEnd);
+els.buildStudentSkeletonButton.addEventListener("click", buildStudentSkeleton);
 els.teacherPlayButton.addEventListener("click", toggleTeacherPlayback);
 els.teacherSeekRange.addEventListener("input", seekTeacherFromTimeline);
 els.markExamStartButton.addEventListener("click", markExamStart);
@@ -476,6 +480,7 @@ async function onTeacherUpload(event, type) {
   if (type === "exam") {
     state.pendingExamScan = true;
     state.reference = [];
+    state.studentSkeleton = [];
     state.score = 0;
     state.bestMatch = 0;
     state.studentRecording = [];
@@ -587,6 +592,8 @@ async function onStudentVideoUpload(event) {
   }
 
   state.studentVideoObjectUrl = URL.createObjectURL(file);
+  state.studentScanId += 1;
+  state.studentSkeleton = [];
   studentVideo.srcObject = null;
   studentVideo.src = state.studentVideoObjectUrl;
   studentVideo.muted = true;
@@ -962,6 +969,14 @@ async function toggleDance() {
   }
   if (!state.reference.length) return;
 
+  if (useStudentFile && state.studentSkeleton.length) {
+    state.studentRecording = state.studentSkeleton.map((sample) => ({ ...sample }));
+    const result = evaluateRecordedAttempt();
+    finalizeAttemptResult(result, Math.max(1, Math.round(clipEnd(state.studentClip) - state.studentClip.start)));
+    els.taskStatus.textContent = "результат по считанному скелету";
+    return;
+  }
+
   els.appShell.classList.remove("practice-focus");
   state.mode = "countdown";
   updateLessonFlow("exam");
@@ -1013,6 +1028,10 @@ function finishAttempt() {
 
   const seconds = Math.max(1, Math.round((performance.now() - state.startedAt) / 1000));
   const result = evaluateRecordedAttempt();
+  finalizeAttemptResult(result, seconds);
+}
+
+function finalizeAttemptResult(result, seconds) {
   const stars = Math.max(1, matchToStars(result.total));
   const attempt = {
     score: result.score,
@@ -2161,6 +2180,7 @@ function updateStudentPlayButton() {
 
 function markStudentStart() {
   if (!studentVideo.src) return;
+  state.studentSkeleton = [];
   state.studentClip.start = Math.max(0, studentVideo.currentTime || 0);
   state.studentClip.startSet = true;
   normalizeClipRange(state.studentClip);
@@ -2170,6 +2190,7 @@ function markStudentStart() {
 
 function markStudentEnd() {
   if (!studentVideo.src) return;
+  state.studentSkeleton = [];
   state.studentClip.end = Math.max(0, studentVideo.currentTime || 0);
   state.studentClip.endSet = true;
   normalizeClipRange(state.studentClip);
@@ -2243,6 +2264,102 @@ function renderStudentPoseFrame() {
   const student = result.landmarks?.[0];
   if (student) {
     drawPose(studentCtx, studentCanvas, student, "#2dd4bf");
+  }
+}
+
+async function buildStudentSkeleton() {
+  if (!state.studentVideoObjectUrl) {
+    els.taskStatus.textContent = "сначала загрузите видео ученика";
+    return;
+  }
+  if (!state.reference.length) {
+    els.taskStatus.textContent = "сначала считайте эталон педагога";
+    return;
+  }
+  if (!state.teacherLandmarker) {
+    els.taskStatus.textContent = "загружаю модель трекинга";
+    const ready = await initPose();
+    if (!ready || !state.teacherLandmarker) {
+      els.taskStatus.textContent = "модель трекинга не загрузилась";
+      return;
+    }
+  }
+
+  const scanId = ++state.studentScanId;
+  state.studentSkeleton = [];
+  state.studentRecording = [];
+  els.buildStudentSkeletonButton.disabled = true;
+  els.studentPlayButton.disabled = true;
+  els.markStudentStartButton.disabled = true;
+  els.markStudentEndButton.disabled = true;
+  studentVideo.pause();
+
+  try {
+    await waitForMetadata(studentVideo);
+    state.studentClip.duration = studentVideo.duration || state.studentClip.duration || 0;
+    normalizeClipRange(state.studentClip);
+    const start = state.studentClip.start || 0;
+    const end = Math.max(start, clipEnd(state.studentClip));
+    const teacherStart = state.exam.start || 0;
+    const targetFps = REFERENCE_SCAN_FPS;
+    const step = 1 / targetFps;
+    const totalFrames = Math.max(1, Math.ceil((end - start) / step));
+    let frameIndex = 0;
+
+    await seekStudentVideo(start);
+    resizeCanvasToVideo(studentCanvas, studentVideo);
+    clearCanvas(studentCtx, studentCanvas);
+    els.taskStatus.textContent = "считываю скелет ученика";
+
+    for (let rawTime = start; rawTime <= end; rawTime += step) {
+      if (scanId !== state.studentScanId) return;
+      await seekStudentVideo(rawTime);
+      resizeCanvasToVideo(studentCanvas, studentVideo);
+      clearCanvas(studentCtx, studentCanvas);
+      const result = state.teacherLandmarker.detect(studentVideo);
+      const landmarks = result.landmarks?.[0];
+      if (landmarks) {
+        drawPose(studentCtx, studentCanvas, landmarks, "#2dd4bf");
+        const normalized = normalizeLandmarks(landmarks);
+        const sample = {
+          time: teacherStart + (rawTime - start),
+          rawTime,
+          displayLandmarks: cloneLandmarks(landmarks),
+          angles: poseAngles(landmarks),
+          landmarks: normalized,
+          signature: movementSignature(normalized),
+        };
+        state.studentSkeleton.push(sample);
+      }
+      frameIndex += 1;
+      const progress = Math.round(((rawTime - start) / Math.max(end - start, 1)) * 100);
+      els.taskStatus.textContent = `${progress}% · скелет ученика: ${state.studentSkeleton.length}/${totalFrames}`;
+      updateStudentVideoTime();
+      await nextFrame();
+    }
+
+    state.studentRecording = state.studentSkeleton.map((sample) => ({ ...sample }));
+    await seekStudentVideo(start);
+    clearCanvas(studentCtx, studentCanvas);
+    const firstFrame = state.studentSkeleton[0];
+    if (firstFrame?.displayLandmarks) {
+      drawPose(studentCtx, studentCanvas, firstFrame.displayLandmarks, "#2dd4bf");
+    }
+    els.taskStatus.textContent = state.studentSkeleton.length
+      ? `${state.studentSkeleton.length} кадров ученика готово. Нажмите «Сдать»`
+      : "скелет ученика не найден";
+  } catch (error) {
+    els.taskStatus.textContent = "не удалось считать скелет ученика";
+    console.error(error);
+  } finally {
+    if (scanId === state.studentScanId) {
+      els.buildStudentSkeletonButton.disabled = false;
+      els.studentPlayButton.disabled = false;
+      els.markStudentStartButton.disabled = false;
+      els.markStudentEndButton.disabled = false;
+      updateStudentPlayButton();
+      syncStudentTimeline();
+    }
   }
 }
 
