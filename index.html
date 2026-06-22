@@ -11,7 +11,7 @@
     <link rel="manifest" href="./manifest.webmanifest" />
     <link rel="icon" href="./assets/app-icon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="./assets/app-icon.svg" />
-    <link rel="stylesheet" href="./styles.css?v=20260622-12" />
+    <link rel="stylesheet" href="./styles.css?v=20260622-13" />
   </head>
   <body>
     <main class="app-shell student-mode">
@@ -130,10 +130,10 @@
         <article class="panel teacher-space-panel">
           <div class="panel-head">
             <div>
-              <p class="eyebrow">Структура</p>
-              <h2>Мои пространства</h2>
+              <p id="teacherBreadcrumb" class="eyebrow">Мои пространства</p>
+              <h2 id="teacherFolderTitle">Кабинет педагога</h2>
             </div>
-            <button class="create-main-button" type="button" title="Создать студию">
+            <button id="teacherPrimaryAction" class="create-main-button" type="button" title="Создать студию">
               <span aria-hidden="true">+</span>
               Создать студию
             </button>
@@ -148,22 +148,25 @@
               Самостоятельно
             </button>
           </div>
-          <div class="teacher-workspace">
-            <div class="workspace-tree">
-              <div class="workspace-root">
+          <div class="teacher-workspace" data-teacher-browser>
+            <div class="teacher-folder-view active" data-teacher-view="root">
+              <div class="empty-folder">
                 <span class="folder-icon" aria-hidden="true">▣</span>
                 <div>
-                  <p class="eyebrow">Студия</p>
-                  <h3>Todes</h3>
-                  <span>Внутри студии создаются группы, педагоги и материалы.</span>
+                  <strong>Пока нет студий</strong>
+                  <small>Создайте студию или личное пространство, потом зайдите внутрь и добавьте группы.</small>
                 </div>
-                <button class="small-plus-button" type="button" title="Создать группу">
-                  <span aria-hidden="true">+</span>
-                  Создать группу
-                </button>
               </div>
-              <div class="folder-grid" aria-label="Папки студии">
-                <button class="folder-card active" type="button">
+              <button class="folder-card add-folder" type="button" data-open-teacher-view="studio">
+                <span aria-hidden="true">+</span>
+                <strong>Создать студию</strong>
+                <small>например Todes</small>
+              </button>
+            </div>
+
+            <div class="teacher-folder-view" data-teacher-view="studio" hidden>
+              <div class="folder-grid" aria-label="Группы студии">
+                <button class="folder-card active" type="button" data-open-teacher-view="group">
                   <span class="folder-icon" aria-hidden="true">▣</span>
                   <strong>6 группа</strong>
                   <small>12 учеников · домашние задания</small>
@@ -171,16 +174,31 @@
                 <button class="folder-card add-folder" type="button">
                   <span aria-hidden="true">+</span>
                   <strong>Создать группу</strong>
-                  <small>новая группа, курс или мастер-класс</small>
+                  <small>новая папка внутри студии</small>
                 </button>
               </div>
+              <aside class="workspace-side">
+                <div class="teachers-card">
+                  <p class="eyebrow">Педагоги</p>
+                  <strong>Женя Шалаев</strong>
+                  <span>владелец студии</span>
+                  <button type="button">Добавить педагога</button>
+                </div>
+              </aside>
             </div>
-            <aside class="workspace-side">
-              <div class="teachers-card">
-                <p class="eyebrow">Педагоги</p>
-                <strong>Женя Шалаев</strong>
-                <span>владелец · 3 папки</span>
-                <button type="button">Добавить педагога</button>
+
+            <div class="teacher-folder-view" data-teacher-view="group" hidden>
+              <div class="folder-grid" aria-label="Уроки группы">
+                <button class="folder-card active" type="button" data-open-teacher-view="lesson">
+                  <span class="folder-icon" aria-hidden="true">▶</span>
+                  <strong>Танец недели</strong>
+                  <small>обучение · сдача · эталон</small>
+                </button>
+                <button class="folder-card add-folder" type="button">
+                  <span aria-hidden="true">+</span>
+                  <strong>Создать урок</strong>
+                  <small>добавить видео и задание</small>
+                </button>
               </div>
               <div class="invite-card">
                 <div class="qr-mock" aria-hidden="true">
@@ -188,11 +206,24 @@
                 </div>
                 <div>
                   <strong>Пригласить учеников</strong>
-                  <small>Ссылка или QR-код выбранной папки</small>
+                  <small>Ссылка или QR-код этой группы</small>
                 </div>
                 <button type="button">Создать QR</button>
               </div>
-            </aside>
+            </div>
+
+            <div class="teacher-folder-view lesson-view" data-teacher-view="lesson" hidden>
+              <div class="lesson-open-card">
+                <span class="folder-icon" aria-hidden="true">▶</span>
+                <div>
+                  <p class="eyebrow">Открыт урок</p>
+                  <h3>Танец недели</h3>
+                  <span>Здесь настраиваются видео, эталон, фрагмент сдачи и публикация.</span>
+                </div>
+              </div>
+              <button class="small-plus-button" type="button">Список учеников</button>
+              <button class="small-plus-button" type="button">Просмотры урока</button>
+            </div>
           </div>
         </article>
 
@@ -552,6 +583,6 @@
         });
       }
     </script>
-    <script type="module" src="./app.js?v=20260622-12"></script>
+    <script type="module" src="./app.js?v=20260622-13"></script>
   </body>
 </html>

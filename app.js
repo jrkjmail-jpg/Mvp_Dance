@@ -113,6 +113,11 @@ const els = {
   levelOverlayDetails: document.querySelector("#levelOverlayDetails"),
   levelHistoryList: document.querySelector("#levelHistoryList"),
   levelOverlayCloseButton: document.querySelector("#levelOverlayCloseButton"),
+  teacherBreadcrumb: document.querySelector("#teacherBreadcrumb"),
+  teacherFolderTitle: document.querySelector("#teacherFolderTitle"),
+  teacherPrimaryAction: document.querySelector("#teacherPrimaryAction"),
+  teacherFolderViews: document.querySelectorAll("[data-teacher-view]"),
+  teacherBrowser: document.querySelector("[data-teacher-browser]"),
 };
 
 const BONES = [
@@ -249,6 +254,7 @@ const state = {
   studentVideoFileSize: 0,
   studentSkeleton: [],
   studentScanId: 0,
+  teacherFolderView: "root",
   studentClip: {
     duration: 0,
     start: 0,
@@ -305,6 +311,7 @@ updateLevelDisplay();
 updateExamMarker();
 updatePipeline("upload");
 updateLessonFlow("choose");
+setTeacherFolderView("root");
 switchView("student");
 initPose();
 
@@ -316,6 +323,14 @@ els.showLearningVideoButton.addEventListener("click", () => switchTeacherVideo("
 els.showExamVideoButton.addEventListener("click", () => switchTeacherVideo("exam"));
 els.startDanceCardButton.addEventListener("click", focusDanceStage);
 els.roleTabs.forEach((tab) => tab.addEventListener("click", () => switchView(tab.dataset.view)));
+els.teacherBrowser.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-open-teacher-view]");
+  if (button) setTeacherFolderView(button.dataset.openTeacherView);
+});
+els.teacherPrimaryAction.addEventListener("click", () => {
+  const nextView = state.teacherFolderView === "root" ? "studio" : state.teacherFolderView === "studio" ? "group" : "lesson";
+  setTeacherFolderView(nextView);
+});
 els.cameraButton.addEventListener("click", startCamera);
 els.studentVideoUpload.addEventListener("change", onStudentVideoUpload);
 els.studentPlayButton.addEventListener("click", toggleStudentPlayback);
@@ -2291,6 +2306,43 @@ function focusDanceStage() {
   switchView("student");
   updateLessonFlow("practice");
   document.querySelector(".stage-grid")?.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function setTeacherFolderView(view) {
+  const meta = {
+    root: {
+      breadcrumb: "Мои пространства",
+      title: "Кабинет педагога",
+      action: "Создать студию",
+    },
+    studio: {
+      breadcrumb: "Мои пространства / Todes",
+      title: "Студия Todes",
+      action: "Создать группу",
+    },
+    group: {
+      breadcrumb: "Мои пространства / Todes / 6 группа",
+      title: "6 группа",
+      action: "Создать урок",
+    },
+    lesson: {
+      breadcrumb: "Мои пространства / Todes / 6 группа / Танец недели",
+      title: "Танец недели",
+      action: "Опубликовать",
+    },
+  };
+  const safeView = meta[view] ? view : "root";
+  state.teacherFolderView = safeView;
+  els.teacherFolderViews.forEach((panel) => {
+    const active = panel.dataset.teacherView === safeView;
+    panel.hidden = !active;
+    panel.classList.toggle("active", active);
+  });
+  els.teacherBreadcrumb.textContent = meta[safeView].breadcrumb;
+  els.teacherFolderTitle.textContent = meta[safeView].title;
+  els.teacherPrimaryAction.lastChild.textContent = ` ${meta[safeView].action}`;
+  els.teacherPrimaryAction.title = meta[safeView].action;
+  els.appShell.classList.toggle("teacher-lesson-open", safeView === "lesson");
 }
 
 function updateExamMarker() {

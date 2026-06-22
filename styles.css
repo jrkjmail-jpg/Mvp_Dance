@@ -364,6 +364,12 @@ h2 {
   grid-template-columns: minmax(0, 1fr);
 }
 
+.app-shell.teacher-mode:not(.teacher-lesson-open) .stage-grid,
+.app-shell.teacher-mode:not(.teacher-lesson-open) .pipeline-steps,
+.app-shell.teacher-mode:not(.teacher-lesson-open) .setup-panel {
+  display: none;
+}
+
 .app-shell.teacher-mode .student-studio-panel,
 .app-shell.teacher-mode .control-band,
 .app-shell.teacher-mode .metrics-grid {
@@ -481,13 +487,9 @@ h2 {
 .teacher-workspace {
   border-top: 1px solid var(--line);
   padding: 12px;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(280px, 0.42fr);
-  gap: 12px;
-  align-items: stretch;
+  display: block;
 }
 
-.workspace-tree,
 .workspace-side,
 .teachers-card,
 .invite-card {
@@ -497,9 +499,46 @@ h2 {
   background: rgba(255, 255, 255, 0.045);
 }
 
-.workspace-tree {
+.teacher-folder-view {
   display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(260px, 0.36fr);
   gap: 12px;
+  align-items: start;
+}
+
+.teacher-folder-view[hidden] {
+  display: none;
+}
+
+.teacher-folder-view[data-teacher-view="root"],
+.teacher-folder-view.lesson-view {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.empty-folder,
+.lesson-open-card {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 14px;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.045);
+}
+
+.empty-folder strong,
+.lesson-open-card h3 {
+  display: block;
+  margin: 0 0 4px;
+  font-size: clamp(1.2rem, 3vw, 1.65rem);
+  line-height: 1.05;
+}
+
+.empty-folder small,
+.lesson-open-card span {
+  color: var(--muted);
+  font-weight: 800;
+  line-height: 1.35;
 }
 
 .workspace-root {
@@ -1781,6 +1820,7 @@ meter::-webkit-meter-optimum-value {
   .control-band,
   .setup-body,
   .teacher-workspace,
+  .teacher-folder-view,
   .folder-grid,
   .pipeline-steps,
   .lesson-flow {
