@@ -433,6 +433,125 @@ h2 {
   background: rgba(255, 255, 255, 0.06);
 }
 
+.teacher-space-panel {
+  overflow: hidden;
+}
+
+.teacher-space-status {
+  border: 1px solid rgba(255, 212, 90, 0.45);
+  border-radius: 999px;
+  padding: 7px 10px;
+  color: var(--accent-2);
+  font-weight: 900;
+  background: rgba(255, 212, 90, 0.08);
+}
+
+.teacher-space-grid {
+  padding: 12px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.space-option {
+  min-height: 136px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 14px;
+  display: grid;
+  align-content: start;
+  gap: 8px;
+  text-align: left;
+  background: rgba(255, 255, 255, 0.045);
+  color: var(--text);
+}
+
+.space-option strong {
+  font-size: 1.15rem;
+  line-height: 1.1;
+}
+
+.space-option span {
+  color: var(--muted);
+  font-size: 0.9rem;
+  font-weight: 750;
+  line-height: 1.35;
+}
+
+.space-option.active {
+  border-color: rgba(255, 212, 90, 0.65);
+  background:
+    linear-gradient(135deg, rgba(255, 212, 90, 0.2), rgba(36, 214, 181, 0.08)),
+    rgba(255, 255, 255, 0.045);
+}
+
+.teacher-group-card {
+  border-top: 1px solid var(--line);
+  padding: 12px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 0.8fr);
+  gap: 12px;
+  align-items: stretch;
+}
+
+.teacher-group-card > div:first-child,
+.invite-card {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 14px;
+  background: rgba(255, 255, 255, 0.045);
+}
+
+.teacher-group-card h3 {
+  margin: 2px 0 6px;
+  font-size: clamp(1.25rem, 3vw, 2rem);
+  line-height: 1;
+}
+
+.teacher-group-card span,
+.invite-card small {
+  color: var(--muted);
+  font-weight: 800;
+  line-height: 1.35;
+}
+
+.invite-card {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+}
+
+.invite-card strong {
+  display: block;
+  line-height: 1.1;
+}
+
+.invite-card button {
+  min-height: 44px;
+  padding: 0 14px;
+  background: var(--accent);
+  color: var(--ink);
+}
+
+.qr-mock {
+  width: 58px;
+  height: 58px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 8px;
+  padding: 6px;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 5px;
+  background: #f6fff9;
+}
+
+.qr-mock span {
+  min-width: 0;
+  border-radius: 3px;
+  background: #07110f;
+}
+
 .pipeline-steps,
 .lesson-flow {
   display: grid;
@@ -1550,9 +1669,20 @@ meter::-webkit-meter-optimum-value {
   .metrics-grid,
   .control-band,
   .setup-body,
+  .teacher-space-grid,
+  .teacher-group-card,
   .pipeline-steps,
   .lesson-flow {
     grid-template-columns: 1fr;
+  }
+
+  .invite-card {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .invite-card button {
+    grid-column: 1 / -1;
+    width: 100%;
   }
 
   .cabinet-card {

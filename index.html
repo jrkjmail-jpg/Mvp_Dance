@@ -11,7 +11,7 @@
     <link rel="manifest" href="./manifest.webmanifest" />
     <link rel="icon" href="./assets/app-icon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="./assets/app-icon.svg" />
-    <link rel="stylesheet" href="./styles.css?v=20260622-9" />
+    <link rel="stylesheet" href="./styles.css?v=20260622-10" />
   </head>
   <body>
     <main class="app-shell student-mode">
@@ -121,10 +121,51 @@
           <div class="profile-badge" aria-hidden="true">П</div>
           <div>
             <p class="eyebrow">Кабинет педагога</p>
-            <h2>Подготовить урок</h2>
-            <span>Загрузите видео, проверьте эталон и выберите фрагмент сдачи.</span>
+            <h2>Электронная танцстудия</h2>
+            <span>Создайте студию или личный кабинет, соберите группу и публикуйте уроки.</span>
           </div>
           <button id="publishLessonButton" class="publish-button" type="button" disabled>Опубликовать</button>
+        </article>
+
+        <article class="panel teacher-space-panel">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow">Пространство</p>
+              <h2>Кто ведёт обучение</h2>
+            </div>
+            <span class="teacher-space-status">MVP</span>
+          </div>
+          <div class="teacher-space-grid">
+            <button class="space-option active" type="button">
+              <strong>Студия</strong>
+              <span>Директор или педагог создаёт студию, группы и приглашает учеников.</span>
+            </button>
+            <button class="space-option" type="button">
+              <strong>Самостоятельно</strong>
+              <span>Танцор без зала ведёт личный кабинет и свои онлайн-группы.</span>
+            </button>
+            <button class="space-option" type="button">
+              <strong>Мастер-класс</strong>
+              <span>Разовый курс или связка для клиентов, которые купили доступ.</span>
+            </button>
+          </div>
+          <div class="teacher-group-card">
+            <div>
+              <p class="eyebrow">Активная группа</p>
+              <h3>Todes · 6 группа</h3>
+              <span>12 учеников · домашние задания · доступ по приглашению</span>
+            </div>
+            <div class="invite-card">
+              <div class="qr-mock" aria-hidden="true">
+                <span></span><span></span><span></span><span></span>
+              </div>
+              <div>
+                <strong>Пригласить учеников</strong>
+                <small>Ссылка или QR-код группы</small>
+              </div>
+              <button type="button">Создать QR</button>
+            </div>
+          </div>
         </article>
 
         <div class="pipeline-steps" aria-label="Этапы подготовки урока">
@@ -483,6 +524,6 @@
         });
       }
     </script>
-    <script type="module" src="./app.js?v=20260622-9"></script>
+    <script type="module" src="./app.js?v=20260622-10"></script>
   </body>
 </html>
