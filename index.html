@@ -11,7 +11,7 @@
     <link rel="manifest" href="./manifest.webmanifest" />
     <link rel="icon" href="./assets/app-icon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="./assets/app-icon.svg" />
-    <link rel="stylesheet" href="./styles.css?v=20260622-14" />
+    <link rel="stylesheet" href="./styles.css?v=20260622-15" />
   </head>
   <body>
     <main class="app-shell student-mode">
@@ -132,38 +132,27 @@
           </div>
           <div class="teacher-workspace" data-teacher-browser>
             <div class="teacher-folder-view active" data-teacher-view="root">
-              <div class="teacher-empty-note">
+              <div id="teacherRootEmpty" class="teacher-empty-note">
                 <strong>Создайте первое пространство</strong>
                 <small>Здесь появятся ваши студии или личные кабинеты.</small>
               </div>
+              <div id="teacherStudioList" class="folder-grid" aria-label="Студии"></div>
             </div>
 
             <div class="teacher-folder-view" data-teacher-view="studio" hidden>
-              <div class="folder-grid" aria-label="Группы студии">
-                <button class="folder-card active" type="button" data-open-teacher-view="group">
-                  <span class="folder-icon" aria-hidden="true">▣</span>
-                  <strong>6 группа</strong>
-                  <small>12 учеников · домашние задания</small>
-                </button>
-              </div>
+              <div id="teacherGroupList" class="folder-grid" aria-label="Группы студии"></div>
               <aside class="workspace-side">
                 <div class="teachers-card">
                   <p class="eyebrow">Педагоги</p>
-                  <strong>Женя Шалаев</strong>
-                  <span>владелец студии</span>
+                  <strong>Пока один владелец</strong>
+                  <span>педагогов можно будет добавить позже</span>
                   <button type="button">Добавить педагога</button>
                 </div>
               </aside>
             </div>
 
             <div class="teacher-folder-view" data-teacher-view="group" hidden>
-              <div class="folder-grid" aria-label="Уроки группы">
-                <button class="folder-card active" type="button" data-open-teacher-view="lesson">
-                  <span class="folder-icon" aria-hidden="true">▶</span>
-                  <strong>Танец недели</strong>
-                  <small>обучение · сдача · эталон</small>
-                </button>
-              </div>
+              <div id="teacherLessonList" class="folder-grid" aria-label="Уроки группы"></div>
               <div class="invite-card">
                 <div class="qr-mock" aria-hidden="true">
                   <span></span><span></span><span></span><span></span>
@@ -181,7 +170,7 @@
                 <span class="folder-icon" aria-hidden="true">▶</span>
                 <div>
                   <p class="eyebrow">Открыт урок</p>
-                  <h3>Танец недели</h3>
+                  <h3 id="teacherLessonOpenTitle">Урок</h3>
                   <span>Здесь настраиваются видео, эталон, фрагмент сдачи и публикация.</span>
                 </div>
               </div>
@@ -464,6 +453,25 @@
           <button id="levelOverlayCloseButton" class="primary" type="button">Закрыть</button>
         </section>
       </div>
+
+      <div id="teacherCreateOverlay" class="result-overlay" hidden>
+        <form id="teacherCreateForm" class="create-card" role="dialog" aria-modal="true" aria-labelledby="teacherCreateTitle">
+          <p id="teacherCreateEyebrow" class="eyebrow">Создание</p>
+          <h2 id="teacherCreateTitle">Создать</h2>
+          <label>
+            <span id="teacherCreateNameLabel">Название</span>
+            <input id="teacherCreateName" type="text" autocomplete="off" required />
+          </label>
+          <label>
+            <span>Описание</span>
+            <input id="teacherCreateDescription" type="text" autocomplete="off" placeholder="необязательно" />
+          </label>
+          <div class="create-actions">
+            <button id="teacherCreateCancel" type="button">Отмена</button>
+            <button class="primary" type="submit">Создать</button>
+          </div>
+        </form>
+      </div>
     </main>
 
     <script>
@@ -547,6 +555,6 @@
         });
       }
     </script>
-    <script type="module" src="./app.js?v=20260622-14"></script>
+    <script type="module" src="./app.js?v=20260622-15"></script>
   </body>
 </html>
