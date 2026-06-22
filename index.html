@@ -11,7 +11,7 @@
     <link rel="manifest" href="./manifest.webmanifest" />
     <link rel="icon" href="./assets/app-icon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="./assets/app-icon.svg" />
-    <link rel="stylesheet" href="./styles.css?v=20260622-10" />
+    <link rel="stylesheet" href="./styles.css?v=20260622-11" />
   </head>
   <body>
     <main class="app-shell student-mode">
@@ -122,7 +122,7 @@
           <div>
             <p class="eyebrow">Кабинет педагога</p>
             <h2>Электронная танцстудия</h2>
-            <span>Создайте студию или личный кабинет, соберите группу и публикуйте уроки.</span>
+            <span>Выберите формат работы, создайте папки групп и публикуйте уроки или мастер-классы.</span>
           </div>
           <button id="publishLessonButton" class="publish-button" type="button" disabled>Опубликовать</button>
         </article>
@@ -131,40 +131,70 @@
           <div class="panel-head">
             <div>
               <p class="eyebrow">Пространство</p>
-              <h2>Кто ведёт обучение</h2>
+              <h2>Формат работы</h2>
             </div>
             <span class="teacher-space-status">MVP</span>
           </div>
           <div class="teacher-space-grid">
             <button class="space-option active" type="button">
-              <strong>Студия</strong>
-              <span>Директор или педагог создаёт студию, группы и приглашает учеников.</span>
+              <strong>Работа в студии</strong>
+              <span>Создаётся студия, внутри неё группы, педагоги и материалы для учеников.</span>
             </button>
             <button class="space-option" type="button">
-              <strong>Самостоятельно</strong>
-              <span>Танцор без зала ведёт личный кабинет и свои онлайн-группы.</span>
-            </button>
-            <button class="space-option" type="button">
-              <strong>Мастер-класс</strong>
-              <span>Разовый курс или связка для клиентов, которые купили доступ.</span>
+              <strong>Работа самостоятельно</strong>
+              <span>Педагог создаёт личное пространство и папки под группы, курсы или мастер-классы.</span>
             </button>
           </div>
-          <div class="teacher-group-card">
-            <div>
-              <p class="eyebrow">Активная группа</p>
-              <h3>Todes · 6 группа</h3>
-              <span>12 учеников · домашние задания · доступ по приглашению</span>
-            </div>
-            <div class="invite-card">
-              <div class="qr-mock" aria-hidden="true">
-                <span></span><span></span><span></span><span></span>
+          <div class="teacher-workspace">
+            <div class="workspace-tree">
+              <div class="workspace-root">
+                <span class="folder-icon" aria-hidden="true">▣</span>
+                <div>
+                  <p class="eyebrow">Студия</p>
+                  <h3>Todes</h3>
+                </div>
               </div>
-              <div>
-                <strong>Пригласить учеников</strong>
-                <small>Ссылка или QR-код группы</small>
+              <div class="folder-grid" aria-label="Папки студии">
+                <button class="folder-card active" type="button">
+                  <span class="folder-icon" aria-hidden="true">▣</span>
+                  <strong>6 группа</strong>
+                  <small>12 учеников · домашние задания</small>
+                </button>
+                <button class="folder-card" type="button">
+                  <span class="folder-icon" aria-hidden="true">▣</span>
+                  <strong>Junior hip-hop</strong>
+                  <small>8 учеников · база движений</small>
+                </button>
+                <button class="folder-card" type="button">
+                  <span class="folder-icon" aria-hidden="true">▣</span>
+                  <strong>Мастер-класс 27 ноября</strong>
+                  <small>разовый доступ · связка</small>
+                </button>
+                <button class="folder-card add-folder" type="button">
+                  <span aria-hidden="true">+</span>
+                  <strong>Создать папку</strong>
+                  <small>группа, курс или мастер-класс</small>
+                </button>
               </div>
-              <button type="button">Создать QR</button>
             </div>
+            <aside class="workspace-side">
+              <div class="teachers-card">
+                <p class="eyebrow">Педагоги</p>
+                <strong>Женя Шалаев</strong>
+                <span>владелец · 3 папки</span>
+                <button type="button">Добавить педагога</button>
+              </div>
+              <div class="invite-card">
+                <div class="qr-mock" aria-hidden="true">
+                  <span></span><span></span><span></span><span></span>
+                </div>
+                <div>
+                  <strong>Пригласить учеников</strong>
+                  <small>Ссылка или QR-код выбранной папки</small>
+                </div>
+                <button type="button">Создать QR</button>
+              </div>
+            </aside>
           </div>
         </article>
 
@@ -524,6 +554,6 @@
         });
       }
     </script>
-    <script type="module" src="./app.js?v=20260622-10"></script>
+    <script type="module" src="./app.js?v=20260622-11"></script>
   </body>
 </html>
