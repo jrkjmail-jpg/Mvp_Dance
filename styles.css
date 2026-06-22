@@ -360,6 +360,25 @@ h2 {
   display: none;
 }
 
+.app-shell.teacher-mode .stage-grid {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.app-shell.teacher-mode .student-studio-panel,
+.app-shell.teacher-mode .control-band,
+.app-shell.teacher-mode .metrics-grid {
+  display: none;
+}
+
+.app-shell.teacher-mode .stage-grid .studio-panel:first-child {
+  min-height: min(760px, 74vh);
+}
+
+.app-shell.student-mode .pipeline-steps,
+.app-shell.student-mode .setup-panel {
+  display: none;
+}
+
 .cabinet-card {
   border: 1px solid var(--line);
   border-radius: 8px;

@@ -2283,6 +2283,8 @@ function switchView(view) {
   els.roleTabs.forEach((tab) => tab.classList.toggle("active", tab.dataset.view === view));
   els.studentPanel.hidden = view !== "student";
   els.teacherPanel.hidden = view !== "teacher";
+  els.appShell.classList.toggle("student-mode", view === "student");
+  els.appShell.classList.toggle("teacher-mode", view === "teacher");
 }
 
 function focusDanceStage() {

@@ -11,10 +11,10 @@
     <link rel="manifest" href="./manifest.webmanifest" />
     <link rel="icon" href="./assets/app-icon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="./assets/app-icon.svg" />
-    <link rel="stylesheet" href="./styles.css?v=20260622-8" />
+    <link rel="stylesheet" href="./styles.css?v=20260622-9" />
   </head>
   <body>
-    <main class="app-shell">
+    <main class="app-shell student-mode">
       <header class="topbar">
         <div>
           <p class="eyebrow">Домашняя тренировка</p>
@@ -406,6 +406,8 @@
       document.querySelectorAll(".role-tab").forEach((tab) => {
         tab.addEventListener("click", () => {
           const view = tab.dataset.view;
+          document.querySelector(".app-shell")?.classList.toggle("student-mode", view === "student");
+          document.querySelector(".app-shell")?.classList.toggle("teacher-mode", view === "teacher");
           document.querySelectorAll(".role-tab").forEach((item) => {
             item.classList.toggle("active", item.dataset.view === view);
           });
@@ -481,6 +483,6 @@
         });
       }
     </script>
-    <script type="module" src="./app.js?v=20260622-8"></script>
+    <script type="module" src="./app.js?v=20260622-9"></script>
   </body>
 </html>
