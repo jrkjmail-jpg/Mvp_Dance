@@ -11,7 +11,7 @@
     <link rel="manifest" href="./manifest.webmanifest" />
     <link rel="icon" href="./assets/app-icon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="./assets/app-icon.svg" />
-    <link rel="stylesheet" href="./styles.css?v=20260622-11" />
+    <link rel="stylesheet" href="./styles.css?v=20260622-12" />
   </head>
   <body>
     <main class="app-shell student-mode">
@@ -121,8 +121,8 @@
           <div class="profile-badge" aria-hidden="true">П</div>
           <div>
             <p class="eyebrow">Кабинет педагога</p>
-            <h2>Электронная танцстудия</h2>
-            <span>Выберите формат работы, создайте папки групп и публикуйте уроки или мастер-классы.</span>
+            <h2>Уроки и группы</h2>
+            <span>Создайте студию или личное пространство, затем добавляйте группы и материалы.</span>
           </div>
           <button id="publishLessonButton" class="publish-button" type="button" disabled>Опубликовать</button>
         </article>
@@ -130,19 +130,22 @@
         <article class="panel teacher-space-panel">
           <div class="panel-head">
             <div>
-              <p class="eyebrow">Пространство</p>
-              <h2>Формат работы</h2>
+              <p class="eyebrow">Структура</p>
+              <h2>Мои пространства</h2>
             </div>
-            <span class="teacher-space-status">MVP</span>
-          </div>
-          <div class="teacher-space-grid">
-            <button class="space-option active" type="button">
-              <strong>Работа в студии</strong>
-              <span>Создаётся студия, внутри неё группы, педагоги и материалы для учеников.</span>
+            <button class="create-main-button" type="button" title="Создать студию">
+              <span aria-hidden="true">+</span>
+              Создать студию
             </button>
-            <button class="space-option" type="button">
-              <strong>Работа самостоятельно</strong>
-              <span>Педагог создаёт личное пространство и папки под группы, курсы или мастер-классы.</span>
+          </div>
+          <div class="workspace-mode-tabs" aria-label="Формат работы">
+            <button class="workspace-mode active" type="button">
+              <span aria-hidden="true">◼</span>
+              Студия
+            </button>
+            <button class="workspace-mode" type="button">
+              <span aria-hidden="true">●</span>
+              Самостоятельно
             </button>
           </div>
           <div class="teacher-workspace">
@@ -152,7 +155,12 @@
                 <div>
                   <p class="eyebrow">Студия</p>
                   <h3>Todes</h3>
+                  <span>Внутри студии создаются группы, педагоги и материалы.</span>
                 </div>
+                <button class="small-plus-button" type="button" title="Создать группу">
+                  <span aria-hidden="true">+</span>
+                  Создать группу
+                </button>
               </div>
               <div class="folder-grid" aria-label="Папки студии">
                 <button class="folder-card active" type="button">
@@ -160,20 +168,10 @@
                   <strong>6 группа</strong>
                   <small>12 учеников · домашние задания</small>
                 </button>
-                <button class="folder-card" type="button">
-                  <span class="folder-icon" aria-hidden="true">▣</span>
-                  <strong>Junior hip-hop</strong>
-                  <small>8 учеников · база движений</small>
-                </button>
-                <button class="folder-card" type="button">
-                  <span class="folder-icon" aria-hidden="true">▣</span>
-                  <strong>Мастер-класс 27 ноября</strong>
-                  <small>разовый доступ · связка</small>
-                </button>
                 <button class="folder-card add-folder" type="button">
                   <span aria-hidden="true">+</span>
-                  <strong>Создать папку</strong>
-                  <small>группа, курс или мастер-класс</small>
+                  <strong>Создать группу</strong>
+                  <small>новая группа, курс или мастер-класс</small>
                 </button>
               </div>
             </div>
@@ -554,6 +552,6 @@
         });
       }
     </script>
-    <script type="module" src="./app.js?v=20260622-11"></script>
+    <script type="module" src="./app.js?v=20260622-12"></script>
   </body>
 </html>

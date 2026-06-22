@@ -437,52 +437,45 @@ h2 {
   overflow: hidden;
 }
 
-.teacher-space-status {
-  border: 1px solid rgba(255, 212, 90, 0.45);
-  border-radius: 999px;
-  padding: 7px 10px;
-  color: var(--accent-2);
-  font-weight: 900;
-  background: rgba(255, 212, 90, 0.08);
-}
-
-.teacher-space-grid {
-  padding: 12px;
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
-}
-
-.space-option {
-  min-height: 136px;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  padding: 14px;
-  display: grid;
-  align-content: start;
+.create-main-button,
+.small-plus-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   gap: 8px;
-  text-align: left;
+  background: var(--accent);
+  color: var(--ink);
+}
+
+.create-main-button span,
+.small-plus-button span {
+  font-size: 1.35rem;
+  line-height: 1;
+}
+
+.workspace-mode-tabs {
+  padding: 12px 12px 0;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.workspace-mode {
+  min-height: 42px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 0 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   background: rgba(255, 255, 255, 0.045);
-  color: var(--text);
-}
-
-.space-option strong {
-  font-size: 1.15rem;
-  line-height: 1.1;
-}
-
-.space-option span {
   color: var(--muted);
-  font-size: 0.9rem;
-  font-weight: 750;
-  line-height: 1.35;
 }
 
-.space-option.active {
+.workspace-mode.active {
   border-color: rgba(255, 212, 90, 0.65);
-  background:
-    linear-gradient(135deg, rgba(255, 212, 90, 0.2), rgba(36, 214, 181, 0.08)),
-    rgba(255, 255, 255, 0.045);
+  color: var(--accent-2);
+  background: rgba(255, 212, 90, 0.1);
 }
 
 .teacher-workspace {
@@ -513,7 +506,8 @@ h2 {
   border: 1px solid rgba(255, 212, 90, 0.35);
   border-radius: 8px;
   padding: 12px;
-  display: flex;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
   gap: 12px;
   background:
@@ -525,6 +519,11 @@ h2 {
   margin: 2px 0 6px;
   font-size: clamp(1.25rem, 3vw, 2rem);
   line-height: 1;
+}
+
+.small-plus-button {
+  min-height: 42px;
+  padding: 0 12px;
 }
 
 .folder-icon {
@@ -1781,7 +1780,6 @@ meter::-webkit-meter-optimum-value {
   .metrics-grid,
   .control-band,
   .setup-body,
-  .teacher-space-grid,
   .teacher-workspace,
   .folder-grid,
   .pipeline-steps,
@@ -1794,6 +1792,15 @@ meter::-webkit-meter-optimum-value {
   }
 
   .invite-card button {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+
+  .workspace-root {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .small-plus-button {
     grid-column: 1 / -1;
     width: 100%;
   }
