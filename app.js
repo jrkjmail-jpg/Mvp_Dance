@@ -115,6 +115,7 @@ const els = {
   levelOverlayCloseButton: document.querySelector("#levelOverlayCloseButton"),
   teacherBreadcrumb: document.querySelector("#teacherBreadcrumb"),
   teacherFolderTitle: document.querySelector("#teacherFolderTitle"),
+  teacherBackButton: document.querySelector("#teacherBackButton"),
   teacherPrimaryAction: document.querySelector("#teacherPrimaryAction"),
   teacherFolderViews: document.querySelectorAll("[data-teacher-view]"),
   teacherBrowser: document.querySelector("[data-teacher-browser]"),
@@ -366,6 +367,11 @@ els.teacherBrowser.addEventListener("click", (event) => {
   }
 });
 els.teacherPrimaryAction.addEventListener("click", openTeacherCreateDialog);
+els.teacherBackButton.addEventListener("click", goTeacherBack);
+els.teacherBreadcrumb.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-breadcrumb-view]");
+  if (button) setTeacherFolderView(button.dataset.breadcrumbView);
+});
 els.teacherCreateForm.addEventListener("submit", submitTeacherCreateDialog);
 els.teacherCreateCancel.addEventListener("click", closeTeacherCreateDialog);
 els.cameraButton.addEventListener("click", startCamera);
@@ -2359,12 +2365,40 @@ function setTeacherFolderView(view) {
     panel.classList.toggle("active", active);
   });
   els.teacherBreadcrumb.textContent = meta[safeView].breadcrumb;
+  els.teacherBreadcrumb.innerHTML = renderTeacherBreadcrumb(safeView, studio, group, lesson);
   els.teacherFolderTitle.textContent = meta[safeView].title;
-  els.teacherPrimaryAction.lastChild.textContent = ` ${meta[safeView].action}`;
-  els.teacherPrimaryAction.title = meta[safeView].action;
-  els.teacherPrimaryAction.disabled = safeView === "lesson";
+  const actionLabel = safeView === "root" && state.teacherWorkspace.studios.length ? "Открыть студию" : meta[safeView].action;
+  els.teacherPrimaryAction.lastChild.textContent = ` ${actionLabel}`;
+  els.teacherPrimaryAction.title = actionLabel;
+  els.teacherPrimaryAction.hidden = safeView === "lesson";
+  els.teacherBackButton.hidden = safeView === "root";
   if (lesson) els.teacherLessonOpenTitle.textContent = lesson.name;
   els.appShell.classList.toggle("teacher-lesson-open", safeView === "lesson");
+}
+
+function renderTeacherBreadcrumb(view, studio, group, lesson) {
+  const parts = [{ label: "Мои пространства", view: "root" }];
+  if (studio && ["studio", "group", "lesson"].includes(view)) parts.push({ label: studio.name, view: "studio" });
+  if (group && ["group", "lesson"].includes(view)) parts.push({ label: group.name, view: "group" });
+  if (lesson && view === "lesson") parts.push({ label: lesson.name, view: "lesson" });
+  return parts
+    .map((part, index) => {
+      const active = index === parts.length - 1;
+      const label = escapeHtml(part.label);
+      return active
+        ? `<span>${label}</span>`
+        : `<button type="button" data-breadcrumb-view="${part.view}">${label}</button>`;
+    })
+    .join("<span aria-hidden=\"true\">/</span>");
+}
+
+function goTeacherBack() {
+  const previousView = {
+    studio: "root",
+    group: "studio",
+    lesson: "group",
+  }[state.teacherFolderView];
+  if (previousView) setTeacherFolderView(previousView);
 }
 
 function teacherFolderMeta(studio, group, lesson) {
@@ -2444,6 +2478,14 @@ function activeTeacherLesson() {
 }
 
 function openTeacherCreateDialog() {
+  if (state.teacherFolderView === "root" && state.teacherWorkspace.studios.length) {
+    const studio = state.teacherWorkspace.studios[0];
+    state.teacherWorkspace.activeStudioId = studio.id;
+    state.teacherWorkspace.activeGroupId = "";
+    state.teacherWorkspace.activeLessonId = "";
+    setTeacherFolderView("studio");
+    return;
+  }
   const typeByView = {
     root: "studio",
     studio: "group",

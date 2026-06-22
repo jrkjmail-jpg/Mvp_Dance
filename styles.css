@@ -444,6 +444,46 @@ h2 {
   overflow: hidden;
 }
 
+.teacher-breadcrumb {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  line-height: 1.25;
+  text-transform: uppercase;
+}
+
+.teacher-breadcrumb button {
+  min-height: 0;
+  border: 0;
+  padding: 0;
+  color: var(--accent);
+  background: transparent;
+  font: inherit;
+}
+
+.teacher-breadcrumb span {
+  color: var(--muted);
+}
+
+.teacher-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+
+.ghost-action {
+  min-height: 44px;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.055);
+}
+
 .create-main-button,
 .small-plus-button {
   display: inline-flex;

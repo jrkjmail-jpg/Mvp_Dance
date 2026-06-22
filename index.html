@@ -11,7 +11,7 @@
     <link rel="manifest" href="./manifest.webmanifest" />
     <link rel="icon" href="./assets/app-icon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="./assets/app-icon.svg" />
-    <link rel="stylesheet" href="./styles.css?v=20260622-15" />
+    <link rel="stylesheet" href="./styles.css?v=20260622-16" />
   </head>
   <body>
     <main class="app-shell student-mode">
@@ -122,13 +122,16 @@
         <article class="panel teacher-space-panel">
           <div class="panel-head">
             <div>
-              <p id="teacherBreadcrumb" class="eyebrow">Мои пространства</p>
+              <div id="teacherBreadcrumb" class="teacher-breadcrumb" aria-label="Путь">Мои пространства</div>
               <h2 id="teacherFolderTitle">Кабинет педагога</h2>
             </div>
-            <button id="teacherPrimaryAction" class="create-main-button" type="button" title="Создать студию">
-              <span aria-hidden="true">+</span>
-              Создать студию
-            </button>
+            <div class="teacher-actions">
+              <button id="teacherBackButton" class="ghost-action" type="button" hidden>Назад</button>
+              <button id="teacherPrimaryAction" class="create-main-button" type="button" title="Создать студию">
+                <span aria-hidden="true">+</span>
+                Создать студию
+              </button>
+            </div>
           </div>
           <div class="teacher-workspace" data-teacher-browser>
             <div class="teacher-folder-view active" data-teacher-view="root">
@@ -555,6 +558,6 @@
         });
       }
     </script>
-    <script type="module" src="./app.js?v=20260622-15"></script>
+    <script type="module" src="./app.js?v=20260622-16"></script>
   </body>
 </html>
