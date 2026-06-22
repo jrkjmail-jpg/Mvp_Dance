@@ -11,7 +11,7 @@
     <link rel="manifest" href="./manifest.webmanifest" />
     <link rel="icon" href="./assets/app-icon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="./assets/app-icon.svg" />
-    <link rel="stylesheet" href="./styles.css?v=20260622-13" />
+    <link rel="stylesheet" href="./styles.css?v=20260622-14" />
   </head>
   <body>
     <main class="app-shell student-mode">
@@ -117,15 +117,7 @@
       </section>
 
       <section class="teacher-dashboard" data-panel="teacher" hidden>
-        <article class="cabinet-card teacher-card">
-          <div class="profile-badge" aria-hidden="true">П</div>
-          <div>
-            <p class="eyebrow">Кабинет педагога</p>
-            <h2>Уроки и группы</h2>
-            <span>Создайте студию или личное пространство, затем добавляйте группы и материалы.</span>
-          </div>
-          <button id="publishLessonButton" class="publish-button" type="button" disabled>Опубликовать</button>
-        </article>
+        <button id="publishLessonButton" class="publish-button" type="button" hidden disabled>Опубликовать</button>
 
         <article class="panel teacher-space-panel">
           <div class="panel-head">
@@ -138,30 +130,12 @@
               Создать студию
             </button>
           </div>
-          <div class="workspace-mode-tabs" aria-label="Формат работы">
-            <button class="workspace-mode active" type="button">
-              <span aria-hidden="true">◼</span>
-              Студия
-            </button>
-            <button class="workspace-mode" type="button">
-              <span aria-hidden="true">●</span>
-              Самостоятельно
-            </button>
-          </div>
           <div class="teacher-workspace" data-teacher-browser>
             <div class="teacher-folder-view active" data-teacher-view="root">
-              <div class="empty-folder">
-                <span class="folder-icon" aria-hidden="true">▣</span>
-                <div>
-                  <strong>Пока нет студий</strong>
-                  <small>Создайте студию или личное пространство, потом зайдите внутрь и добавьте группы.</small>
-                </div>
+              <div class="teacher-empty-note">
+                <strong>Создайте первое пространство</strong>
+                <small>Здесь появятся ваши студии или личные кабинеты.</small>
               </div>
-              <button class="folder-card add-folder" type="button" data-open-teacher-view="studio">
-                <span aria-hidden="true">+</span>
-                <strong>Создать студию</strong>
-                <small>например Todes</small>
-              </button>
             </div>
 
             <div class="teacher-folder-view" data-teacher-view="studio" hidden>
@@ -170,11 +144,6 @@
                   <span class="folder-icon" aria-hidden="true">▣</span>
                   <strong>6 группа</strong>
                   <small>12 учеников · домашние задания</small>
-                </button>
-                <button class="folder-card add-folder" type="button">
-                  <span aria-hidden="true">+</span>
-                  <strong>Создать группу</strong>
-                  <small>новая папка внутри студии</small>
                 </button>
               </div>
               <aside class="workspace-side">
@@ -193,11 +162,6 @@
                   <span class="folder-icon" aria-hidden="true">▶</span>
                   <strong>Танец недели</strong>
                   <small>обучение · сдача · эталон</small>
-                </button>
-                <button class="folder-card add-folder" type="button">
-                  <span aria-hidden="true">+</span>
-                  <strong>Создать урок</strong>
-                  <small>добавить видео и задание</small>
                 </button>
               </div>
               <div class="invite-card">
@@ -583,6 +547,6 @@
         });
       }
     </script>
-    <script type="module" src="./app.js?v=20260622-13"></script>
+    <script type="module" src="./app.js?v=20260622-14"></script>
   </body>
 </html>

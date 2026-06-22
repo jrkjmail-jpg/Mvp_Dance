@@ -2316,17 +2316,17 @@ function setTeacherFolderView(view) {
       action: "Создать студию",
     },
     studio: {
-      breadcrumb: "Мои пространства / Todes",
-      title: "Студия Todes",
+      breadcrumb: "Мои пространства / Студия",
+      title: "Студия",
       action: "Создать группу",
     },
     group: {
-      breadcrumb: "Мои пространства / Todes / 6 группа",
+      breadcrumb: "Мои пространства / Студия / 6 группа",
       title: "6 группа",
       action: "Создать урок",
     },
     lesson: {
-      breadcrumb: "Мои пространства / Todes / 6 группа / Танец недели",
+      breadcrumb: "Мои пространства / Студия / 6 группа / Танец недели",
       title: "Танец недели",
       action: "Опубликовать",
     },
