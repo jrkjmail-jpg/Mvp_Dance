@@ -11,7 +11,7 @@
     <link rel="manifest" href="./manifest.webmanifest" />
     <link rel="icon" href="./assets/app-icon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="./assets/app-icon.svg" />
-    <link rel="stylesheet" href="./styles.css?v=20260622-16" />
+    <link rel="stylesheet" href="./styles.css?v=20260622-17" />
   </head>
   <body>
     <main class="app-shell student-mode">
@@ -127,6 +127,11 @@
             </div>
             <div class="teacher-actions">
               <button id="teacherBackButton" class="ghost-action" type="button" hidden>Назад</button>
+              <button id="teacherEditAction" class="ghost-action" type="button" hidden>Редактировать</button>
+              <button id="teacherSubgroupAction" class="ghost-action" type="button" hidden>
+                <span aria-hidden="true">+</span>
+                Создать подгруппу
+              </button>
               <button id="teacherPrimaryAction" class="create-main-button" type="button" title="Создать студию">
                 <span aria-hidden="true">+</span>
                 Создать студию
@@ -475,6 +480,41 @@
           </div>
         </form>
       </div>
+
+      <div id="teacherEditOverlay" class="result-overlay" hidden>
+        <form id="teacherEditForm" class="create-card" role="dialog" aria-modal="true" aria-labelledby="teacherEditTitle">
+          <p id="teacherEditEyebrow" class="eyebrow">Редактирование</p>
+          <h2 id="teacherEditTitle">Редактировать</h2>
+          <label>
+            <span>Картинка / иконка</span>
+            <input id="teacherEditImage" type="file" accept="image/*" />
+          </label>
+          <label>
+            <span>Название</span>
+            <input id="teacherEditName" type="text" autocomplete="off" required />
+          </label>
+          <label>
+            <span>Краткое описание</span>
+            <input id="teacherEditDescription" type="text" autocomplete="off" />
+          </label>
+          <label>
+            <span id="teacherEditAgeLabel">Возраст / уровень</span>
+            <input id="teacherEditAge" type="text" autocomplete="off" />
+          </label>
+          <label>
+            <span id="teacherEditPlaceLabel">Город / адрес</span>
+            <input id="teacherEditPlace" type="text" autocomplete="off" />
+          </label>
+          <label>
+            <span>Контакт / ссылка</span>
+            <input id="teacherEditContact" type="text" autocomplete="off" />
+          </label>
+          <div class="create-actions">
+            <button id="teacherEditCancel" type="button">Отмена</button>
+            <button class="primary" type="submit">Сохранить</button>
+          </div>
+        </form>
+      </div>
     </main>
 
     <script>
@@ -558,6 +598,6 @@
         });
       }
     </script>
-    <script type="module" src="./app.js?v=20260622-16"></script>
+    <script type="module" src="./app.js?v=20260622-17"></script>
   </body>
 </html>
