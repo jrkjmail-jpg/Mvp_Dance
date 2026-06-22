@@ -382,7 +382,7 @@ els.teacherBrowser.addEventListener("click", (event) => {
     setTeacherFolderView("lesson");
   }
 });
-els.teacherPrimaryAction.addEventListener("click", openTeacherCreateDialog);
+els.teacherPrimaryAction.addEventListener("click", () => openTeacherCreateDialog());
 els.teacherBackButton.addEventListener("click", goTeacherBack);
 els.teacherEditAction.addEventListener("click", openTeacherEditDialog);
 els.teacherSubgroupAction.addEventListener("click", () => openTeacherCreateDialog("subgroup"));
