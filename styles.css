@@ -733,7 +733,8 @@ h2 {
 .studio-channel-cover {
   min-height: 240px;
   position: relative;
-  overflow: hidden;
+  z-index: 2;
+  overflow: visible;
   background: linear-gradient(135deg, #176c5e, #21332e 55%, #8a722d);
 }
 
@@ -782,6 +783,8 @@ h2 {
 
 .studio-channel-copy {
   min-height: 150px;
+  position: relative;
+  z-index: 1;
   padding: 54px 22px 20px;
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
