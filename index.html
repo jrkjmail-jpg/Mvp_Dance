@@ -11,7 +11,7 @@
     <link rel="manifest" href="./manifest.webmanifest" />
     <link rel="icon" href="./assets/app-icon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="./assets/app-icon.svg" />
-    <link rel="stylesheet" href="./styles.css?v=20260623-6" />
+    <link rel="stylesheet" href="./styles.css?v=20260623-7" />
   </head>
   <body>
     <main class="app-shell student-mode">
@@ -623,8 +623,12 @@
           <p id="teacherEditEyebrow" class="eyebrow">Редактирование</p>
           <h2 id="teacherEditTitle">Редактировать</h2>
           <label>
-            <span>Картинка / иконка</span>
+            <span id="teacherEditImageLabel">Картинка / иконка</span>
             <input id="teacherEditImage" type="file" accept="image/*" />
+          </label>
+          <label id="teacherEditCoverField" hidden>
+            <span>Обложка в шапке студии</span>
+            <input id="teacherEditCover" type="file" accept="image/*" />
           </label>
           <label>
             <span>Название</span>
@@ -735,6 +739,6 @@
         });
       }
     </script>
-    <script type="module" src="./app.js?v=20260623-6"></script>
+    <script type="module" src="./app.js?v=20260623-7"></script>
   </body>
 </html>

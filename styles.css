@@ -2158,6 +2158,10 @@ meter::-webkit-meter-optimum-value {
   text-align: left;
 }
 
+.create-card label[hidden] {
+  display: none;
+}
+
 .create-card label span {
   color: var(--muted);
   font-size: 0.82rem;

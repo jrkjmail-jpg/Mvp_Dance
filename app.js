@@ -164,6 +164,9 @@ const els = {
   teacherEditEyebrow: document.querySelector("#teacherEditEyebrow"),
   teacherEditTitle: document.querySelector("#teacherEditTitle"),
   teacherEditImage: document.querySelector("#teacherEditImage"),
+  teacherEditImageLabel: document.querySelector("#teacherEditImageLabel"),
+  teacherEditCoverField: document.querySelector("#teacherEditCoverField"),
+  teacherEditCover: document.querySelector("#teacherEditCover"),
   teacherEditName: document.querySelector("#teacherEditName"),
   teacherEditDescription: document.querySelector("#teacherEditDescription"),
   teacherEditAgeLabel: document.querySelector("#teacherEditAgeLabel"),
@@ -337,6 +340,7 @@ const state = {
   teacherFolderView: savedTeacherWorkspace?.studios?.length ? "studio" : "root",
   teacherCreateType: "",
   teacherEditImageData: "",
+  teacherEditCoverData: "",
   teacherWorkspace: savedTeacherWorkspace || {
     studios: [],
     activeStudioId: "",
@@ -478,6 +482,7 @@ els.teacherCreateCancel.addEventListener("click", closeTeacherCreateDialog);
 els.teacherEditForm.addEventListener("submit", submitTeacherEditDialog);
 els.teacherEditCancel.addEventListener("click", closeTeacherEditDialog);
 els.teacherEditImage.addEventListener("change", onTeacherEditImage);
+els.teacherEditCover.addEventListener("change", onTeacherEditCover);
 els.cameraButton.addEventListener("click", startCamera);
 els.studentVideoUpload.addEventListener("change", onStudentVideoUpload);
 els.studentPlayButton.addEventListener("click", toggleStudentPlayback);
@@ -2670,6 +2675,7 @@ function openTeacherEditDialog() {
   const editType = state.teacherFolderView === "group" && state.teacherWorkspace.activeSubgroupIds.length ? "subgroup" : state.teacherFolderView;
   const [eyebrow, title, ageLabel, placeLabel] = typeLabels[editType] || typeLabels.group;
   state.teacherEditImageData = "";
+  state.teacherEditCoverData = "";
   els.teacherEditEyebrow.textContent = eyebrow;
   els.teacherEditTitle.textContent = title;
   els.teacherEditAgeLabel.textContent = ageLabel;
@@ -2680,6 +2686,9 @@ function openTeacherEditDialog() {
   els.teacherEditPlace.value = item.address || item.city || item.level || item.music || "";
   els.teacherEditContact.value = item.contact || "";
   els.teacherEditImage.value = "";
+  els.teacherEditImageLabel.textContent = editType === "studio" ? "Логотип студии" : "Картинка / иконка";
+  els.teacherEditCoverField.hidden = editType !== "studio";
+  els.teacherEditCover.value = "";
   els.teacherEditOverlay.hidden = false;
   window.requestAnimationFrame(() => els.teacherEditName.focus());
 }
@@ -2687,6 +2696,7 @@ function openTeacherEditDialog() {
 function closeTeacherEditDialog() {
   els.teacherEditOverlay.hidden = true;
   state.teacherEditImageData = "";
+  state.teacherEditCoverData = "";
 }
 
 function onTeacherEditImage(event) {
@@ -2702,10 +2712,27 @@ function onTeacherEditImage(event) {
   reader.readAsDataURL(file);
 }
 
-function submitTeacherEditDialog(event) {
+function onTeacherEditCover(event) {
+  const file = event.target.files?.[0];
+  if (!file) {
+    state.teacherEditCoverData = "";
+    return;
+  }
+  const reader = new FileReader();
+  reader.addEventListener("load", () => {
+    state.teacherEditCoverData = String(reader.result || "");
+  });
+  reader.readAsDataURL(file);
+}
+
+async function submitTeacherEditDialog(event) {
   event.preventDefault();
   const item = activeTeacherEditableItem();
   if (!item) return;
+  const [imageData, coverData] = await Promise.all([
+    state.teacherEditImageData ? Promise.resolve(state.teacherEditImageData) : readFileAsDataUrl(els.teacherEditImage.files?.[0]),
+    state.teacherEditCoverData ? Promise.resolve(state.teacherEditCoverData) : readFileAsDataUrl(els.teacherEditCover.files?.[0]),
+  ]);
   item.name = els.teacherEditName.value.trim() || item.name;
   item.description = els.teacherEditDescription.value.trim();
   item.contact = els.teacherEditContact.value.trim();
@@ -2719,7 +2746,10 @@ function submitTeacherEditDialog(event) {
     item.age = els.teacherEditAge.value.trim();
     item.music = els.teacherEditPlace.value.trim();
   }
-  if (state.teacherEditImageData) item.image = state.teacherEditImageData;
+  if (imageData) item.image = imageData;
+  if (state.teacherFolderView === "studio" && coverData) {
+    item.cover = coverData;
+  }
   persistTeacherWorkspace();
   closeTeacherEditDialog();
   setTeacherFolderView(state.teacherFolderView);
