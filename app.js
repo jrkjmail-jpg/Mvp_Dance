@@ -2648,6 +2648,7 @@ function submitTeacherEditDialog(event) {
 }
 
 function openTeacherCreateDialog(forcedType = "") {
+  forcedType = typeof forcedType === "string" ? forcedType : "";
   if (forcedType === "subgroup" && state.teacherWorkspace.activeSubgroupIds.length >= 3) return;
   if (state.teacherFolderView === "root" && state.teacherWorkspace.studios.length) {
     const studio = state.teacherWorkspace.studios[0];
