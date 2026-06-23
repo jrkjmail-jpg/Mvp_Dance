@@ -71,6 +71,18 @@ const els = {
   levelProgressBar: document.querySelector("#levelProgressBar"),
   levelNextValue: document.querySelector("#levelNextValue"),
   studentStarsBadge: document.querySelector("#studentStarsBadge"),
+  studentOnboarding: document.querySelector("#studentOnboarding"),
+  studentAccountContent: document.querySelector("#studentAccountContent"),
+  studentProfileForm: document.querySelector("#studentProfileForm"),
+  studentFirstName: document.querySelector("#studentFirstName"),
+  studentLastName: document.querySelector("#studentLastName"),
+  studentNickname: document.querySelector("#studentNickname"),
+  studentAge: document.querySelector("#studentAge"),
+  studentConsent: document.querySelector("#studentConsent"),
+  studentStyleOptions: document.querySelector("#studentStyleOptions"),
+  studentInviteStudioName: document.querySelector("#studentInviteStudioName"),
+  studentStudioName: document.querySelector("#studentStudioName"),
+  studentProfileName: document.querySelector("#studentProfileName"),
   matchValue: document.querySelector("#matchValue"),
   matchLabel: document.querySelector("#matchLabel"),
   matchArc: document.querySelector("#matchArc"),
@@ -126,6 +138,13 @@ const els = {
   teacherGroupList: document.querySelector("#teacherGroupList"),
   teacherLessonList: document.querySelector("#teacherLessonList"),
   teacherLessonOpenTitle: document.querySelector("#teacherLessonOpenTitle"),
+  teacherStudioCover: document.querySelector("#teacherStudioCover"),
+  teacherStudioLogo: document.querySelector("#teacherStudioLogo"),
+  teacherStudioChannelName: document.querySelector("#teacherStudioChannelName"),
+  teacherStudioChannelDescription: document.querySelector("#teacherStudioChannelDescription"),
+  teacherStudioChannelAddress: document.querySelector("#teacherStudioChannelAddress"),
+  teacherStudioChannelLink: document.querySelector("#teacherStudioChannelLink"),
+  teacherStudioDirections: document.querySelector("#teacherStudioDirections"),
   teacherCreateOverlay: document.querySelector("#teacherCreateOverlay"),
   teacherCreateForm: document.querySelector("#teacherCreateForm"),
   teacherCreateEyebrow: document.querySelector("#teacherCreateEyebrow"),
@@ -133,6 +152,12 @@ const els = {
   teacherCreateNameLabel: document.querySelector("#teacherCreateNameLabel"),
   teacherCreateName: document.querySelector("#teacherCreateName"),
   teacherCreateDescription: document.querySelector("#teacherCreateDescription"),
+  teacherStudioCreateFields: document.querySelector("#teacherStudioCreateFields"),
+  teacherCreateLogo: document.querySelector("#teacherCreateLogo"),
+  teacherCreateCover: document.querySelector("#teacherCreateCover"),
+  teacherCreateAddress: document.querySelector("#teacherCreateAddress"),
+  teacherCreateDirections: document.querySelector("#teacherCreateDirections"),
+  teacherCreateLink: document.querySelector("#teacherCreateLink"),
   teacherCreateCancel: document.querySelector("#teacherCreateCancel"),
   teacherEditOverlay: document.querySelector("#teacherEditOverlay"),
   teacherEditForm: document.querySelector("#teacherEditForm"),
@@ -165,6 +190,32 @@ const BONES = [
   [27, 31],
   [28, 32],
 ];
+
+const DANCE_STYLES = [
+  "Hip-hop",
+  "Jazz-funk",
+  "Contemporary",
+  "House",
+  "Breaking",
+  "Dancehall",
+  "Vogue",
+  "Waacking",
+  "Popping",
+  "Locking",
+  "Krump",
+  "High heels",
+  "K-pop",
+  "Afro",
+  "Балет",
+  "Эстрадный танец",
+  "Народный танец",
+  "Бальные танцы",
+  "Акробатика",
+  "Фристайл",
+];
+
+const savedTeacherWorkspace = readStoredJson("danceReplayTeacherWorkspace", null);
+const savedStudentProfile = readStoredJson("danceReplayStudentProfile", null);
 
 const ANGLES = {
   arms: [
@@ -283,16 +334,17 @@ const state = {
   studentVideoFileSize: 0,
   studentSkeleton: [],
   studentScanId: 0,
-  teacherFolderView: "root",
+  teacherFolderView: savedTeacherWorkspace?.studios?.length ? "studio" : "root",
   teacherCreateType: "",
   teacherEditImageData: "",
-  teacherWorkspace: {
+  teacherWorkspace: savedTeacherWorkspace || {
     studios: [],
     activeStudioId: "",
     activeGroupId: "",
     activeSubgroupIds: [],
     activeLessonId: "",
   },
+  studentProfile: savedStudentProfile,
   studentClip: {
     duration: 0,
     start: 0,
@@ -349,9 +401,11 @@ updateLevelDisplay();
 updateExamMarker();
 updatePipeline("upload");
 updateLessonFlow("choose");
-setTeacherFolderView("root");
+normalizeTeacherWorkspace();
+renderStudentProfile();
+setTeacherFolderView(state.teacherWorkspace.studios.length ? "studio" : "root");
 switchView("student");
-initPose();
+if (!new URLSearchParams(window.location.search).has("ui-test")) initPose();
 
 els.learningUpload.addEventListener("click", resetFileInputBeforePick);
 els.examUpload.addEventListener("click", resetFileInputBeforePick);
@@ -361,6 +415,7 @@ els.showLearningVideoButton.addEventListener("click", () => switchTeacherVideo("
 els.showExamVideoButton.addEventListener("click", () => switchTeacherVideo("exam"));
 els.startDanceCardButton.addEventListener("click", focusDanceStage);
 els.roleTabs.forEach((tab) => tab.addEventListener("click", () => switchView(tab.dataset.view)));
+els.studentProfileForm.addEventListener("submit", submitStudentProfile);
 els.teacherBrowser.addEventListener("click", (event) => {
   const studioButton = event.target.closest("[data-studio-id]");
   if (studioButton) {
@@ -2401,6 +2456,7 @@ function focusDanceStage() {
 }
 
 function setTeacherFolderView(view) {
+  if (view === "root" && state.teacherWorkspace.studios.length) view = "studio";
   renderTeacherWorkspace();
   const studio = activeTeacherStudio();
   const group = activeTeacherGroup();
@@ -2417,20 +2473,22 @@ function setTeacherFolderView(view) {
   els.teacherBreadcrumb.textContent = meta[safeView].breadcrumb;
   els.teacherBreadcrumb.innerHTML = renderTeacherBreadcrumb(safeView, studio, group, subgroups, lesson);
   els.teacherFolderTitle.textContent = meta[safeView].title;
-  const actionLabel = safeView === "root" && state.teacherWorkspace.studios.length ? "Открыть студию" : meta[safeView].action;
+  const actionLabel = meta[safeView].action;
   els.teacherPrimaryAction.lastChild.textContent = ` ${actionLabel}`;
   els.teacherPrimaryAction.title = actionLabel;
   els.teacherPrimaryAction.hidden = safeView === "lesson";
-  els.teacherBackButton.hidden = safeView === "root";
+  els.teacherBackButton.hidden = safeView === "root" || safeView === "studio";
   els.teacherEditAction.hidden = !["studio", "group", "lesson"].includes(safeView);
+  els.teacherEditAction.textContent = safeView === "studio" ? "Настройки" : "Редактировать";
   els.teacherSubgroupAction.hidden = safeView !== "group" || subgroups.length >= 3;
   if (lesson) els.teacherLessonOpenTitle.textContent = lesson.name;
   els.appShell.classList.toggle("teacher-lesson-open", safeView === "lesson");
 }
 
 function renderTeacherBreadcrumb(view, studio, group, subgroups, lesson) {
-  const parts = [{ label: "Мои пространства", view: "root" }];
+  const parts = [];
   if (studio && ["studio", "group", "lesson"].includes(view)) parts.push({ label: studio.name, view: "studio" });
+  if (!studio) parts.push({ label: "Создание студии", view: "root" });
   if (group && ["group", "lesson"].includes(view)) parts.push({ label: group.name, view: "group" });
   subgroups.forEach((subgroup, index) => {
     if (["group", "lesson"].includes(view)) {
@@ -2456,7 +2514,6 @@ function goTeacherBack() {
     return;
   }
   const previousView = {
-    studio: "root",
     group: "studio",
     lesson: "group",
   }[state.teacherFolderView];
@@ -2470,22 +2527,22 @@ function teacherFolderMeta(studio, group, subgroups, lesson) {
   const lessonName = lesson?.name || "Урок";
   return {
     root: {
-      breadcrumb: "Мои пространства",
+      breadcrumb: "Новая студия",
       title: "Кабинет педагога",
       action: "Создать студию",
     },
     studio: {
-      breadcrumb: `Мои пространства / ${studioName}`,
+      breadcrumb: studioName,
       title: studioName,
       action: "Создать группу",
     },
     group: {
-      breadcrumb: `Мои пространства / ${studioName} / ${groupName}`,
+      breadcrumb: `${studioName} / ${groupName}`,
       title: groupName,
       action: "Создать урок",
     },
     lesson: {
-      breadcrumb: `Мои пространства / ${studioName} / ${groupName} / ${lessonName}`,
+      breadcrumb: `${studioName} / ${groupName} / ${lessonName}`,
       title: lessonName,
       action: "Опубликовать",
     },
@@ -2497,6 +2554,7 @@ function renderTeacherWorkspace() {
   els.teacherRootEmpty.hidden = studios.length > 0;
   els.teacherStudioList.innerHTML = studios.map((studio) => folderButton("studio", studio)).join("");
   const studio = activeTeacherStudio();
+  renderStudioChannel(studio);
   els.teacherGroupList.innerHTML = studio?.groups?.length
     ? studio.groups.map((group) => folderButton("group", group)).join("")
     : emptyFolderText("В этой студии пока нет групп", "Нажмите плюс сверху, чтобы создать группу.");
@@ -2509,6 +2567,25 @@ function renderTeacherWorkspace() {
   els.teacherLessonList.innerHTML = groupItems.length
     ? groupItems.join("")
     : emptyFolderText("В этой группе пока нет уроков", "Нажмите плюс сверху, чтобы создать урок.");
+}
+
+function renderStudioChannel(studio) {
+  if (!studio) return;
+  els.teacherStudioChannelName.textContent = studio.name || "Студия";
+  els.teacherStudioChannelDescription.textContent = studio.description || "Добавьте описание студии в настройках.";
+  els.teacherStudioChannelAddress.textContent = studio.address || studio.city || "Адрес не указан";
+  els.teacherStudioDirections.textContent = studio.directions || "Направления пока не указаны";
+  els.teacherStudioLogo.textContent = studio.image ? "" : (studio.name || "С").slice(0, 1).toUpperCase();
+  els.teacherStudioLogo.style.backgroundImage = studio.image ? `url("${studio.image}")` : "";
+  els.teacherStudioCover.style.backgroundImage = studio.cover
+    ? `linear-gradient(180deg, transparent 40%, rgba(4, 7, 6, 0.72)), url("${studio.cover}")`
+    : "";
+  const link = normalizeExternalLink(studio.contact);
+  els.teacherStudioChannelLink.hidden = !link;
+  if (link) {
+    els.teacherStudioChannelLink.href = link;
+    els.teacherStudioChannelLink.textContent = link.replace(/^https?:\/\//, "").replace(/\/$/, "");
+  }
 }
 
 function folderButton(type, item) {
@@ -2600,7 +2677,7 @@ function openTeacherEditDialog() {
   els.teacherEditName.value = item.name || "";
   els.teacherEditDescription.value = item.description || "";
   els.teacherEditAge.value = item.age || item.directions || "";
-  els.teacherEditPlace.value = item.city || item.level || item.music || "";
+  els.teacherEditPlace.value = item.address || item.city || item.level || item.music || "";
   els.teacherEditContact.value = item.contact || "";
   els.teacherEditImage.value = "";
   els.teacherEditOverlay.hidden = false;
@@ -2634,7 +2711,7 @@ function submitTeacherEditDialog(event) {
   item.contact = els.teacherEditContact.value.trim();
   if (state.teacherFolderView === "studio") {
     item.directions = els.teacherEditAge.value.trim();
-    item.city = els.teacherEditPlace.value.trim();
+    item.address = els.teacherEditPlace.value.trim();
   } else if (state.teacherFolderView === "group") {
     item.age = els.teacherEditAge.value.trim();
     item.level = els.teacherEditPlace.value.trim();
@@ -2643,6 +2720,7 @@ function submitTeacherEditDialog(event) {
     item.music = els.teacherEditPlace.value.trim();
   }
   if (state.teacherEditImageData) item.image = state.teacherEditImageData;
+  persistTeacherWorkspace();
   closeTeacherEditDialog();
   setTeacherFolderView(state.teacherFolderView);
 }
@@ -2679,6 +2757,12 @@ function openTeacherCreateDialog(forcedType = "") {
   els.teacherCreateName.value = "";
   els.teacherCreateName.placeholder = placeholder;
   els.teacherCreateDescription.value = "";
+  els.teacherStudioCreateFields.hidden = type !== "studio";
+  els.teacherCreateLogo.value = "";
+  els.teacherCreateCover.value = "";
+  els.teacherCreateAddress.value = "";
+  els.teacherCreateDirections.value = "";
+  els.teacherCreateLink.value = "";
   els.teacherCreateOverlay.hidden = false;
   window.requestAnimationFrame(() => els.teacherCreateName.focus());
 }
@@ -2688,15 +2772,32 @@ function closeTeacherCreateDialog() {
   state.teacherCreateType = "";
 }
 
-function submitTeacherCreateDialog(event) {
+async function submitTeacherCreateDialog(event) {
   event.preventDefault();
   const name = els.teacherCreateName.value.trim();
   if (!name) return;
   const description = els.teacherCreateDescription.value.trim();
   const id = `${state.teacherCreateType}-${Date.now().toString(36)}`;
   if (state.teacherCreateType === "studio") {
-    state.teacherWorkspace.studios.push({ id, name, description, image: "", city: "", address: "", contact: "", groups: [] });
+    const [image, cover] = await Promise.all([
+      readFileAsDataUrl(els.teacherCreateLogo.files?.[0]),
+      readFileAsDataUrl(els.teacherCreateCover.files?.[0]),
+    ]);
+    state.teacherWorkspace.studios = [{
+      id,
+      name,
+      description,
+      image,
+      cover,
+      city: "",
+      address: els.teacherCreateAddress.value.trim(),
+      directions: els.teacherCreateDirections.value.trim(),
+      contact: els.teacherCreateLink.value.trim(),
+      groups: [],
+    }];
     state.teacherWorkspace.activeStudioId = id;
+    persistTeacherWorkspace();
+    renderStudentProfile();
     closeTeacherCreateDialog();
     setTeacherFolderView("studio");
     return;
@@ -2706,6 +2807,7 @@ function submitTeacherCreateDialog(event) {
     if (!studio) return;
     studio.groups.push({ id, name, description, image: "", age: "", level: "", contact: "", subgroups: [], lessons: [] });
     state.teacherWorkspace.activeGroupId = id;
+    persistTeacherWorkspace();
     closeTeacherCreateDialog();
     setTeacherFolderView("group");
     return;
@@ -2715,6 +2817,7 @@ function submitTeacherCreateDialog(event) {
     if (!container) return;
     container.subgroups = container.subgroups || [];
     container.subgroups.push({ id, name, description, image: "", age: "", level: "", contact: "", subgroups: [], lessons: [] });
+    persistTeacherWorkspace();
     closeTeacherCreateDialog();
     setTeacherFolderView("group");
     return;
@@ -2725,9 +2828,105 @@ function submitTeacherCreateDialog(event) {
     container.lessons = container.lessons || [];
     container.lessons.push({ id, name, description, image: "", age: "", level: "", contact: "" });
     state.teacherWorkspace.activeLessonId = id;
+    persistTeacherWorkspace();
     closeTeacherCreateDialog();
     setTeacherFolderView("lesson");
   }
+}
+
+function normalizeTeacherWorkspace() {
+  const workspace = state.teacherWorkspace;
+  workspace.studios = Array.isArray(workspace.studios) ? workspace.studios.slice(0, 1) : [];
+  workspace.activeSubgroupIds = Array.isArray(workspace.activeSubgroupIds) ? workspace.activeSubgroupIds : [];
+  if (workspace.studios.length && !workspace.studios.some((studio) => studio.id === workspace.activeStudioId)) {
+    workspace.activeStudioId = workspace.studios[0].id;
+  }
+  if (!workspace.studios.length) {
+    workspace.activeStudioId = "";
+    workspace.activeGroupId = "";
+    workspace.activeSubgroupIds = [];
+    workspace.activeLessonId = "";
+  }
+}
+
+function persistTeacherWorkspace() {
+  try {
+    localStorage.setItem("danceReplayTeacherWorkspace", JSON.stringify(state.teacherWorkspace));
+  } catch (error) {
+    console.warn("Не удалось сохранить пространство студии", error);
+  }
+}
+
+function renderStudentProfile() {
+  if (!els.studentStyleOptions.children.length) {
+    els.studentStyleOptions.innerHTML = DANCE_STYLES.map((style) => `
+      <label class="style-check">
+        <input type="checkbox" name="danceStyle" value="${escapeHtml(style)}" />
+        <span>${escapeHtml(style)}</span>
+      </label>
+    `).join("");
+  }
+  const studio = activeTeacherStudio();
+  const studioName = state.studentProfile?.studioName || studio?.name || "Танцевальная студия";
+  els.studentInviteStudioName.textContent = studioName;
+  const hasProfile = Boolean(state.studentProfile);
+  els.appShell.classList.toggle("student-onboarding", !hasProfile);
+  els.studentOnboarding.hidden = hasProfile;
+  els.studentAccountContent.hidden = !hasProfile;
+  if (!hasProfile) return;
+  els.studentStudioName.textContent = studioName;
+  els.studentProfileName.textContent = `${state.studentProfile.firstName} ${state.studentProfile.lastName}`;
+  const badge = document.querySelector(".profile-badge");
+  if (badge) badge.textContent = (state.studentProfile.firstName || "Т").slice(0, 1).toUpperCase();
+}
+
+function submitStudentProfile(event) {
+  event.preventDefault();
+  const selectedStyles = [...els.studentProfileForm.querySelectorAll('input[name="danceStyle"]:checked')]
+    .map((input) => input.value);
+  const studio = activeTeacherStudio();
+  state.studentProfile = {
+    id: `student-${Date.now().toString(36)}`,
+    firstName: els.studentFirstName.value.trim(),
+    lastName: els.studentLastName.value.trim(),
+    nickname: els.studentNickname.value.trim().replace(/^@?/, "@"),
+    age: Number(els.studentAge.value),
+    styles: selectedStyles,
+    studioId: studio?.id || "invite-studio",
+    studioName: studio?.name || "Танцевальная студия",
+    joinedAt: new Date().toISOString(),
+  };
+  try {
+    localStorage.setItem("danceReplayStudentProfile", JSON.stringify(state.studentProfile));
+  } catch (error) {
+    console.warn("Не удалось сохранить профиль ученика", error);
+  }
+  renderStudentProfile();
+}
+
+function readStoredJson(key, fallback) {
+  try {
+    const value = localStorage.getItem(key);
+    return value ? JSON.parse(value) : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+function readFileAsDataUrl(file) {
+  if (!file) return Promise.resolve("");
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.addEventListener("load", () => resolve(String(reader.result || "")), { once: true });
+    reader.addEventListener("error", () => resolve(""), { once: true });
+    reader.readAsDataURL(file);
+  });
+}
+
+function normalizeExternalLink(value) {
+  const link = String(value || "").trim();
+  if (!link) return "";
+  return /^https?:\/\//i.test(link) ? link : `https://${link}`;
 }
 
 function escapeHtml(value) {
