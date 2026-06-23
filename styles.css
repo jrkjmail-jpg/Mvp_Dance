@@ -659,6 +659,12 @@ h2 {
   overflow: hidden;
 }
 
+.teacher-space-panel > .studio-channel {
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  border-radius: 0;
+}
+
 .teacher-breadcrumb {
   display: flex;
   flex-wrap: wrap;
@@ -718,7 +724,8 @@ h2 {
 .teacher-workspace {
   border-top: 1px solid var(--line);
   padding: 12px;
-  display: block;
+  display: grid;
+  gap: 12px;
 }
 
 .studio-channel {
@@ -728,6 +735,10 @@ h2 {
   border: 1px solid var(--line);
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.025);
+}
+
+.studio-channel[hidden] {
+  display: none;
 }
 
 .studio-channel-cover {
@@ -818,10 +829,12 @@ h2 {
 }
 
 .studio-channel-section {
-  border-top: 1px solid var(--line);
+  border: 1px solid var(--line);
+  border-radius: 8px;
   padding: 20px;
   display: grid;
   gap: 14px;
+  background: rgba(255, 255, 255, 0.025);
 }
 
 .section-heading h3,

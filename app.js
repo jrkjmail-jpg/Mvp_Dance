@@ -138,6 +138,7 @@ const els = {
   teacherGroupList: document.querySelector("#teacherGroupList"),
   teacherLessonList: document.querySelector("#teacherLessonList"),
   teacherLessonOpenTitle: document.querySelector("#teacherLessonOpenTitle"),
+  teacherStudioChannel: document.querySelector("#teacherStudioChannel"),
   teacherStudioCover: document.querySelector("#teacherStudioCover"),
   teacherStudioCoverImage: document.querySelector("#teacherStudioCoverImage"),
   teacherStudioLogo: document.querySelector("#teacherStudioLogo"),
@@ -2576,6 +2577,7 @@ function renderTeacherWorkspace() {
 }
 
 function renderStudioChannel(studio) {
+  els.teacherStudioChannel.hidden = !studio;
   if (!studio) return;
   els.teacherStudioChannelName.textContent = studio.name || "Студия";
   els.teacherStudioChannelDescription.textContent = studio.description || "Добавьте описание студии в настройках.";

@@ -11,7 +11,7 @@
     <link rel="manifest" href="./manifest.webmanifest" />
     <link rel="icon" href="./assets/app-icon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="./assets/app-icon.svg" />
-    <link rel="stylesheet" href="./styles.css?v=20260623-9" />
+    <link rel="stylesheet" href="./styles.css?v=20260624-1" />
   </head>
   <body>
     <main class="app-shell student-mode">
@@ -166,6 +166,25 @@
         <button id="publishLessonButton" class="publish-button" type="button" hidden disabled>Опубликовать</button>
 
         <article class="panel teacher-space-panel">
+          <div id="teacherStudioChannel" class="studio-channel" hidden>
+            <div id="teacherStudioCover" class="studio-channel-cover">
+              <img id="teacherStudioCoverImage" class="studio-channel-cover-image" alt="" hidden />
+              <span class="studio-channel-cover-shade" aria-hidden="true"></span>
+              <div id="teacherStudioLogo" class="studio-channel-logo">С</div>
+            </div>
+            <div class="studio-channel-copy">
+              <div>
+                <p class="eyebrow">Танцевальная студия</p>
+                <h3 id="teacherStudioChannelName">Студия</h3>
+                <p id="teacherStudioChannelDescription">Описание студии появится здесь.</p>
+              </div>
+              <div class="studio-channel-facts">
+                <span id="teacherStudioChannelAddress">Адрес не указан</span>
+                <a id="teacherStudioChannelLink" href="#" target="_blank" rel="noreferrer" hidden>Открыть ссылку</a>
+              </div>
+            </div>
+          </div>
+
           <div class="panel-head">
             <div>
               <div id="teacherBreadcrumb" class="teacher-breadcrumb" aria-label="Путь">Мои пространства</div>
@@ -194,42 +213,24 @@
             </div>
 
             <div class="teacher-folder-view" data-teacher-view="studio" hidden>
-              <div class="studio-channel">
-                <div id="teacherStudioCover" class="studio-channel-cover">
-                  <img id="teacherStudioCoverImage" class="studio-channel-cover-image" alt="" hidden />
-                  <span class="studio-channel-cover-shade" aria-hidden="true"></span>
-                  <div id="teacherStudioLogo" class="studio-channel-logo">С</div>
-                </div>
-                <div class="studio-channel-copy">
+              <div class="studio-channel-section">
+                <div class="section-heading">
                   <div>
-                    <p class="eyebrow">Танцевальная студия</p>
-                    <h3 id="teacherStudioChannelName">Студия</h3>
-                    <p id="teacherStudioChannelDescription">Описание студии появится здесь.</p>
-                  </div>
-                  <div class="studio-channel-facts">
-                    <span id="teacherStudioChannelAddress">Адрес не указан</span>
-                    <a id="teacherStudioChannelLink" href="#" target="_blank" rel="noreferrer" hidden>Открыть ссылку</a>
+                    <p class="eyebrow">Пространства</p>
+                    <h3>Группы студии</h3>
                   </div>
                 </div>
-                <div class="studio-channel-section">
-                  <div class="section-heading">
-                    <div>
-                      <p class="eyebrow">Пространства</p>
-                      <h3>Группы студии</h3>
-                    </div>
-                  </div>
-                  <div id="teacherGroupList" class="folder-grid" aria-label="Группы студии"></div>
+                <div id="teacherGroupList" class="folder-grid" aria-label="Группы студии"></div>
+              </div>
+              <div class="studio-channel-section studio-about-grid">
+                <div>
+                  <p class="eyebrow">О студии</p>
+                  <strong id="teacherStudioDirections">Направления пока не указаны</strong>
                 </div>
-                <div class="studio-channel-section studio-about-grid">
-                  <div>
-                    <p class="eyebrow">О студии</p>
-                    <strong id="teacherStudioDirections">Направления пока не указаны</strong>
-                  </div>
-                  <div>
-                    <p class="eyebrow">Команда</p>
-                    <strong>Владелец студии</strong>
-                    <span>Добавление педагогов появится позже</span>
-                  </div>
+                <div>
+                  <p class="eyebrow">Команда</p>
+                  <strong>Владелец студии</strong>
+                  <span>Добавление педагогов появится позже</span>
                 </div>
               </div>
             </div>
@@ -741,6 +742,6 @@
         });
       }
     </script>
-    <script type="module" src="./app.js?v=20260623-9"></script>
+    <script type="module" src="./app.js?v=20260624-1"></script>
   </body>
 </html>
