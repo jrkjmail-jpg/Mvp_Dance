@@ -11,7 +11,7 @@
     <link rel="manifest" href="./manifest.webmanifest" />
     <link rel="icon" href="./assets/app-icon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="./assets/app-icon.svg" />
-    <link rel="stylesheet" href="./styles.css?v=20260624-2" />
+    <link rel="stylesheet" href="./styles.css?v=20260624-3" />
   </head>
   <body>
     <main class="app-shell student-mode">
@@ -173,27 +173,40 @@
               <div id="teacherStudioLogo" class="studio-channel-logo">С</div>
             </div>
             <div class="studio-channel-copy">
-              <div>
+              <div class="studio-channel-identity">
                 <p class="eyebrow">Танцевальная студия</p>
                 <h3 id="teacherStudioChannelName">Студия</h3>
                 <p id="teacherStudioChannelDescription">Описание студии появится здесь.</p>
+                <span class="studio-profile-status"><i aria-hidden="true"></i> Пространство студии</span>
               </div>
               <div class="studio-channel-facts">
-                <div class="studio-fact">
-                  <small>Адрес</small>
-                  <strong id="teacherStudioChannelAddress">Не указан</strong>
+                <div class="studio-fact studio-fact-location">
+                  <span class="studio-fact-icon" aria-hidden="true">⌖</span>
+                  <div>
+                    <small>Адрес</small>
+                    <strong id="teacherStudioChannelAddress">Не указан</strong>
+                  </div>
                 </div>
-                <div class="studio-fact">
-                  <small>Направления</small>
-                  <strong id="teacherStudioDirections">Пока не указаны</strong>
+                <div class="studio-fact studio-fact-directions">
+                  <span class="studio-fact-icon" aria-hidden="true">♪</span>
+                  <div>
+                    <small>Направления</small>
+                    <strong id="teacherStudioDirections">Пока не указаны</strong>
+                  </div>
                 </div>
-                <div class="studio-fact">
-                  <small>Владелец</small>
-                  <strong>Владелец студии</strong>
+                <div class="studio-fact studio-fact-owner">
+                  <span class="studio-fact-icon" aria-hidden="true">●</span>
+                  <div>
+                    <small>Владелец</small>
+                    <strong>Владелец студии</strong>
+                  </div>
                 </div>
-                <div class="studio-fact">
-                  <small>Команда педагогов</small>
-                  <strong>Пока не добавлена</strong>
+                <div class="studio-fact studio-fact-team">
+                  <span class="studio-fact-icon" aria-hidden="true">+</span>
+                  <div>
+                    <small>Команда педагогов</small>
+                    <strong>Пока не добавлена</strong>
+                  </div>
                 </div>
                 <a id="teacherStudioChannelLink" href="#" target="_blank" rel="noreferrer" hidden>Открыть ссылку</a>
               </div>
@@ -746,6 +759,6 @@
         });
       }
     </script>
-    <script type="module" src="./app.js?v=20260624-2"></script>
+    <script type="module" src="./app.js?v=20260624-3"></script>
   </body>
 </html>
