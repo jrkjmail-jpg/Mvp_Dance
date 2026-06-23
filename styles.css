@@ -2085,8 +2085,14 @@ meter::-webkit-meter-optimum-value {
   inset: 0;
   z-index: 20;
   display: grid;
-  place-items: center;
-  padding: 20px;
+  align-items: start;
+  justify-items: center;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  padding: max(20px, env(safe-area-inset-top)) max(20px, env(safe-area-inset-right))
+    max(20px, env(safe-area-inset-bottom)) max(20px, env(safe-area-inset-left));
   background: rgba(0, 0, 0, 0.72);
 }
 
@@ -2096,6 +2102,11 @@ meter::-webkit-meter-optimum-value {
 
 .result-card {
   width: min(420px, 100%);
+  max-height: calc(100dvh - 40px);
+  margin: auto 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
   border: 1px solid rgba(245, 197, 66, 0.45);
   border-radius: 8px;
   padding: 24px;
@@ -2123,6 +2134,11 @@ meter::-webkit-meter-optimum-value {
 
 .create-card {
   width: min(440px, 100%);
+  max-height: calc(100dvh - 40px);
+  margin: auto 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
   border: 1px solid var(--line);
   border-radius: 8px;
   padding: 20px;
@@ -2160,9 +2176,16 @@ meter::-webkit-meter-optimum-value {
 }
 
 .create-actions {
+  position: sticky;
+  bottom: -20px;
+  z-index: 2;
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 10px;
+  margin: 0 -20px -20px;
+  padding: 12px 20px max(20px, env(safe-area-inset-bottom));
+  border-top: 1px solid var(--line);
+  background: #171a1d;
 }
 
 .result-level {
@@ -2203,6 +2226,16 @@ meter::-webkit-meter-optimum-value {
   .app-shell {
     padding: 12px;
     grid-template-rows: auto auto auto auto auto;
+  }
+
+  .result-overlay {
+    padding: max(10px, env(safe-area-inset-top)) max(10px, env(safe-area-inset-right))
+      max(10px, env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-left));
+  }
+
+  .create-card,
+  .result-card {
+    max-height: calc(100dvh - 20px);
   }
 
   .stage-grid,
