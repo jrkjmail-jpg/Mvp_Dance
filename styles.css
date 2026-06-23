@@ -367,6 +367,7 @@ h2 {
 .app-shell.teacher-mode:not(.teacher-lesson-open) .stage-grid,
 .app-shell.teacher-mode:not(.teacher-lesson-open) .pipeline-steps,
 .app-shell.teacher-mode:not(.teacher-lesson-open) .setup-panel,
+.app-shell.teacher-mode:not(.teacher-lesson-open) .teacher-students-panel,
 .app-shell.teacher-mode:not(.teacher-lesson-open) .statusbar {
   display: none;
 }
@@ -375,6 +376,70 @@ h2 {
 .app-shell.teacher-mode .control-band,
 .app-shell.teacher-mode .metrics-grid {
   display: none;
+}
+
+.teacher-students-panel {
+  overflow: hidden;
+}
+
+.student-progress-list {
+  padding: 12px;
+  display: grid;
+  gap: 8px;
+}
+
+.student-progress-row {
+  min-height: 64px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 10px 12px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: 12px;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.045);
+}
+
+.student-progress-row strong,
+.student-progress-row small {
+  display: block;
+  line-height: 1.2;
+}
+
+.student-progress-row small {
+  margin-top: 4px;
+  color: var(--muted);
+  font-weight: 750;
+}
+
+.student-progress-row b {
+  color: var(--text);
+  text-align: right;
+  white-space: nowrap;
+}
+
+.lesson-status {
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 6px 9px;
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 900;
+  white-space: nowrap;
+  background: rgba(255, 255, 255, 0.045);
+}
+
+.lesson-status.passed {
+  border-color: rgba(36, 214, 181, 0.48);
+  color: var(--accent);
+  background: rgba(36, 214, 181, 0.08);
+}
+
+.lesson-status.learning,
+.lesson-status.viewed {
+  border-color: rgba(255, 212, 90, 0.42);
+  color: var(--accent-2);
+  background: rgba(255, 212, 90, 0.08);
 }
 
 .app-shell.teacher-mode .stage-grid .studio-panel:first-child {
@@ -2091,6 +2156,15 @@ meter::-webkit-meter-optimum-value {
 
   .studio-panel.student-studio-panel {
     grid-template-rows: auto auto minmax(360px, 52vh) auto;
+  }
+
+  .student-progress-row {
+    grid-template-columns: 1fr;
+    align-items: start;
+  }
+
+  .student-progress-row b {
+    text-align: left;
   }
 
   .panel-head {

@@ -11,7 +11,7 @@
     <link rel="manifest" href="./manifest.webmanifest" />
     <link rel="icon" href="./assets/app-icon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="./assets/app-icon.svg" />
-    <link rel="stylesheet" href="./styles.css?v=20260623-2" />
+    <link rel="stylesheet" href="./styles.css?v=20260623-3" />
   </head>
   <body>
     <main class="app-shell student-mode">
@@ -182,8 +182,6 @@
                   <span>Здесь настраиваются видео, эталон, фрагмент сдачи и публикация.</span>
                 </div>
               </div>
-              <button class="small-plus-button" type="button">Список учеников</button>
-              <button class="small-plus-button" type="button">Просмотры урока</button>
             </div>
           </div>
         </article>
@@ -436,6 +434,50 @@
         <span id="scanStatus">Эталон не считан</span>
       </footer>
 
+      <section class="panel teacher-students-panel">
+        <div class="panel-head">
+          <div>
+            <p class="eyebrow">Ученики</p>
+            <h2>Прохождение урока</h2>
+          </div>
+          <span class="school-chip">демо-список</span>
+        </div>
+        <div class="student-progress-list" aria-label="Список учеников по уроку">
+          <div class="student-progress-row">
+            <div>
+              <strong>Алиса Морозова</strong>
+              <small>@alisa.m · посмотрела обучение</small>
+            </div>
+            <span class="lesson-status learning">Учит</span>
+            <b>0%</b>
+          </div>
+          <div class="student-progress-row">
+            <div>
+              <strong>Марк Соколов</strong>
+              <small>@markdance · сдал под музыку</small>
+            </div>
+            <span class="lesson-status passed">Сдал</span>
+            <b>94% · ★★★★★</b>
+          </div>
+          <div class="student-progress-row">
+            <div>
+              <strong>Вера Ким</strong>
+              <small>@vera.k · открыл урок, не сдавал</small>
+            </div>
+            <span class="lesson-status viewed">Смотрел</span>
+            <b>нет сдачи</b>
+          </div>
+          <div class="student-progress-row">
+            <div>
+              <strong>Даниил Орлов</strong>
+              <small>@dan.orlov · пока не открывал</small>
+            </div>
+            <span class="lesson-status idle">Не начал</span>
+            <b>—</b>
+          </div>
+        </div>
+      </section>
+
       <div id="resultOverlay" class="result-overlay" hidden>
         <section class="result-card" role="dialog" aria-modal="true" aria-labelledby="resultTitle">
           <p class="eyebrow">Результат</p>
@@ -598,6 +640,6 @@
         });
       }
     </script>
-    <script type="module" src="./app.js?v=20260623-2"></script>
+    <script type="module" src="./app.js?v=20260623-3"></script>
   </body>
 </html>
