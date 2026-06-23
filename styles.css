@@ -1048,38 +1048,87 @@ h2 {
 .folder-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
+  gap: 14px;
 }
 
 .folder-card {
-  min-height: 112px;
+  min-height: 176px;
   border: 1px solid var(--line);
   border-radius: 8px;
-  padding: 12px;
+  padding: 20px;
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  grid-template-rows: auto auto;
-  gap: 6px 10px;
-  align-content: start;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 18px;
+  align-items: center;
   text-align: left;
-  background: rgba(255, 255, 255, 0.045);
+  background:
+    linear-gradient(135deg, rgba(36, 214, 181, 0.055), transparent 55%),
+    rgba(255, 255, 255, 0.04);
   color: var(--text);
 }
 
-.folder-card .folder-icon,
-.folder-card > span:first-child {
-  grid-row: 1 / span 2;
+.folder-card:hover {
+  background:
+    linear-gradient(135deg, rgba(36, 214, 181, 0.09), transparent 58%),
+    rgba(255, 255, 255, 0.055);
+}
+
+.folder-card .folder-icon {
+  width: 84px;
+  height: 84px;
+  border: 1px solid rgba(255, 212, 90, 0.3);
+  background: rgba(255, 212, 90, 0.12);
+  font-size: 1.65rem;
+}
+
+.folder-icon b {
+  color: var(--accent-2);
+  font-size: 2.2rem;
+  line-height: 1;
+}
+
+.folder-card-subgroup .folder-icon,
+.folder-card-lesson .folder-icon {
+  border-color: rgba(36, 214, 181, 0.3);
+  color: var(--accent);
+  background: rgba(36, 214, 181, 0.1);
+}
+
+.folder-card-subgroup .folder-icon b {
+  color: var(--accent);
+}
+
+.folder-card-copy {
+  min-width: 0;
+  display: grid;
+  gap: 7px;
+}
+
+.folder-card-type {
+  color: var(--accent);
+  font-size: 0.72rem;
+  font-weight: 950;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 .folder-card strong {
-  align-self: end;
-  line-height: 1.1;
+  font-size: clamp(1.45rem, 3vw, 2.15rem);
+  line-height: 1.02;
 }
 
-.folder-card small {
+.folder-card-note {
   color: var(--muted);
-  font-weight: 800;
-  line-height: 1.25;
+  font-size: 0.96rem;
+  font-weight: 750;
+  line-height: 1.35;
+}
+
+.folder-card-arrow {
+  color: var(--accent-2);
+  font-size: 2.4rem;
+  font-weight: 400;
+  line-height: 1;
 }
 
 .folder-card.active {
@@ -1092,8 +1141,8 @@ h2 {
 }
 
 .folder-card.add-folder > span:first-child {
-  width: 42px;
-  height: 42px;
+  width: 84px;
+  height: 84px;
   border-radius: 8px;
   display: grid;
   place-items: center;
@@ -2423,6 +2472,30 @@ meter::-webkit-meter-optimum-value {
   .studio-fact-icon {
     width: 26px;
     height: 26px;
+  }
+
+  .folder-card {
+    min-height: 154px;
+    padding: 16px;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    gap: 13px;
+  }
+
+  .folder-card .folder-icon {
+    width: 68px;
+    height: 68px;
+  }
+
+  .folder-icon b {
+    font-size: 1.8rem;
+  }
+
+  .folder-card strong {
+    font-size: 1.55rem;
+  }
+
+  .folder-card-note {
+    font-size: 0.88rem;
   }
 
   .invite-card {

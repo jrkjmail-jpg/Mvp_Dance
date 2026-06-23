@@ -2597,16 +2597,29 @@ function renderStudioChannel(studio) {
 }
 
 function folderButton(type, item) {
+  const typeLabel = {
+    studio: "Студия",
+    group: "Группа",
+    subgroup: "Подгруппа / партия",
+    lesson: "Урок",
+  }[type];
+  const number = ["group", "subgroup"].includes(type) ? String(item.name || "").match(/\d+/)?.[0] : "";
   const icon = item.image
     ? `<img src="${escapeHtml(item.image)}" alt="" />`
-    : `<span aria-hidden="true">${type === "lesson" ? "▶" : type === "subgroup" ? "◌" : "▣"}</span>`;
+    : number
+      ? `<b aria-hidden="true">${escapeHtml(number)}</b>`
+      : `<span aria-hidden="true">${type === "lesson" ? "▶" : type === "subgroup" ? "◌" : "▣"}</span>`;
   const dataset = type === "studio" ? "studio" : type === "group" ? "group" : type === "lesson" ? "lesson" : "subgroup";
   const note = itemSummary(type, item);
   return `
-    <button class="folder-card" type="button" data-${dataset}-id="${escapeHtml(item.id)}">
+    <button class="folder-card folder-card-${type}" type="button" data-${dataset}-id="${escapeHtml(item.id)}">
       <span class="folder-icon">${icon}</span>
-      <strong>${escapeHtml(item.name)}</strong>
-      <small>${escapeHtml(note)}</small>
+      <span class="folder-card-copy">
+        <small class="folder-card-type">${escapeHtml(typeLabel)}</small>
+        <strong>${escapeHtml(item.name)}</strong>
+        <span class="folder-card-note">${escapeHtml(note)}</span>
+      </span>
+      <span class="folder-card-arrow" aria-hidden="true">›</span>
     </button>
   `;
 }
