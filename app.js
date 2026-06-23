@@ -139,6 +139,7 @@ const els = {
   teacherLessonList: document.querySelector("#teacherLessonList"),
   teacherLessonOpenTitle: document.querySelector("#teacherLessonOpenTitle"),
   teacherStudioCover: document.querySelector("#teacherStudioCover"),
+  teacherStudioCoverImage: document.querySelector("#teacherStudioCoverImage"),
   teacherStudioLogo: document.querySelector("#teacherStudioLogo"),
   teacherStudioChannelName: document.querySelector("#teacherStudioChannelName"),
   teacherStudioChannelDescription: document.querySelector("#teacherStudioChannelDescription"),
@@ -2582,9 +2583,9 @@ function renderStudioChannel(studio) {
   els.teacherStudioDirections.textContent = studio.directions || "Направления пока не указаны";
   els.teacherStudioLogo.textContent = studio.image ? "" : (studio.name || "С").slice(0, 1).toUpperCase();
   els.teacherStudioLogo.style.backgroundImage = studio.image ? `url("${studio.image}")` : "";
-  els.teacherStudioCover.style.backgroundImage = studio.cover
-    ? `linear-gradient(180deg, transparent 40%, rgba(4, 7, 6, 0.72)), url("${studio.cover}")`
-    : "";
+  els.teacherStudioCoverImage.hidden = !studio.cover;
+  if (studio.cover) els.teacherStudioCoverImage.src = studio.cover;
+  else els.teacherStudioCoverImage.removeAttribute("src");
   const link = normalizeExternalLink(studio.contact);
   els.teacherStudioChannelLink.hidden = !link;
   if (link) {
@@ -2712,17 +2713,13 @@ function onTeacherEditImage(event) {
   reader.readAsDataURL(file);
 }
 
-function onTeacherEditCover(event) {
+async function onTeacherEditCover(event) {
   const file = event.target.files?.[0];
   if (!file) {
     state.teacherEditCoverData = "";
     return;
   }
-  const reader = new FileReader();
-  reader.addEventListener("load", () => {
-    state.teacherEditCoverData = String(reader.result || "");
-  });
-  reader.readAsDataURL(file);
+  state.teacherEditCoverData = await optimizeCoverImage(file);
 }
 
 async function submitTeacherEditDialog(event) {
@@ -2731,7 +2728,9 @@ async function submitTeacherEditDialog(event) {
   if (!item) return;
   const [imageData, coverData] = await Promise.all([
     state.teacherEditImageData ? Promise.resolve(state.teacherEditImageData) : readFileAsDataUrl(els.teacherEditImage.files?.[0]),
-    state.teacherEditCoverData ? Promise.resolve(state.teacherEditCoverData) : readFileAsDataUrl(els.teacherEditCover.files?.[0]),
+    state.teacherEditCoverData
+      ? Promise.resolve(state.teacherEditCoverData)
+      : optimizeCoverImage(els.teacherEditCover.files?.[0]),
   ]);
   item.name = els.teacherEditName.value.trim() || item.name;
   item.description = els.teacherEditDescription.value.trim();
@@ -2811,7 +2810,7 @@ async function submitTeacherCreateDialog(event) {
   if (state.teacherCreateType === "studio") {
     const [image, cover] = await Promise.all([
       readFileAsDataUrl(els.teacherCreateLogo.files?.[0]),
-      readFileAsDataUrl(els.teacherCreateCover.files?.[0]),
+      optimizeCoverImage(els.teacherCreateCover.files?.[0]),
     ]);
     state.teacherWorkspace.studios = [{
       id,
@@ -2950,6 +2949,40 @@ function readFileAsDataUrl(file) {
     reader.addEventListener("load", () => resolve(String(reader.result || "")), { once: true });
     reader.addEventListener("error", () => resolve(""), { once: true });
     reader.readAsDataURL(file);
+  });
+}
+
+async function optimizeCoverImage(file) {
+  if (!file) return "";
+  const source = URL.createObjectURL(file);
+  try {
+    const image = await loadImageSource(source);
+    const maxWidth = 1600;
+    const maxHeight = 1000;
+    const scale = Math.min(1, maxWidth / image.naturalWidth, maxHeight / image.naturalHeight);
+    const width = Math.max(1, Math.round(image.naturalWidth * scale));
+    const height = Math.max(1, Math.round(image.naturalHeight * scale));
+    const canvas = document.createElement("canvas");
+    canvas.width = width;
+    canvas.height = height;
+    const context = canvas.getContext("2d");
+    if (!context) return readFileAsDataUrl(file);
+    context.drawImage(image, 0, 0, width, height);
+    return canvas.toDataURL("image/jpeg", 0.84);
+  } catch (error) {
+    console.warn("Не удалось оптимизировать обложку", error);
+    return readFileAsDataUrl(file);
+  } finally {
+    URL.revokeObjectURL(source);
+  }
+}
+
+function loadImageSource(source) {
+  return new Promise((resolve, reject) => {
+    const image = new Image();
+    image.addEventListener("load", () => resolve(image), { once: true });
+    image.addEventListener("error", reject, { once: true });
+    image.src = source;
   });
 }
 

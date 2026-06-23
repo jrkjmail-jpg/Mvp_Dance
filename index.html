@@ -11,7 +11,7 @@
     <link rel="manifest" href="./manifest.webmanifest" />
     <link rel="icon" href="./assets/app-icon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="./assets/app-icon.svg" />
-    <link rel="stylesheet" href="./styles.css?v=20260623-7" />
+    <link rel="stylesheet" href="./styles.css?v=20260623-8" />
   </head>
   <body>
     <main class="app-shell student-mode">
@@ -196,6 +196,8 @@
             <div class="teacher-folder-view" data-teacher-view="studio" hidden>
               <div class="studio-channel">
                 <div id="teacherStudioCover" class="studio-channel-cover">
+                  <img id="teacherStudioCoverImage" class="studio-channel-cover-image" alt="" hidden />
+                  <span class="studio-channel-cover-shade" aria-hidden="true"></span>
                   <div id="teacherStudioLogo" class="studio-channel-logo">С</div>
                 </div>
                 <div class="studio-channel-copy">
@@ -739,6 +741,6 @@
         });
       }
     </script>
-    <script type="module" src="./app.js?v=20260623-7"></script>
+    <script type="module" src="./app.js?v=20260623-8"></script>
   </body>
 </html>

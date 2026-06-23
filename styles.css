@@ -733,17 +733,39 @@ h2 {
 .studio-channel-cover {
   min-height: 240px;
   position: relative;
-  background:
-    linear-gradient(180deg, transparent 38%, rgba(4, 7, 6, 0.76)),
-    linear-gradient(135deg, #176c5e, #21332e 55%, #8a722d);
-  background-position: center;
-  background-size: cover;
+  overflow: hidden;
+  background: linear-gradient(135deg, #176c5e, #21332e 55%, #8a722d);
+}
+
+.studio-channel-cover-image,
+.studio-channel-cover-shade {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.studio-channel-cover-image {
+  display: block;
+  object-fit: cover;
+  object-position: center;
+}
+
+.studio-channel-cover-image[hidden] {
+  display: none;
+}
+
+.studio-channel-cover-shade {
+  z-index: 1;
+  pointer-events: none;
+  background: linear-gradient(180deg, transparent 38%, rgba(4, 7, 6, 0.76));
 }
 
 .studio-channel-logo {
   width: 116px;
   height: 116px;
   position: absolute;
+  z-index: 2;
   left: 24px;
   bottom: -42px;
   border: 5px solid var(--panel);
