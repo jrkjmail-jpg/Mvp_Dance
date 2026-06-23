@@ -2581,8 +2581,8 @@ function renderStudioChannel(studio) {
   if (!studio) return;
   els.teacherStudioChannelName.textContent = studio.name || "Студия";
   els.teacherStudioChannelDescription.textContent = studio.description || "Добавьте описание студии в настройках.";
-  els.teacherStudioChannelAddress.textContent = studio.address || studio.city || "Адрес не указан";
-  els.teacherStudioDirections.textContent = studio.directions || "Направления пока не указаны";
+  els.teacherStudioChannelAddress.textContent = studio.address || studio.city || "Не указан";
+  els.teacherStudioDirections.textContent = studio.directions || "Пока не указаны";
   els.teacherStudioLogo.textContent = studio.image ? "" : (studio.name || "С").slice(0, 1).toUpperCase();
   els.teacherStudioLogo.style.backgroundImage = studio.image ? `url("${studio.image}")` : "";
   els.teacherStudioCoverImage.hidden = !studio.cover;

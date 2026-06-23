@@ -11,7 +11,7 @@
     <link rel="manifest" href="./manifest.webmanifest" />
     <link rel="icon" href="./assets/app-icon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="./assets/app-icon.svg" />
-    <link rel="stylesheet" href="./styles.css?v=20260624-1" />
+    <link rel="stylesheet" href="./styles.css?v=20260624-2" />
   </head>
   <body>
     <main class="app-shell student-mode">
@@ -179,7 +179,22 @@
                 <p id="teacherStudioChannelDescription">Описание студии появится здесь.</p>
               </div>
               <div class="studio-channel-facts">
-                <span id="teacherStudioChannelAddress">Адрес не указан</span>
+                <div class="studio-fact">
+                  <small>Адрес</small>
+                  <strong id="teacherStudioChannelAddress">Не указан</strong>
+                </div>
+                <div class="studio-fact">
+                  <small>Направления</small>
+                  <strong id="teacherStudioDirections">Пока не указаны</strong>
+                </div>
+                <div class="studio-fact">
+                  <small>Владелец</small>
+                  <strong>Владелец студии</strong>
+                </div>
+                <div class="studio-fact">
+                  <small>Команда педагогов</small>
+                  <strong>Пока не добавлена</strong>
+                </div>
                 <a id="teacherStudioChannelLink" href="#" target="_blank" rel="noreferrer" hidden>Открыть ссылку</a>
               </div>
             </div>
@@ -221,17 +236,6 @@
                   </div>
                 </div>
                 <div id="teacherGroupList" class="folder-grid" aria-label="Группы студии"></div>
-              </div>
-              <div class="studio-channel-section studio-about-grid">
-                <div>
-                  <p class="eyebrow">О студии</p>
-                  <strong id="teacherStudioDirections">Направления пока не указаны</strong>
-                </div>
-                <div>
-                  <p class="eyebrow">Команда</p>
-                  <strong>Владелец студии</strong>
-                  <span>Добавление педагогов появится позже</span>
-                </div>
               </div>
             </div>
 
@@ -742,6 +746,6 @@
         });
       }
     </script>
-    <script type="module" src="./app.js?v=20260624-1"></script>
+    <script type="module" src="./app.js?v=20260624-2"></script>
   </body>
 </html>
