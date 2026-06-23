@@ -290,6 +290,7 @@ const state = {
     studios: [],
     activeStudioId: "",
     activeGroupId: "",
+    activeSubgroupIds: [],
     activeLessonId: "",
   },
   studentClip: {
@@ -365,6 +366,7 @@ els.teacherBrowser.addEventListener("click", (event) => {
   if (studioButton) {
     state.teacherWorkspace.activeStudioId = studioButton.dataset.studioId;
     state.teacherWorkspace.activeGroupId = "";
+    state.teacherWorkspace.activeSubgroupIds = [];
     state.teacherWorkspace.activeLessonId = "";
     setTeacherFolderView("studio");
     return;
@@ -372,6 +374,15 @@ els.teacherBrowser.addEventListener("click", (event) => {
   const groupButton = event.target.closest("[data-group-id]");
   if (groupButton) {
     state.teacherWorkspace.activeGroupId = groupButton.dataset.groupId;
+    state.teacherWorkspace.activeSubgroupIds = [];
+    state.teacherWorkspace.activeLessonId = "";
+    setTeacherFolderView("group");
+    return;
+  }
+  const subgroupButton = event.target.closest("[data-subgroup-id]");
+  if (subgroupButton) {
+    if (state.teacherWorkspace.activeSubgroupIds.length >= 3) return;
+    state.teacherWorkspace.activeSubgroupIds.push(subgroupButton.dataset.subgroupId);
     state.teacherWorkspace.activeLessonId = "";
     setTeacherFolderView("group");
     return;
@@ -388,7 +399,24 @@ els.teacherEditAction.addEventListener("click", openTeacherEditDialog);
 els.teacherSubgroupAction.addEventListener("click", () => openTeacherCreateDialog("subgroup"));
 els.teacherBreadcrumb.addEventListener("click", (event) => {
   const button = event.target.closest("[data-breadcrumb-view]");
-  if (button) setTeacherFolderView(button.dataset.breadcrumbView);
+  if (!button) return;
+  const view = button.dataset.breadcrumbView;
+  if (view === "root") {
+    state.teacherWorkspace.activeGroupId = "";
+    state.teacherWorkspace.activeSubgroupIds = [];
+    state.teacherWorkspace.activeLessonId = "";
+  }
+  if (view === "studio") {
+    state.teacherWorkspace.activeGroupId = "";
+    state.teacherWorkspace.activeSubgroupIds = [];
+    state.teacherWorkspace.activeLessonId = "";
+  }
+  if (view === "group") {
+    const depth = Number(button.dataset.subgroupDepth || 0);
+    state.teacherWorkspace.activeSubgroupIds = state.teacherWorkspace.activeSubgroupIds.slice(0, depth);
+    state.teacherWorkspace.activeLessonId = "";
+  }
+  setTeacherFolderView(view);
 });
 els.teacherCreateForm.addEventListener("submit", submitTeacherCreateDialog);
 els.teacherCreateCancel.addEventListener("click", closeTeacherCreateDialog);
@@ -2376,8 +2404,9 @@ function setTeacherFolderView(view) {
   renderTeacherWorkspace();
   const studio = activeTeacherStudio();
   const group = activeTeacherGroup();
+  const subgroups = activeTeacherSubgroupPath();
   const lesson = activeTeacherLesson();
-  const meta = teacherFolderMeta(studio, group, lesson);
+  const meta = teacherFolderMeta(studio, group, subgroups, lesson);
   const safeView = meta[view] ? view : "root";
   state.teacherFolderView = safeView;
   els.teacherFolderViews.forEach((panel) => {
@@ -2386,7 +2415,7 @@ function setTeacherFolderView(view) {
     panel.classList.toggle("active", active);
   });
   els.teacherBreadcrumb.textContent = meta[safeView].breadcrumb;
-  els.teacherBreadcrumb.innerHTML = renderTeacherBreadcrumb(safeView, studio, group, lesson);
+  els.teacherBreadcrumb.innerHTML = renderTeacherBreadcrumb(safeView, studio, group, subgroups, lesson);
   els.teacherFolderTitle.textContent = meta[safeView].title;
   const actionLabel = safeView === "root" && state.teacherWorkspace.studios.length ? "Открыть студию" : meta[safeView].action;
   els.teacherPrimaryAction.lastChild.textContent = ` ${actionLabel}`;
@@ -2394,15 +2423,20 @@ function setTeacherFolderView(view) {
   els.teacherPrimaryAction.hidden = safeView === "lesson";
   els.teacherBackButton.hidden = safeView === "root";
   els.teacherEditAction.hidden = !["studio", "group", "lesson"].includes(safeView);
-  els.teacherSubgroupAction.hidden = safeView !== "group";
+  els.teacherSubgroupAction.hidden = safeView !== "group" || subgroups.length >= 3;
   if (lesson) els.teacherLessonOpenTitle.textContent = lesson.name;
   els.appShell.classList.toggle("teacher-lesson-open", safeView === "lesson");
 }
 
-function renderTeacherBreadcrumb(view, studio, group, lesson) {
+function renderTeacherBreadcrumb(view, studio, group, subgroups, lesson) {
   const parts = [{ label: "Мои пространства", view: "root" }];
   if (studio && ["studio", "group", "lesson"].includes(view)) parts.push({ label: studio.name, view: "studio" });
   if (group && ["group", "lesson"].includes(view)) parts.push({ label: group.name, view: "group" });
+  subgroups.forEach((subgroup, index) => {
+    if (["group", "lesson"].includes(view)) {
+      parts.push({ label: subgroup.name, view: "group", subgroupDepth: index + 1 });
+    }
+  });
   if (lesson && view === "lesson") parts.push({ label: lesson.name, view: "lesson" });
   return parts
     .map((part, index) => {
@@ -2410,12 +2444,17 @@ function renderTeacherBreadcrumb(view, studio, group, lesson) {
       const label = escapeHtml(part.label);
       return active
         ? `<span>${label}</span>`
-        : `<button type="button" data-breadcrumb-view="${part.view}">${label}</button>`;
+        : `<button type="button" data-breadcrumb-view="${part.view}" data-subgroup-depth="${part.subgroupDepth || 0}">${label}</button>`;
     })
     .join("<span aria-hidden=\"true\">/</span>");
 }
 
 function goTeacherBack() {
+  if (state.teacherFolderView === "group" && state.teacherWorkspace.activeSubgroupIds.length) {
+    state.teacherWorkspace.activeSubgroupIds.pop();
+    setTeacherFolderView("group");
+    return;
+  }
   const previousView = {
     studio: "root",
     group: "studio",
@@ -2424,9 +2463,10 @@ function goTeacherBack() {
   if (previousView) setTeacherFolderView(previousView);
 }
 
-function teacherFolderMeta(studio, group, lesson) {
+function teacherFolderMeta(studio, group, subgroups, lesson) {
   const studioName = studio?.name || "Студия";
-  const groupName = group?.name || "Группа";
+  const currentSubgroup = subgroups.length ? subgroups[subgroups.length - 1] : null;
+  const groupName = currentSubgroup?.name || group?.name || "Группа";
   const lessonName = lesson?.name || "Урок";
   return {
     root: {
@@ -2461,9 +2501,10 @@ function renderTeacherWorkspace() {
     ? studio.groups.map((group) => folderButton("group", group)).join("")
     : emptyFolderText("В этой студии пока нет групп", "Нажмите плюс сверху, чтобы создать группу.");
   const group = activeTeacherGroup();
+  const container = activeTeacherContainer();
   const groupItems = [
-    ...(group?.subgroups || []).map((subgroup) => folderButton("subgroup", subgroup)),
-    ...(group?.lessons || []).map((lesson) => folderButton("lesson", lesson)),
+    ...(container?.subgroups || []).map((subgroup) => folderButton("subgroup", subgroup)),
+    ...(container?.lessons || []).map((lesson) => folderButton("lesson", lesson)),
   ];
   els.teacherLessonList.innerHTML = groupItems.length
     ? groupItems.join("")
@@ -2511,14 +2552,31 @@ function activeTeacherGroup() {
   return studio?.groups?.find((group) => group.id === state.teacherWorkspace.activeGroupId) || null;
 }
 
+function activeTeacherSubgroupPath() {
+  const path = [];
+  let cursor = activeTeacherGroup();
+  for (const subgroupId of state.teacherWorkspace.activeSubgroupIds) {
+    const next = cursor?.subgroups?.find((subgroup) => subgroup.id === subgroupId);
+    if (!next) break;
+    path.push(next);
+    cursor = next;
+  }
+  return path;
+}
+
+function activeTeacherContainer() {
+  const subgroups = activeTeacherSubgroupPath();
+  return (subgroups.length ? subgroups[subgroups.length - 1] : null) || activeTeacherGroup();
+}
+
 function activeTeacherLesson() {
-  const group = activeTeacherGroup();
-  return group?.lessons?.find((lesson) => lesson.id === state.teacherWorkspace.activeLessonId) || null;
+  const container = activeTeacherContainer();
+  return container?.lessons?.find((lesson) => lesson.id === state.teacherWorkspace.activeLessonId) || null;
 }
 
 function activeTeacherEditableItem() {
   if (state.teacherFolderView === "studio") return activeTeacherStudio();
-  if (state.teacherFolderView === "group") return activeTeacherGroup();
+  if (state.teacherFolderView === "group") return activeTeacherContainer();
   if (state.teacherFolderView === "lesson") return activeTeacherLesson();
   return null;
 }
@@ -2529,9 +2587,11 @@ function openTeacherEditDialog() {
   const typeLabels = {
     studio: ["Редактирование студии", "Данные студии", "Возраст / направления", "Город / адрес"],
     group: ["Редактирование группы", "Данные группы", "Возраст", "Уровень / направление"],
+    subgroup: ["Редактирование подгруппы", "Данные подгруппы", "Возраст / партия", "Уровень / направление"],
     lesson: ["Редактирование урока", "Данные урока", "Сложность / возраст", "Музыка / стиль"],
   };
-  const [eyebrow, title, ageLabel, placeLabel] = typeLabels[state.teacherFolderView] || typeLabels.group;
+  const editType = state.teacherFolderView === "group" && state.teacherWorkspace.activeSubgroupIds.length ? "subgroup" : state.teacherFolderView;
+  const [eyebrow, title, ageLabel, placeLabel] = typeLabels[editType] || typeLabels.group;
   state.teacherEditImageData = "";
   els.teacherEditEyebrow.textContent = eyebrow;
   els.teacherEditTitle.textContent = title;
@@ -2588,6 +2648,7 @@ function submitTeacherEditDialog(event) {
 }
 
 function openTeacherCreateDialog(forcedType = "") {
+  if (forcedType === "subgroup" && state.teacherWorkspace.activeSubgroupIds.length >= 3) return;
   if (state.teacherFolderView === "root" && state.teacherWorkspace.studios.length) {
     const studio = state.teacherWorkspace.studios[0];
     state.teacherWorkspace.activeStudioId = studio.id;
@@ -2649,18 +2710,19 @@ function submitTeacherCreateDialog(event) {
     return;
   }
   if (state.teacherCreateType === "subgroup") {
-    const group = activeTeacherGroup();
-    if (!group) return;
-    group.subgroups = group.subgroups || [];
-    group.subgroups.push({ id, name, description, image: "", age: "", level: "", contact: "" });
+    const container = activeTeacherContainer();
+    if (!container) return;
+    container.subgroups = container.subgroups || [];
+    container.subgroups.push({ id, name, description, image: "", age: "", level: "", contact: "", subgroups: [], lessons: [] });
     closeTeacherCreateDialog();
     setTeacherFolderView("group");
     return;
   }
   if (state.teacherCreateType === "lesson") {
-    const group = activeTeacherGroup();
-    if (!group) return;
-    group.lessons.push({ id, name, description, image: "", age: "", level: "", contact: "" });
+    const container = activeTeacherContainer();
+    if (!container) return;
+    container.lessons = container.lessons || [];
+    container.lessons.push({ id, name, description, image: "", age: "", level: "", contact: "" });
     state.teacherWorkspace.activeLessonId = id;
     closeTeacherCreateDialog();
     setTeacherFolderView("lesson");
