@@ -29,6 +29,7 @@ const els = {
   showLearningVideoButton: document.querySelector("#showLearningVideoButton"),
   showExamVideoButton: document.querySelector("#showExamVideoButton"),
   startDanceCardButton: document.querySelector("#startDanceCardButton"),
+  themeToggleButton: document.querySelector("#themeToggleButton"),
   roleTabs: document.querySelectorAll(".role-tab"),
   pipelineSteps: document.querySelectorAll(".pipeline-step"),
   lessonFlowSteps: document.querySelectorAll(".flow-step"),
@@ -221,6 +222,7 @@ const DANCE_STYLES = [
 
 const savedTeacherWorkspace = readStoredJson("danceReplayTeacherWorkspace", null);
 const savedStudentProfile = readStoredJson("danceReplayStudentProfile", null);
+const savedTheme = readStoredTheme();
 
 const ANGLES = {
   arms: [
@@ -402,6 +404,7 @@ window.__danceDebug = {
 };
 
 setButtons(false);
+applyTheme(savedTheme);
 renderAttempts();
 updateLevelDisplay();
 updateExamMarker();
@@ -421,6 +424,7 @@ els.showLearningVideoButton.addEventListener("click", () => switchTeacherVideo("
 els.showExamVideoButton.addEventListener("click", () => switchTeacherVideo("exam"));
 els.startDanceCardButton.addEventListener("click", focusDanceStage);
 els.roleTabs.forEach((tab) => tab.addEventListener("click", () => switchView(tab.dataset.view)));
+els.themeToggleButton.addEventListener("click", toggleTheme);
 els.studentProfileForm.addEventListener("submit", submitStudentProfile);
 els.teacherBrowser.addEventListener("click", (event) => {
   const studioButton = event.target.closest("[data-studio-id]");
@@ -455,6 +459,12 @@ els.teacherBrowser.addEventListener("click", (event) => {
   }
 });
 els.teacherPrimaryAction.addEventListener("click", () => openTeacherCreateDialog());
+els.teacherRootEmpty.addEventListener("click", () => openTeacherCreateDialog("studio"));
+els.teacherRootEmpty.addEventListener("keydown", (event) => {
+  if (event.key !== "Enter" && event.key !== " ") return;
+  event.preventDefault();
+  openTeacherCreateDialog("studio");
+});
 els.teacherBackButton.addEventListener("click", goTeacherBack);
 els.teacherEditAction.addEventListener("click", openTeacherEditDialog);
 els.teacherSubgroupAction.addEventListener("click", () => openTeacherCreateDialog("subgroup"));
@@ -2454,6 +2464,37 @@ function switchView(view) {
   els.teacherPanel.hidden = view !== "teacher";
   els.appShell.classList.toggle("student-mode", view === "student");
   els.appShell.classList.toggle("teacher-mode", view === "teacher");
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function readStoredTheme() {
+  try {
+    return localStorage.getItem("danceReplayTheme") === "dark" ? "dark" : "light";
+  } catch (error) {
+    return "light";
+  }
+}
+
+function applyTheme(theme) {
+  const safeTheme = theme === "dark" ? "dark" : "light";
+  document.documentElement.dataset.theme = safeTheme === "dark" ? "dark" : "";
+  els.themeToggleButton.textContent = safeTheme === "dark" ? "Светлая" : "Тёмная";
+  els.themeToggleButton.setAttribute("aria-pressed", String(safeTheme === "dark"));
+  els.themeToggleButton.setAttribute(
+    "aria-label",
+    safeTheme === "dark" ? "Включить светлую тему" : "Включить тёмную тему"
+  );
+  document.querySelector('meta[name="theme-color"]')?.setAttribute("content", safeTheme === "dark" ? "#101114" : "#f1eee7");
+}
+
+function toggleTheme() {
+  const nextTheme = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
+  applyTheme(nextTheme);
+  try {
+    localStorage.setItem("danceReplayTheme", nextTheme);
+  } catch (error) {
+    console.warn("Не удалось сохранить тему", error);
+  }
 }
 
 function focusDanceStage() {
@@ -2946,6 +2987,7 @@ function submitStudentProfile(event) {
     console.warn("Не удалось сохранить профиль ученика", error);
   }
   renderStudentProfile();
+  window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
 function readStoredJson(key, fallback) {

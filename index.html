@@ -8,22 +8,36 @@
     <meta name="apple-mobile-web-app-title" content="Танцуй" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <title>Танцуй</title>
+    <script>
+      (() => {
+        try {
+          const theme = localStorage.getItem("danceReplayTheme");
+          if (theme === "dark") document.documentElement.dataset.theme = "dark";
+        } catch (error) {
+          document.documentElement.dataset.theme = "";
+        }
+      })();
+    </script>
     <link rel="manifest" href="./manifest.webmanifest" />
     <link rel="icon" href="./assets/app-icon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="./assets/app-icon.svg" />
-    <link rel="stylesheet" href="./styles.css?v=20260624-5" />
+    <link rel="stylesheet" href="./styles.css?v=20260626-8" />
   </head>
   <body>
     <main class="app-shell student-mode">
       <header class="topbar">
-        <div>
-          <p class="eyebrow">Домашняя тренировка</p>
-          <h1>Танцуй</h1>
+        <div class="brand-lockup">
+          <span class="brand-mark" aria-hidden="true">Т</span>
+          <div>
+            <p class="eyebrow">Танцевальная платформа</p>
+            <h1>Танцуй</h1>
+          </div>
         </div>
         <nav class="role-tabs account-switch" aria-label="Выбор кабинета">
           <button class="role-tab active" data-view="student" type="button">Танцор</button>
           <button class="role-tab" data-view="teacher" type="button">Педагог</button>
         </nav>
+        <button id="themeToggleButton" class="theme-toggle" type="button" aria-pressed="false">Тёмная</button>
       </header>
 
       <section class="student-dashboard" data-panel="student">
@@ -31,15 +45,21 @@
           <div class="onboarding-invite">
             <div class="invite-logo" aria-hidden="true">Т</div>
             <div>
-              <p class="eyebrow">Приглашение в студию</p>
+              <p class="eyebrow">Ваше приглашение</p>
               <h2 id="studentInviteStudioName">Танцевальная студия</h2>
-              <span>Создайте аккаунт, и студия автоматически появится в вашем кабинете.</span>
+              <span>Один профиль — уроки, домашние тренировки и прогресс в вашей студии.</span>
+              <div class="onboarding-benefits" aria-label="Возможности профиля">
+                <small>Учитесь по видео педагога</small>
+                <small>Сдавайте танцы из дома</small>
+                <small>Получайте разбор и звёзды</small>
+              </div>
             </div>
           </div>
           <form id="studentProfileForm" class="profile-form">
             <div class="form-heading">
-              <p class="eyebrow">Новый танцор</p>
-              <h2>Создание аккаунта</h2>
+              <p class="eyebrow">Шаг 1 из 1</p>
+              <h2>Расскажите немного о себе</h2>
+              <span>Это займёт меньше минуты. Позже данные можно будет изменить в профиле.</span>
             </div>
             <div class="profile-fields">
               <label>
@@ -60,14 +80,14 @@
               </label>
             </div>
             <fieldset class="dance-style-fieldset">
-              <legend>Какими стилями танцуете?</legend>
+              <legend>Какие направления вам интересны?</legend>
               <div id="studentStyleOptions" class="style-check-grid"></div>
             </fieldset>
             <label class="profile-consent">
               <input id="studentConsent" type="checkbox" required />
               <span>Согласен на создание учебного профиля</span>
             </label>
-            <button class="primary profile-submit" type="submit">Создать аккаунт и вступить</button>
+            <button class="primary profile-submit" type="submit">Вступить в студию <span aria-hidden="true">→</span></button>
           </form>
         </article>
 
@@ -109,8 +129,9 @@
         <section class="dance-feed">
           <div class="feed-head">
             <div>
-              <p class="eyebrow">Танцы</p>
-              <h2>Сегодня тренируем</h2>
+              <p class="eyebrow">Мои уроки</p>
+              <h2>Продолжайте с главного</h2>
+              <span class="section-note">Педагог уже подготовил обучение и фрагмент для сдачи.</span>
             </div>
             <span class="school-chip">6 группа</span>
           </div>
@@ -122,12 +143,12 @@
                 <small>новое</small>
               </div>
               <div class="dance-info">
-                <p class="eyebrow">новое задание</p>
+                <p class="eyebrow">Главный урок · 12 минут</p>
                 <strong>Танец недели</strong>
-                <span>Сначала разучи движения, потом сдай фрагмент под музыку.</span>
+                <span>Разберите связку в своём темпе, затем запишите сдачу под музыку.</span>
                 <div class="dance-stars">☆☆☆☆☆</div>
               </div>
-              <button id="startDanceCardButton" class="dance-cta" type="button">Начать</button>
+              <button id="startDanceCardButton" class="dance-cta" type="button">Открыть урок <span aria-hidden="true">→</span></button>
             </article>
             <article class="dance-card lesson-card">
               <div class="dance-preview lesson-preview secondary">
@@ -233,7 +254,7 @@
           </div>
           <div class="teacher-workspace" data-teacher-browser>
             <div class="teacher-folder-view active" data-teacher-view="root">
-              <div id="teacherRootEmpty" class="teacher-empty-note">
+              <div id="teacherRootEmpty" class="teacher-empty-note" role="button" tabindex="0" aria-label="Создать студию">
                 <strong>Создайте свою студию</strong>
                 <small>Оформите страницу студии, а затем добавьте группы и уроки.</small>
               </div>
@@ -355,12 +376,26 @@
         </article>
       </section>
 
+      <section class="lesson-workspace-intro">
+        <div>
+          <p class="eyebrow">Тренировочная комната</p>
+          <h2>Учитесь и сдавайте в одном окне</h2>
+          <p>Сначала разберите движение по видео педагога. Когда будете готовы — включите камеру и сдайте фрагмент под музыку.</p>
+        </div>
+        <div class="workspace-tips" aria-label="Подсказки перед тренировкой">
+          <span><b>01</b> Поставьте телефон устойчиво</span>
+          <span><b>02</b> Встаньте в полный рост</span>
+          <span><b>03</b> Освободите место вокруг</span>
+        </div>
+      </section>
+
       <section class="stage-grid">
         <article class="panel studio-panel">
           <div class="panel-head">
             <div>
               <p id="teacherVideoModeLabel" class="eyebrow">Под музыку</p>
-              <h2>Видео педагога</h2>
+              <h2>Педагог показывает</h2>
+              <span class="panel-description">Переключайтесь между подробным разбором и чистовым танцем.</span>
             </div>
             <div class="video-mode-tabs" aria-label="Выбор видео педагога">
               <button id="showLearningVideoButton" class="video-mode-tab" type="button">Учить</button>
@@ -412,8 +447,9 @@
         <article class="panel studio-panel student-studio-panel">
           <div class="panel-head">
             <div>
-              <p class="eyebrow">Сдача</p>
-              <h2>Камера ученика</h2>
+              <p class="eyebrow">Ваше исполнение</p>
+              <h2>Вы в кадре</h2>
+              <span class="panel-description">Камера нужна только во время тренировки и сдачи.</span>
             </div>
             <button id="cameraButton" class="icon-action" type="button" title="Включить камеру">
               <span aria-hidden="true">◉</span>
@@ -422,7 +458,7 @@
 
           <label class="student-upload">
             <input id="studentVideoUpload" type="file" accept="video/*" />
-            <span>Загрузить видео ученика для теста</span>
+            <span>Или загрузите готовое видео</span>
           </label>
 
           <div class="video-frame">
@@ -458,9 +494,13 @@
       </div>
 
       <section class="control-band">
+        <div class="control-copy">
+          <p class="eyebrow">Режим занятия</p>
+          <strong>Выберите, что хотите сделать сейчас</strong>
+        </div>
         <div class="control-group">
-          <button id="practiceButton" type="button">Учить</button>
-          <button id="danceButton" type="button">Сдать</button>
+          <button id="practiceButton" type="button"><span aria-hidden="true">↺</span> Учить</button>
+          <button id="danceButton" type="button">Сдать танец <span aria-hidden="true">→</span></button>
         </div>
 
         <div class="sliders">
@@ -485,7 +525,8 @@
 
       <section class="metrics-grid">
         <article class="metric-panel">
-          <p class="eyebrow">Попадание</p>
+          <p class="eyebrow">Итог попытки</p>
+          <h3>Совпадение</h3>
           <div class="match-ring">
             <svg viewBox="0 0 120 120" role="img" aria-label="Процент похожести">
               <circle cx="60" cy="60" r="50"></circle>
@@ -499,7 +540,8 @@
         </article>
 
         <article class="metric-panel">
-          <p class="eyebrow">Разбор</p>
+          <p class="eyebrow">Разбор движения</p>
+          <h3>Что уже получается</h3>
           <div class="bars">
             <label><span>Руки</span><meter id="armsMeter" min="0" max="100" value="0"></meter></label>
             <label><span>Ноги</span><meter id="legsMeter" min="0" max="100" value="0"></meter></label>
@@ -513,7 +555,8 @@
         </article>
 
         <article class="metric-panel">
-          <p class="eyebrow">Задание</p>
+          <p class="eyebrow">История урока</p>
+          <h3>Ваши попытки</h3>
           <div class="task-line">
             <strong id="taskStatus">не начато</strong>
             <span id="attemptCount">0 попыток</span>
@@ -759,6 +802,6 @@
         });
       }
     </script>
-    <script type="module" src="./app.js?v=20260624-5"></script>
+    <script type="module" src="./app.js?v=20260626-8"></script>
   </body>
 </html>
