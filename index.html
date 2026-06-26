@@ -21,7 +21,7 @@
     <link rel="manifest" href="./manifest.webmanifest" />
     <link rel="icon" href="./assets/app-icon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="./assets/app-icon.svg" />
-    <link rel="stylesheet" href="./styles.css?v=20260626-8" />
+    <link rel="stylesheet" href="./styles.css?v=20260626-29" />
   </head>
   <body>
     <main class="app-shell student-mode">
@@ -37,7 +37,10 @@
           <button class="role-tab active" data-view="student" type="button">Танцор</button>
           <button class="role-tab" data-view="teacher" type="button">Педагог</button>
         </nav>
-        <button id="themeToggleButton" class="theme-toggle" type="button" aria-pressed="false">Тёмная</button>
+        <button id="themeToggleButton" class="theme-toggle theme-switch" type="button" aria-pressed="false" aria-label="Включить тёмную тему">
+          <span aria-hidden="true">☀</span>
+          <span aria-hidden="true">☾</span>
+        </button>
       </header>
 
       <section class="student-dashboard" data-panel="student">
@@ -110,19 +113,19 @@
         <section class="lesson-flow" aria-label="Путь урока">
           <div class="flow-step active">
             <strong>1</strong>
-            <span>Выбор</span>
+            <span>Учить</span>
           </div>
           <div class="flow-step">
             <strong>2</strong>
-            <span>Учёба</span>
+            <span>Сдать</span>
           </div>
           <div class="flow-step">
             <strong>3</strong>
-            <span>Сдача</span>
+            <span>Опубликовать</span>
           </div>
           <div class="flow-step">
             <strong>4</strong>
-            <span>Звёзды</span>
+            <span>Оценка</span>
           </div>
         </section>
 
@@ -288,92 +291,10 @@
             </div>
 
             <div class="teacher-folder-view lesson-view" data-teacher-view="lesson" hidden>
-              <div class="lesson-open-card">
-                <span class="folder-icon" aria-hidden="true">▶</span>
-                <div>
-                  <p class="eyebrow">Открыт урок</p>
-                  <h3 id="teacherLessonOpenTitle">Урок</h3>
-                  <span>Здесь настраиваются видео, эталон, фрагмент сдачи и публикация.</span>
-                </div>
-              </div>
             </div>
           </div>
         </article>
 
-        <div class="pipeline-steps" aria-label="Этапы подготовки урока">
-          <div class="pipeline-step active" data-step="upload">
-            <strong>1</strong>
-            <span>Видео</span>
-          </div>
-          <div class="pipeline-step" data-step="scan">
-            <strong>2</strong>
-            <span>Эталон</span>
-          </div>
-          <div class="pipeline-step" data-step="review">
-            <strong>3</strong>
-            <span>Проверка</span>
-          </div>
-          <div class="pipeline-step" data-step="markers">
-            <strong>4</strong>
-            <span>Фрагмент</span>
-          </div>
-          <div class="pipeline-step" data-step="publish">
-            <strong>5</strong>
-            <span>Публикация</span>
-          </div>
-        </div>
-
-        <article class="panel setup-panel">
-          <div class="panel-head">
-            <div>
-              <p class="eyebrow">Настройка</p>
-              <h2>Видео и экзамен</h2>
-            </div>
-          </div>
-          <div class="setup-body">
-            <label class="upload-drop">
-              <input id="learningUpload" type="file" accept="video/*" />
-              <strong>1. Обучение</strong>
-              <span>Приветствие, объяснение и медленный разбор.</span>
-              <small id="learningUploadStatus">не загружено</small>
-              <video id="learningPreviewVideo" class="upload-preview" playsinline muted controls preload="metadata" hidden></video>
-            </label>
-
-            <label class="upload-drop">
-              <input id="examUpload" type="file" accept="video/*" />
-              <strong>2. Под музыку</strong>
-              <span>По этому видео система считает эталон.</span>
-              <small id="examUploadStatus">не загружено</small>
-              <video id="examPreviewVideo" class="upload-preview" playsinline muted controls preload="metadata" hidden></video>
-            </label>
-
-            <div class="marker-box">
-              <p class="eyebrow">Фрагменты</p>
-              <div class="timeline-readout">
-                <small>Учить</small>
-                <strong id="learningRangeValue">0:00 → 0:00</strong>
-              </div>
-              <div class="timeline-readout">
-                <small>Сдать</small>
-                <strong id="examRangeValue">0:00 → 0:00</strong>
-              </div>
-              <div class="timeline-readout current-range">
-                <small>Сейчас</small>
-                <strong id="examStartValue">0:00</strong>
-                <span>→</span>
-                <strong id="examEndValue">0:00</strong>
-              </div>
-              <span>Выберите видео, перемотайте таймлайн и поставьте начало/конец.</span>
-            </div>
-
-            <div class="review-box">
-              <p class="eyebrow">Проверка эталона</p>
-              <strong id="reviewStatus">ожидает видео</strong>
-              <span>Включите скелет и проверьте, что он держится на теле.</span>
-              <button id="buildReferenceButton" type="button">Считать эталон</button>
-            </div>
-          </div>
-        </article>
       </section>
 
       <section class="lesson-workspace-intro">
@@ -393,9 +314,9 @@
         <article class="panel studio-panel">
           <div class="panel-head">
             <div>
-              <p id="teacherVideoModeLabel" class="eyebrow">Под музыку</p>
-              <h2>Педагог показывает</h2>
-              <span class="panel-description">Переключайтесь между подробным разбором и чистовым танцем.</span>
+              <p id="teacherVideoModeLabel" class="eyebrow">Мастер урока</p>
+              <h2>Следуйте шагам</h2>
+              <span class="panel-description">Загрузите видео, дождитесь эталона, проверьте скелет и опубликуйте урок в студии.</span>
             </div>
             <div class="video-mode-tabs" aria-label="Выбор видео педагога">
               <button id="showLearningVideoButton" class="video-mode-tab" type="button">Учить</button>
@@ -406,15 +327,93 @@
             </div>
           </div>
 
+          <div class="teacher-video-dock">
+            <div class="pipeline-steps" aria-label="Этапы подготовки урока">
+              <div class="pipeline-step active" data-step="upload">
+                <strong>1</strong>
+                <span>Видео</span>
+              </div>
+              <div class="pipeline-step" data-step="scan">
+                <strong>2</strong>
+                <span>Эталон</span>
+              </div>
+              <div class="pipeline-step" data-step="review">
+                <strong>3</strong>
+                <span>Проверка</span>
+              </div>
+              <div class="pipeline-step" data-step="markers">
+                <strong>4</strong>
+                <span>Фрагмент</span>
+              </div>
+              <div class="pipeline-step" data-step="publish">
+                <strong>5</strong>
+                <span>Публикация</span>
+              </div>
+            </div>
+
+            <div class="setup-panel video-setup-panel">
+              <div class="teacher-wizard-content">
+                <div>
+                  <p id="teacherStepEyebrow" class="eyebrow">Шаг 1 · Видео</p>
+                  <h3 id="teacherStepTitle">Загрузите видео урока</h3>
+                  <p id="teacherStepDescription">
+                    Добавьте чистовое видео, по которому ученики будут учиться и сдавать танец. После загрузки появится плеер и разметка начала/конца.
+                  </p>
+                </div>
+                <div class="marker-box">
+                  <p class="eyebrow">Фрагменты</p>
+                  <div class="timeline-readout">
+                    <small>Урок</small>
+                    <strong id="learningRangeValue">0:00 → 0:00</strong>
+                  </div>
+                  <div class="timeline-readout">
+                    <small>Сдача</small>
+                    <strong id="examRangeValue">0:00 → 0:00</strong>
+                  </div>
+                  <div class="timeline-readout current-range">
+                    <small>Сейчас</small>
+                    <strong id="examStartValue">0:00</strong>
+                    <span>→</span>
+                    <strong id="examEndValue">0:00</strong>
+                  </div>
+                  <span>Отметьте полезный кусок: всё до начала и после конца не попадёт ученикам в задание.</span>
+                </div>
+
+                <div class="review-box">
+                  <p class="eyebrow">Проверка эталона</p>
+                  <strong id="reviewStatus">ожидает видео</strong>
+                  <span id="teacherStepHint">После разметки система сама посчитает эталон движения.</span>
+                  <button id="buildReferenceButton" type="button">Считать эталон</button>
+                </div>
+              </div>
+              <input id="learningUpload" class="teacher-hidden-file" type="file" accept="video/*" />
+              <small id="learningUploadStatus" class="teacher-hidden-status">не загружено</small>
+              <video id="learningPreviewVideo" class="upload-preview" playsinline muted controls preload="metadata" hidden></video>
+              <video id="examPreviewVideo" class="upload-preview" playsinline muted controls preload="metadata" hidden></video>
+            </div>
+          </div>
+
           <div class="video-frame">
-            <video id="teacherVideo" playsinline controls preload="metadata"></video>
+            <label class="teacher-upload-empty" for="examUpload">
+              <input id="examUpload" type="file" accept="video/*" />
+              <span class="upload-cloud" aria-hidden="true">↥</span>
+              <strong>Загрузите видео урока</strong>
+              <span>Лучше выбрать чистовую запись под музыку: её увидят ученики, а система рассчитает по ней эталон движения.</span>
+              <small id="examUploadStatus">не загружено</small>
+            </label>
+            <video id="teacherVideo" playsinline preload="metadata"></video>
             <canvas id="teacherCanvas"></canvas>
             <div id="teacherEmpty" class="empty-state">Видео танца</div>
+            <div class="teacher-frame-note">
+              <strong>Отметьте начало и конец</strong>
+              <span>Оставьте только ту часть, которую надо показывать и сдавать. Всё лишнее до и после фрагмента ученики не увидят в задании.</span>
+            </div>
             <div id="teacherScanOverlay" class="scan-overlay" hidden>
               <div class="loader-ring"></div>
               <strong id="scanProgressValue">0%</strong>
               <span id="scanOverlayText">Считываю эталон</span>
             </div>
+            <button id="teacherStepNextButton" class="teacher-step-next" type="button">Дальше <span aria-hidden="true">→</span></button>
           </div>
           <div class="video-marker-bar">
             <button id="teacherPlayButton" class="transport-button" type="button" title="Воспроизвести">
@@ -626,7 +625,10 @@
             <strong id="resultLevelName">Новичок</strong>
           </div>
           <button id="showMistakesButton" type="button">Показать ошибки</button>
-          <button id="resultCloseButton" class="primary" type="button">Продолжить</button>
+          <div class="result-actions">
+            <button id="retakeButton" type="button">Пересдать</button>
+            <button id="resultCloseButton" class="primary" type="button">OK</button>
+          </div>
         </section>
       </div>
 
@@ -743,7 +745,7 @@
         const status = document.querySelector(statusId);
         const teacher = document.querySelector("#teacherVideo");
         const empty = document.querySelector("#teacherEmpty");
-        const label = input?.closest(".upload-drop");
+        const label = input?.closest(".upload-drop, .teacher-upload-empty");
         if (!input || !preview || !teacher) return;
 
         input.addEventListener("click", () => {
@@ -773,6 +775,7 @@
 
           teacher.src = url;
           teacher.load();
+          document.querySelector(".app-shell")?.classList.add("teacher-video-ready");
           if (empty) empty.hidden = true;
 
           if (status) {
@@ -802,6 +805,6 @@
         });
       }
     </script>
-    <script type="module" src="./app.js?v=20260626-8"></script>
+    <script type="module" src="./app.js?v=20260626-29"></script>
   </body>
 </html>

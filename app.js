@@ -108,6 +108,11 @@ const els = {
   endMarkerTick: document.querySelector("#endMarkerTick"),
   reviewStatus: document.querySelector("#reviewStatus"),
   buildReferenceButton: document.querySelector("#buildReferenceButton"),
+  teacherStepEyebrow: document.querySelector("#teacherStepEyebrow"),
+  teacherStepTitle: document.querySelector("#teacherStepTitle"),
+  teacherStepDescription: document.querySelector("#teacherStepDescription"),
+  teacherStepHint: document.querySelector("#teacherStepHint"),
+  teacherStepNextButton: document.querySelector("#teacherStepNextButton"),
   publishLessonButton: document.querySelector("#publishLessonButton"),
   countdownOverlay: document.querySelector("#countdownOverlay"),
   countdownValue: document.querySelector("#countdownValue"),
@@ -121,6 +126,7 @@ const els = {
   resultLevelBadge: document.querySelector("#resultLevelBadge"),
   resultLevelName: document.querySelector("#resultLevelName"),
   resultCloseButton: document.querySelector("#resultCloseButton"),
+  retakeButton: document.querySelector("#retakeButton"),
   levelCardButton: document.querySelector("#levelCardButton"),
   levelOverlay: document.querySelector("#levelOverlay"),
   levelOverlayDetails: document.querySelector("#levelOverlayDetails"),
@@ -403,7 +409,8 @@ window.__danceDebug = {
   }),
 };
 
-setButtons(false);
+const isUiTestMode = new URLSearchParams(window.location.search).has("ui-test");
+setButtons(isUiTestMode);
 applyTheme(savedTheme);
 renderAttempts();
 updateLevelDisplay();
@@ -412,9 +419,10 @@ updatePipeline("upload");
 updateLessonFlow("choose");
 normalizeTeacherWorkspace();
 renderStudentProfile();
+renderTeacherStudentProgress();
 setTeacherFolderView(state.teacherWorkspace.studios.length ? "studio" : "root");
 switchView("student");
-if (!new URLSearchParams(window.location.search).has("ui-test")) initPose();
+if (!isUiTestMode) initPose();
 
 els.learningUpload.addEventListener("click", resetFileInputBeforePick);
 els.examUpload.addEventListener("click", resetFileInputBeforePick);
@@ -427,6 +435,11 @@ els.roleTabs.forEach((tab) => tab.addEventListener("click", () => switchView(tab
 els.themeToggleButton.addEventListener("click", toggleTheme);
 els.studentProfileForm.addEventListener("submit", submitStudentProfile);
 els.teacherBrowser.addEventListener("click", (event) => {
+  const createButton = event.target.closest("[data-create-type]");
+  if (createButton) {
+    openTeacherCreateDialog(createButton.dataset.createType || "");
+    return;
+  }
   const studioButton = event.target.closest("[data-studio-id]");
   if (studioButton) {
     state.teacherWorkspace.activeStudioId = studioButton.dataset.studioId;
@@ -457,6 +470,13 @@ els.teacherBrowser.addEventListener("click", (event) => {
     state.teacherWorkspace.activeLessonId = lessonButton.dataset.lessonId;
     setTeacherFolderView("lesson");
   }
+});
+els.teacherBrowser.addEventListener("keydown", (event) => {
+  if (event.key !== "Enter" && event.key !== " ") return;
+  const createButton = event.target.closest("[data-create-type]");
+  if (!createButton) return;
+  event.preventDefault();
+  openTeacherCreateDialog(createButton.dataset.createType || "");
 });
 els.teacherPrimaryAction.addEventListener("click", () => openTeacherCreateDialog());
 els.teacherRootEmpty.addEventListener("click", () => openTeacherCreateDialog("studio"));
@@ -509,11 +529,12 @@ els.markExamEndButton.addEventListener("click", markExamEnd);
 els.previewExamButton.addEventListener("click", previewExamFromMarker);
 els.reviewSkeletonButton.addEventListener("click", reviewSkeleton);
 els.buildReferenceButton.addEventListener("click", buildReferenceFromExam);
+els.teacherStepNextButton.addEventListener("click", advanceTeacherWizard);
+els.publishLessonButton.addEventListener("click", publishTeacherLesson);
 els.teacherVideoToggle.addEventListener("change", updateTeacherLayerVisibility);
 els.teacherSkeletonToggle.addEventListener("change", updateTeacherLayerVisibility);
-els.resultCloseButton.addEventListener("click", () => {
-  els.resultOverlay.hidden = true;
-});
+els.resultCloseButton.addEventListener("click", publishStudentAttempt);
+els.retakeButton.addEventListener("click", retakeStudentAttempt);
 els.levelCardButton.addEventListener("click", showLevelOverlay);
 els.levelOverlayCloseButton.addEventListener("click", () => {
   els.levelOverlay.hidden = true;
@@ -690,6 +711,9 @@ async function onTeacherUpload(event, type) {
   resetClip(clip);
   showUploadPreview(type, clip.objectUrl);
   bindTeacherVideoToClip(type);
+  if (type === "exam") {
+    els.appShell.classList.add("teacher-video-ready");
+  }
 
   if (type === "exam") {
     state.pendingExamScan = true;
@@ -702,8 +726,8 @@ async function onTeacherUpload(event, type) {
     updateMeters(emptyScores());
     els.reviewStatus.textContent = "экзамен загружен";
     els.scanStatus.textContent = "Жду метаданные видео под музыку";
-    showScanOverlay("Готовлю видео под музыку", 0);
-    updatePipeline("scan");
+    showScanOverlay("Готовлю видео", 0);
+    updatePipeline("upload");
   } else {
     els.scanStatus.textContent = "Загружаю обучающее видео";
   }
@@ -723,7 +747,7 @@ async function onTeacherUpload(event, type) {
   await showClipStartFrame(clip);
   document.querySelector(".stage-grid")?.scrollIntoView({ behavior: "smooth", block: "start" });
   updateExamControls();
-  updatePipeline(type === "exam" ? "scan" : "upload");
+  updatePipeline("upload");
 
   if (type === "exam") {
     els.teacherScanOverlay.hidden = true;
@@ -736,9 +760,10 @@ async function onTeacherUpload(event, type) {
       updatePipeline("review");
       renderTeacherPoseFrame();
     } else {
-      setUploadStatus("exam", "Видео готово. Нажмите «Считать эталон»", "ready");
-      els.reviewStatus.textContent = "готов к считыванию";
-      els.scanStatus.textContent = "Поставьте начало/конец и нажмите «Считать эталон»";
+      setUploadStatus("exam", "Видео готово", "ready");
+      els.reviewStatus.textContent = "видео готово";
+      els.scanStatus.textContent = "Поставьте начало/конец и нажмите «Дальше»";
+      updatePipeline("upload");
     }
   } else {
     setUploadStatus("learning", "Обучающее видео готово", "ready");
@@ -900,7 +925,11 @@ function bindTeacherVideoToClip(type) {
   }
   els.teacherVideoToggle.checked = true;
   teacherVideo.classList.remove("is-hidden-layer");
-  els.teacherVideoModeLabel.textContent = type === "learning" ? "Обучение" : "Под музыку";
+  els.teacherVideoModeLabel.textContent = els.appShell.classList.contains("teacher-mode")
+    ? "Мастер урока"
+    : type === "learning"
+      ? "Обучение"
+      : "Под музыку";
   els.showLearningVideoButton.classList.toggle("active", type === "learning");
   els.showExamVideoButton.classList.toggle("active", type === "exam");
   els.teacherSkeletonToggle.disabled = type === "learning";
@@ -960,12 +989,12 @@ async function buildReferenceFromExam() {
 
 function setUploadStatus(type, text, status) {
   const input = type === "learning" ? els.learningUpload : els.examUpload;
-  const label = input.closest(".upload-drop");
+  const label = input.closest(".upload-drop, .teacher-upload-empty");
   const statusEl = type === "learning" ? els.learningUploadStatus : els.examUploadStatus;
   statusEl.textContent = text;
-  label.classList.toggle("is-ready", status === "ready");
-  label.classList.toggle("is-processing", status === "processing");
-  label.classList.toggle("is-error", status === "error");
+  label?.classList.toggle("is-ready", status === "ready");
+  label?.classList.toggle("is-processing", status === "processing");
+  label?.classList.toggle("is-error", status === "error");
 }
 
 function showScanOverlay(text, progress = 0) {
@@ -997,7 +1026,11 @@ async function switchTeacherVideo(type) {
   }
 
   els.teacherEmpty.hidden = Boolean(clip.objectUrl);
-  els.teacherVideoModeLabel.textContent = type === "learning" ? "Обучение" : "Под музыку";
+  els.teacherVideoModeLabel.textContent = els.appShell.classList.contains("teacher-mode")
+    ? "Мастер урока"
+    : type === "learning"
+      ? "Обучение"
+      : "Под музыку";
   els.showLearningVideoButton.classList.toggle("active", type === "learning");
   els.showExamVideoButton.classList.toggle("active", type === "exam");
   els.teacherSkeletonToggle.disabled = type === "learning";
@@ -1154,12 +1187,14 @@ function loadStoredReference() {
 }
 
 async function startPractice() {
-  if (!state.learning.objectUrl) return;
+  if (!state.learning.objectUrl && !state.exam.objectUrl) return;
 
   state.mode = "practice";
   els.appShell.classList.add("practice-focus");
+  els.appShell.classList.add("student-learning-mode");
+  els.appShell.classList.remove("student-exam-mode", "student-result-mode");
   updateLessonFlow("practice");
-  await switchTeacherVideo("learning");
+  await switchTeacherVideo(state.learning.objectUrl ? "learning" : "exam");
   teacherVideo.playbackRate = Number(els.speedRange.value);
   teacherVideo.currentTime = segmentStart();
   teacherVideo.play();
@@ -1195,6 +1230,8 @@ async function toggleDance() {
   }
 
   els.appShell.classList.remove("practice-focus");
+  els.appShell.classList.add("student-exam-mode");
+  els.appShell.classList.remove("student-learning-mode", "student-result-mode");
   state.mode = "countdown";
   updateLessonFlow("exam");
   state.score = 0;
@@ -1238,7 +1275,7 @@ function finishAttempt() {
     state.countdownToken += 1;
     hideCountdown();
     state.mode = "idle";
-    els.danceButton.textContent = "Сдать";
+    els.danceButton.textContent = "Сдать танец →";
     els.taskStatus.textContent = "не начато";
     return;
   }
@@ -1272,12 +1309,14 @@ function finalizeAttemptResult(result, seconds) {
   state.mode = "idle";
   state.lastResult = result;
   els.appShell.classList.remove("practice-focus");
+  els.appShell.classList.add("student-result-mode");
+  els.appShell.classList.remove("student-learning-mode", "student-exam-mode");
   hideCountdown();
   teacherVideo.pause();
   if (state.studentVideoObjectUrl) {
     studentVideo.pause();
   }
-  els.danceButton.textContent = "Сдать";
+    els.danceButton.textContent = "Сдать танец →";
   updateLevelDisplay();
   updateMeters(result);
   updateLessonFlow("result");
@@ -2284,12 +2323,12 @@ function updatePipeline(activeStep) {
   const hasLearningVideo = Boolean(state.learning.objectUrl);
   const hasExamVideo = Boolean(state.exam.objectUrl);
   const hasReference = state.reference.length > 0;
-  const hasMarkers = hasLearningVideo && hasExamVideo && clipReady(state.learning) && clipReady(state.exam);
+  const hasMarkers = hasExamVideo && clipReady(state.exam);
 
   els.pipelineSteps.forEach((step) => {
     const index = order.indexOf(step.dataset.step);
     const completed =
-      (step.dataset.step === "upload" && hasLearningVideo && hasExamVideo) ||
+      (step.dataset.step === "upload" && hasExamVideo) ||
       (step.dataset.step === "scan" && hasReference) ||
       (step.dataset.step === "review" && hasReference && activeIndex > index) ||
       (step.dataset.step === "markers" && hasMarkers && activeStep === "publish");
@@ -2298,7 +2337,119 @@ function updatePipeline(activeStep) {
     step.classList.toggle("completed", completed);
   });
 
+  els.appShell.dataset.teacherStep = activeStep;
+  updateTeacherWizard(activeStep);
   els.publishLessonButton.disabled = !(hasReference && hasMarkers);
+}
+
+function updateTeacherWizard(activeStep) {
+  const steps = {
+    upload: {
+      eyebrow: "Шаг 1 · Видео",
+      title: state.exam.objectUrl ? "Разметьте видео урока" : "Загрузите видео урока",
+      description: state.exam.objectUrl
+        ? "Поставьте начало и конец полезного отрезка. Всё лишнее до начала и после конца не будет показываться ученикам в задании."
+        : "Добавьте чистовую запись под музыку. Пока видео не загружено, плеер и инструменты разметки скрыты, чтобы не мешать.",
+      hint: state.exam.objectUrl ? "Когда границы готовы, нажмите «Дальше» — система сама посчитает эталон." : "Выберите файл в большом окне видео.",
+      button: "Дальше",
+      disabled: false,
+    },
+    scan: {
+      eyebrow: "Шаг 2 · Эталон",
+      title: "Считываем эталон движения",
+      description: "Система проходит по видео и собирает скелет педагога. На этом шаге ничего нажимать не нужно.",
+      hint: "Когда оцифровка закончится, вы автоматически попадёте на проверку.",
+      button: "Считываем...",
+      disabled: true,
+    },
+    review: {
+      eyebrow: "Шаг 3 · Проверка",
+      title: "Проверьте, как лёг эталон",
+      description: "Просмотрите видео со скелетом. Если тело считывается верно и не прыгает, можно переходить дальше.",
+      hint: "Если скелет выглядит плохо — загрузите другое видео или поправьте границы фрагмента.",
+      button: "Дальше",
+      disabled: !state.reference.length,
+    },
+    markers: {
+      eyebrow: "Шаг 4 · Фрагмент",
+      title: "Фрагмент сдачи",
+      description: "Фрагмент — это конкретный отрезок танца, который ученик будет сдавать на оценку. Можно оставить весь танец или выбрать только важную связку.",
+      hint: "Ученику будет предложено повторить именно этот кусок, а сравнение пойдёт по эталону внутри выбранных границ.",
+      button: "Дальше",
+      disabled: !state.exam.objectUrl,
+    },
+    publish: {
+      eyebrow: "Шаг 5 · Публикация",
+      title: "Урок готов к публикации",
+      description: "Проверьте название, видео, эталон и фрагмент. После публикации урок появится в выбранной группе студии.",
+      hint: "Публикацию можно будет доработать: добавить описание, материалы и доступы.",
+      button: "Опубликовать урок",
+      disabled: !(state.reference.length && clipReady(state.exam)),
+    },
+  };
+  const current = steps[activeStep] || steps.upload;
+  if (els.teacherStepEyebrow) els.teacherStepEyebrow.textContent = current.eyebrow;
+  if (els.teacherStepTitle) els.teacherStepTitle.textContent = current.title;
+  if (els.teacherStepDescription) els.teacherStepDescription.textContent = current.description;
+  if (els.teacherStepHint) els.teacherStepHint.textContent = current.hint;
+  if (els.teacherStepNextButton) {
+    els.teacherStepNextButton.disabled = current.disabled;
+    els.teacherStepNextButton.innerHTML = `${current.button} <span aria-hidden="true">→</span>`;
+  }
+}
+
+async function advanceTeacherWizard() {
+  const currentStep = els.appShell.dataset.teacherStep || "upload";
+  if (currentStep === "upload") {
+    if (!state.exam.objectUrl) {
+      els.examUpload.click();
+      return;
+    }
+    const clip = state.exam;
+    if (!clip.startSet) {
+      clip.start = 0;
+      clip.startSet = true;
+    }
+    if (!clip.endSet) {
+      clip.end = clip.duration || teacherVideo.duration || 0;
+      clip.endSet = true;
+    }
+    normalizeClipRange(clip);
+    updateExamControls();
+    updatePipeline("scan");
+    await buildReferenceFromExam();
+    return;
+  }
+  if (currentStep === "review") {
+    updatePipeline("markers");
+    return;
+  }
+  if (currentStep === "markers") {
+    updatePipeline("publish");
+    return;
+  }
+  if (currentStep === "publish") {
+    publishTeacherLesson();
+  }
+}
+
+function publishTeacherLesson() {
+  const lesson = activeTeacherLesson();
+  if (!lesson) return;
+  lesson.published = true;
+  lesson.status = "published";
+  lesson.hasVideo = Boolean(state.exam.objectUrl);
+  lesson.hasReference = state.reference.length > 0;
+  lesson.publishedAt = new Date().toISOString();
+  lesson.description = lesson.description || "Видео урок опубликован. Ученики могут учить связку и сдавать фрагмент.";
+  persistTeacherWorkspace();
+  renderTeacherWorkspace();
+  updatePipeline("publish");
+  els.scanStatus.textContent = "Урок опубликован в группе";
+  els.reviewStatus.textContent = "опубликован";
+  els.teacherStepNextButton.innerHTML = `Опубликовано <span aria-hidden="true">✓</span>`;
+  els.teacherStepNextButton.disabled = true;
+  setTeacherFolderView("group");
 }
 
 function updateLessonFlow(activeStep) {
@@ -2324,6 +2475,97 @@ function showResultOverlay(attempt) {
   els.resultLevelName.textContent = info.current.name;
   renderMistakes(attempt.scores?.mistakes || []);
   els.resultOverlay.hidden = false;
+}
+
+function retakeStudentAttempt() {
+  els.resultOverlay.hidden = true;
+  updateLessonFlow("exam");
+  els.taskStatus.textContent = "готов к пересдаче";
+  els.appShell.classList.add("student-exam-mode");
+  els.appShell.classList.remove("student-result-mode", "student-learning-mode");
+}
+
+function publishStudentAttempt() {
+  els.resultOverlay.hidden = true;
+  const latest = state.attempts[0];
+  if (!latest) return;
+  const submission = {
+    ...latest,
+    studentName: state.studentProfile
+      ? `${state.studentProfile.firstName} ${state.studentProfile.lastName}`.trim()
+      : "Ученик",
+    nickname: state.studentProfile?.nickname || "@student",
+    status: "passed",
+    publishedAt: new Date().toISOString(),
+  };
+  try {
+    localStorage.setItem("danceReplayStudentSubmission", JSON.stringify(submission));
+  } catch (error) {
+    console.warn("Не удалось сохранить сдачу ученика", error);
+  }
+  els.taskStatus.textContent = "сдача опубликована";
+  renderTeacherStudentProgress();
+}
+
+function renderTeacherStudentProgress() {
+  const list = document.querySelector(".student-progress-list");
+  if (!list) return;
+  let submission = null;
+  try {
+    submission = JSON.parse(localStorage.getItem("danceReplayStudentSubmission") || "null");
+  } catch (error) {
+    submission = null;
+  }
+  const profileName = state.studentProfile
+    ? `${state.studentProfile.firstName} ${state.studentProfile.lastName}`.trim()
+    : "Женя Шалаев";
+  const nickname = state.studentProfile?.nickname || "@student";
+  const ownRow = submission
+    ? `
+      <div class="student-progress-row is-current">
+        <div>
+          <strong>${escapeHtml(submission.studentName || profileName)}</strong>
+          <small>${escapeHtml(submission.nickname || nickname)} · сдача опубликована</small>
+        </div>
+        <span class="lesson-status passed">Сдал</span>
+        <b>${Math.round(submission.match || 0)}% · ${renderStars(submission.stars || 0)}</b>
+      </div>
+    `
+    : `
+      <div class="student-progress-row is-current">
+        <div>
+          <strong>${escapeHtml(profileName)}</strong>
+          <small>${escapeHtml(nickname)} · урок открыт</small>
+        </div>
+        <span class="lesson-status viewed">Смотрит</span>
+        <b>нет сдачи</b>
+      </div>
+    `;
+  list.innerHTML = `${ownRow}
+    <div class="student-progress-row">
+      <div>
+        <strong>Алиса Морозова</strong>
+        <small>@alisa.m · посмотрела обучение</small>
+      </div>
+      <span class="lesson-status learning">Учит</span>
+      <b>0%</b>
+    </div>
+    <div class="student-progress-row">
+      <div>
+        <strong>Марк Соколов</strong>
+        <small>@markdance · сдал под музыку</small>
+      </div>
+      <span class="lesson-status passed">Сдал</span>
+      <b>94% · ★★★★★</b>
+    </div>
+    <div class="student-progress-row">
+      <div>
+        <strong>Вера Ким</strong>
+        <small>@vera.k · открыл урок, не сдавал</small>
+      </div>
+      <span class="lesson-status viewed">Смотрел</span>
+      <b>нет сдачи</b>
+    </div>`;
 }
 
 function renderMistakes(mistakes) {
@@ -2464,7 +2706,22 @@ function switchView(view) {
   els.teacherPanel.hidden = view !== "teacher";
   els.appShell.classList.toggle("student-mode", view === "student");
   els.appShell.classList.toggle("teacher-mode", view === "teacher");
+  updateStageHeaderForView(view);
   window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function updateStageHeaderForView(view) {
+  const title = document.querySelector(".stage-grid .studio-panel:first-child .panel-head h2");
+  const description = document.querySelector(".stage-grid .studio-panel:first-child .panel-description");
+  if (view === "teacher") {
+    els.teacherVideoModeLabel.textContent = "Мастер урока";
+    if (title) title.textContent = "Следуйте шагам";
+    if (description) description.textContent = "Загрузите видео, дождитесь эталона, проверьте скелет и опубликуйте урок в студии.";
+    return;
+  }
+  els.teacherVideoModeLabel.textContent = "Урок";
+  if (title) title.textContent = "Учите и сдавайте в одном окне";
+  if (description) description.textContent = "Сначала посмотрите видео педагога, затем включите сдачу и опубликуйте попытку.";
 }
 
 function readStoredTheme() {
@@ -2478,7 +2735,6 @@ function readStoredTheme() {
 function applyTheme(theme) {
   const safeTheme = theme === "dark" ? "dark" : "light";
   document.documentElement.dataset.theme = safeTheme === "dark" ? "dark" : "";
-  els.themeToggleButton.textContent = safeTheme === "dark" ? "Светлая" : "Тёмная";
   els.themeToggleButton.setAttribute("aria-pressed", String(safeTheme === "dark"));
   els.themeToggleButton.setAttribute(
     "aria-label",
@@ -2529,7 +2785,7 @@ function setTeacherFolderView(view) {
   els.teacherEditAction.hidden = !["studio", "group", "lesson"].includes(safeView);
   els.teacherEditAction.textContent = safeView === "studio" ? "Настройки" : "Редактировать";
   els.teacherSubgroupAction.hidden = safeView !== "group" || subgroups.length >= 3;
-  if (lesson) els.teacherLessonOpenTitle.textContent = lesson.name;
+  if (lesson && els.teacherLessonOpenTitle) els.teacherLessonOpenTitle.textContent = lesson.name;
   els.appShell.classList.toggle("teacher-lesson-open", safeView === "lesson");
 }
 
@@ -2605,7 +2861,7 @@ function renderTeacherWorkspace() {
   renderStudioChannel(studio);
   els.teacherGroupList.innerHTML = studio?.groups?.length
     ? studio.groups.map((group) => folderButton("group", group)).join("")
-    : emptyFolderText("В этой студии пока нет групп", "Нажмите плюс сверху, чтобы создать группу.");
+    : emptyFolderText("В этой студии пока нет групп", "Нажмите плюс сверху, чтобы создать группу.", "group");
   const group = activeTeacherGroup();
   const container = activeTeacherContainer();
   const groupItems = [
@@ -2614,7 +2870,7 @@ function renderTeacherWorkspace() {
   ];
   els.teacherLessonList.innerHTML = groupItems.length
     ? groupItems.join("")
-    : emptyFolderText("В этой группе пока нет уроков", "Нажмите плюс сверху, чтобы создать урок.");
+    : emptyFolderText("В этой группе пока нет уроков", "Нажмите плюс сверху, чтобы создать урок.", "lesson");
 }
 
 function renderStudioChannel(studio) {
@@ -2649,16 +2905,18 @@ function folderButton(type, item) {
     ? `<img src="${escapeHtml(item.image)}" alt="" />`
     : number
       ? `<b aria-hidden="true">${escapeHtml(number)}</b>`
-      : `<span aria-hidden="true">${type === "lesson" ? "▶" : type === "subgroup" ? "◌" : "▣"}</span>`;
+      : `<span aria-hidden="true">${type === "lesson" ? (item.published ? "▶" : "□") : type === "subgroup" ? "◌" : "▣"}</span>`;
   const dataset = type === "studio" ? "studio" : type === "group" ? "group" : type === "lesson" ? "lesson" : "subgroup";
   const note = itemSummary(type, item);
+  const status = type === "lesson" && item.published ? `<em class="folder-card-status">Опубликован</em>` : "";
   return `
-    <button class="folder-card folder-card-${type}" type="button" data-${dataset}-id="${escapeHtml(item.id)}">
+    <button class="folder-card folder-card-${type}${item.published ? " is-published" : ""}" type="button" data-${dataset}-id="${escapeHtml(item.id)}">
       <span class="folder-icon">${icon}</span>
       <span class="folder-card-copy">
         <small class="folder-card-type">${escapeHtml(typeLabel)}</small>
         <strong>${escapeHtml(item.name)}</strong>
         <span class="folder-card-note">${escapeHtml(note)}</span>
+        ${status}
       </span>
       <span class="folder-card-arrow" aria-hidden="true">›</span>
     </button>
@@ -2670,12 +2928,16 @@ function itemSummary(type, item) {
   if (type === "studio") return [item.city, item.contact].filter(Boolean).join(" · ") || "студия";
   if (type === "group") return [item.age, item.level].filter(Boolean).join(" · ") || "группа";
   if (type === "subgroup") return [item.age, item.level].filter(Boolean).join(" · ") || "подгруппа / партия";
+  if (type === "lesson" && item.published) return "видеоурок доступен ученикам";
   return "урок";
 }
 
-function emptyFolderText(title, text) {
+function emptyFolderText(title, text, createType = "") {
+  const actionAttributes = createType
+    ? ` role="button" tabindex="0" data-create-type="${escapeHtml(createType)}" aria-label="${escapeHtml(title)}"`
+    : "";
   return `
-    <div class="teacher-empty-note">
+    <div class="teacher-empty-note"${actionAttributes}>
       <strong>${escapeHtml(title)}</strong>
       <small>${escapeHtml(text)}</small>
     </div>
