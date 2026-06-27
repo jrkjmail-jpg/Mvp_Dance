@@ -21,25 +21,28 @@
     <link rel="manifest" href="./manifest.webmanifest" />
     <link rel="icon" href="./assets/app-icon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="./assets/app-icon.svg" />
-    <link rel="stylesheet" href="./styles.css?v=20260626-29" />
+    <link rel="stylesheet" href="./styles.css?v=20260627-40" />
   </head>
   <body>
     <main class="app-shell student-mode">
       <header class="topbar">
-        <div class="brand-lockup">
+        <div id="brandHomeButton" class="brand-lockup" role="button" tabindex="0" aria-label="На главную">
           <span class="brand-mark" aria-hidden="true">Т</span>
           <div>
             <p class="eyebrow">Танцевальная платформа</p>
             <h1>Танцуй</h1>
           </div>
         </div>
-        <nav class="role-tabs account-switch" aria-label="Выбор кабинета">
-          <button class="role-tab active" data-view="student" type="button">Танцор</button>
-          <button class="role-tab" data-view="teacher" type="button">Педагог</button>
+        <nav class="role-tabs account-switch icon-account-switch" aria-label="Быстрый переход">
+          <button class="account-nav-button active" data-account-target="profile" type="button" aria-label="Профиль танцора">
+            <span aria-hidden="true">👤</span>
+          </button>
+          <button class="account-nav-button" data-account-target="studio" type="button" aria-label="Профиль студии">
+            <span aria-hidden="true">🏠</span>
+          </button>
         </nav>
-        <button id="themeToggleButton" class="theme-toggle theme-switch" type="button" aria-pressed="false" aria-label="Включить тёмную тему">
-          <span aria-hidden="true">☀</span>
-          <span aria-hidden="true">☾</span>
+        <button id="settingsButton" class="settings-toggle" type="button" aria-label="Открыть настройки">
+          <span aria-hidden="true">⚙</span>
         </button>
       </header>
 
@@ -109,25 +112,6 @@
             <small id="studentStarsBadge" class="level-total-stars">★ 0</small>
           </button>
         </article>
-
-        <section class="lesson-flow" aria-label="Путь урока">
-          <div class="flow-step active">
-            <strong>1</strong>
-            <span>Учить</span>
-          </div>
-          <div class="flow-step">
-            <strong>2</strong>
-            <span>Сдать</span>
-          </div>
-          <div class="flow-step">
-            <strong>3</strong>
-            <span>Опубликовать</span>
-          </div>
-          <div class="flow-step">
-            <strong>4</strong>
-            <span>Оценка</span>
-          </div>
-        </section>
 
         <section class="dance-feed">
           <div class="feed-head">
@@ -202,37 +186,55 @@
                 <h3 id="teacherStudioChannelName">Студия</h3>
                 <p id="teacherStudioChannelDescription">Описание студии появится здесь.</p>
                 <span class="studio-profile-status"><i aria-hidden="true"></i> Пространство студии</span>
+                <div class="studio-channel-divider" aria-hidden="true"></div>
+                <div class="studio-channel-details">
+                  <div class="studio-fact">
+                    <span class="studio-fact-icon" aria-hidden="true">⌖</span>
+                    <div>
+                      <small>Адрес</small>
+                      <strong id="teacherStudioChannelAddress">Не указан</strong>
+                    </div>
+                  </div>
+                  <div class="studio-fact">
+                    <span class="studio-fact-icon" aria-hidden="true">♪</span>
+                    <div>
+                      <small>Направления</small>
+                      <strong id="teacherStudioDirections">Пока не указаны</strong>
+                    </div>
+                  </div>
+                  <div class="studio-fact">
+                    <span class="studio-fact-icon" aria-hidden="true">◎</span>
+                    <div>
+                      <small>Владелец</small>
+                      <strong>Владелец студии</strong>
+                    </div>
+                  </div>
+                  <div class="studio-fact">
+                    <span class="studio-fact-icon" aria-hidden="true">+</span>
+                    <div>
+                      <small>Команда педагогов</small>
+                      <strong>Пока не добавлена</strong>
+                    </div>
+                  </div>
+                  <a id="teacherStudioChannelLink" href="#" target="_blank" rel="noreferrer" hidden>Открыть ссылку</a>
+                </div>
               </div>
-              <div class="studio-channel-facts">
-                <div class="studio-fact">
-                  <span class="studio-fact-icon" aria-hidden="true">⌖</span>
-                  <div>
-                    <small>Адрес</small>
-                    <strong id="teacherStudioChannelAddress">Не указан</strong>
+              <div class="studio-channel-regalia">
+                <button id="teacherInviteButton" class="studio-invite-button" type="button">
+                  <span aria-hidden="true">+</span>
+                  Пригласить
+                </button>
+                <div class="award-shelf-widget" aria-label="Награды студии">
+                  <div class="award-shelf-head">
+                    <p class="eyebrow">Награды</p>
+                    <h4>Витрина студии</h4>
                   </div>
+                  <div id="teacherStudioAchievementsList" class="award-shelf" aria-label="Полки с наградами студии"></div>
                 </div>
-                <div class="studio-fact">
-                  <span class="studio-fact-icon" aria-hidden="true">♪</span>
-                  <div>
-                    <small>Направления</small>
-                    <strong id="teacherStudioDirections">Пока не указаны</strong>
-                  </div>
+                <div class="studio-library-tabs" role="tablist" aria-label="Раздел студии">
+                  <button id="studioLessonsTab" class="active" data-studio-library-tab="lessons" type="button">Уроки</button>
+                  <button id="studioStudentsTab" data-studio-library-tab="students" type="button">Ученики</button>
                 </div>
-                <div class="studio-fact">
-                  <span class="studio-fact-icon" aria-hidden="true">◎</span>
-                  <div>
-                    <small>Владелец</small>
-                    <strong>Владелец студии</strong>
-                  </div>
-                </div>
-                <div class="studio-fact">
-                  <span class="studio-fact-icon" aria-hidden="true">+</span>
-                  <div>
-                    <small>Команда педагогов</small>
-                    <strong>Пока не добавлена</strong>
-                  </div>
-                </div>
-                <a id="teacherStudioChannelLink" href="#" target="_blank" rel="noreferrer" hidden>Открыть ссылку</a>
               </div>
             </div>
           </div>
@@ -268,11 +270,12 @@
               <div class="studio-channel-section">
                 <div class="section-heading">
                   <div>
-                    <p class="eyebrow">Пространства</p>
-                    <h3>Группы студии</h3>
+                    <p id="teacherSpaceEyebrow" class="eyebrow">Пространства</p>
+                    <h3 id="teacherSpaceTitle">Материалы студии</h3>
                   </div>
                 </div>
-                <div id="teacherGroupList" class="folder-grid" aria-label="Группы студии"></div>
+                <div id="teacherGroupList" class="folder-grid studio-library-panel active" data-studio-library-panel="lessons" aria-label="Группы студии"></div>
+                <div id="teacherStudentList" class="folder-grid studio-library-panel" data-studio-library-panel="students" aria-label="Ученики студии" hidden></div>
               </div>
             </div>
 
@@ -300,8 +303,8 @@
       <section class="lesson-workspace-intro">
         <div>
           <p class="eyebrow">Тренировочная комната</p>
-          <h2>Учитесь и сдавайте в одном окне</h2>
-          <p>Сначала разберите движение по видео педагога. Когда будете готовы — включите камеру и сдайте фрагмент под музыку.</p>
+          <h2>Окно урока</h2>
+          <p>Смотрите видео педагога, регулируйте скорость и фрагмент, а когда будете готовы — переключайтесь на сдачу в этом же окне.</p>
         </div>
         <div class="workspace-tips" aria-label="Подсказки перед тренировкой">
           <span><b>01</b> Поставьте телефон устойчиво</span>
@@ -326,6 +329,25 @@
               </button>
             </div>
           </div>
+
+          <section class="lesson-flow student-video-steps" aria-label="Путь урока">
+            <div class="flow-step active">
+              <strong>1</strong>
+              <span>Учить</span>
+            </div>
+            <div class="flow-step">
+              <strong>2</strong>
+              <span>Сдать</span>
+            </div>
+            <div class="flow-step">
+              <strong>3</strong>
+              <span>Опубликовать</span>
+            </div>
+            <div class="flow-step">
+              <strong>4</strong>
+              <span>Оценка</span>
+            </div>
+          </section>
 
           <div class="teacher-video-dock">
             <div class="pipeline-steps" aria-label="Этапы подготовки урока">
@@ -441,6 +463,38 @@
               </label>
             </div>
           </div>
+
+          <section class="control-band student-video-controls">
+            <div class="control-copy">
+              <p class="eyebrow">Режим занятия</p>
+              <strong>Управляйте уроком в одном окне</strong>
+            </div>
+            <div class="control-group">
+              <button id="practiceButton" type="button"><span aria-hidden="true">↺</span> Учить</button>
+              <button id="danceButton" type="button" hidden>Сдать танец <span aria-hidden="true">→</span></button>
+              <button id="studentRetakeStepButton" type="button" hidden>Пересдать</button>
+              <button id="studentStepNextButton" class="primary" type="button">Дальше <span aria-hidden="true">→</span></button>
+            </div>
+
+            <div class="sliders">
+              <label>
+                <span>Скорость</span>
+                <input id="speedRange" type="range" min="0.4" max="1" step="0.05" value="0.7" />
+                <strong id="speedValue">0.70x</strong>
+              </label>
+              <label>
+                <span>Фрагмент</span>
+                <input id="segmentRange" type="range" min="0" max="100" step="1" value="0" />
+                <strong id="segmentValue">с начала</strong>
+              </label>
+            </div>
+
+            <label class="toggle">
+              <input id="mirrorToggle" type="checkbox" checked />
+              <span></span>
+              Зеркало
+            </label>
+          </section>
         </article>
 
         <article class="panel studio-panel student-studio-panel">
@@ -491,36 +545,6 @@
           <span id="countdownHint">Смотри на педагога и приготовься</span>
         </div>
       </div>
-
-      <section class="control-band">
-        <div class="control-copy">
-          <p class="eyebrow">Режим занятия</p>
-          <strong>Выберите, что хотите сделать сейчас</strong>
-        </div>
-        <div class="control-group">
-          <button id="practiceButton" type="button"><span aria-hidden="true">↺</span> Учить</button>
-          <button id="danceButton" type="button">Сдать танец <span aria-hidden="true">→</span></button>
-        </div>
-
-        <div class="sliders">
-          <label>
-            <span>Скорость</span>
-            <input id="speedRange" type="range" min="0.4" max="1" step="0.05" value="0.7" />
-            <strong id="speedValue">0.70x</strong>
-          </label>
-          <label>
-            <span>Фрагмент</span>
-            <input id="segmentRange" type="range" min="0" max="100" step="1" value="0" />
-            <strong id="segmentValue">с начала</strong>
-          </label>
-        </div>
-
-        <label class="toggle">
-          <input id="mirrorToggle" type="checkbox" checked />
-          <span></span>
-          Зеркало
-        </label>
-      </section>
 
       <section class="metrics-grid">
         <article class="metric-panel">
@@ -632,13 +656,148 @@
         </section>
       </div>
 
-      <div id="levelOverlay" class="result-overlay" hidden>
-        <section class="result-card progress-card" role="dialog" aria-modal="true" aria-labelledby="levelOverlayTitle">
+      <section id="levelOverlay" class="dancer-profile-page panel" hidden>
+        <article class="result-card progress-card" role="region" aria-labelledby="levelOverlayTitle">
           <p class="eyebrow">Прогресс</p>
-          <h2 id="levelOverlayTitle">История уровней</h2>
-          <p id="levelOverlayDetails">Уровни танцора</p>
+          <h2 id="levelOverlayTitle">Карточка танцора</h2>
+          <p id="levelOverlayDetails">Профиль, стили и прогресс танцора</p>
+          <input id="studentProfileCoverInput" class="visually-hidden" type="file" accept="image/*" />
+          <input id="studentProfileAvatarInput" class="visually-hidden" type="file" accept="image/*" />
+          <div id="studentProfileDetails" class="dancer-profile-details" aria-label="Информация о танцоре"></div>
+          <button id="levelOverlayCloseButton" class="primary" type="button">Назад к урокам</button>
+        </article>
+      </section>
+
+      <div id="levelHistoryOverlay" class="result-overlay" hidden>
+        <section class="settings-card level-history-card" role="dialog" aria-modal="true" aria-labelledby="levelHistoryTitle">
+          <div class="settings-head">
+            <div>
+              <p class="eyebrow">Уровни</p>
+              <h2 id="levelHistoryTitle">Лестница роста</h2>
+            </div>
+            <button id="levelHistoryCloseButton" type="button" aria-label="Закрыть уровни">×</button>
+          </div>
           <div id="levelHistoryList" class="level-history"></div>
-          <button id="levelOverlayCloseButton" class="primary" type="button">Закрыть</button>
+        </section>
+      </div>
+
+      <section id="studentStudioProfilePage" class="student-studio-profile-page panel" hidden>
+        <article class="student-studio-card studio-channel" role="region" aria-labelledby="studentStudioProfileTitle">
+          <div class="studio-channel-cover">
+            <img id="studentStudioProfileCoverImage" class="studio-channel-cover-image" alt="" hidden />
+            <span class="studio-channel-cover-shade" aria-hidden="true"></span>
+            <div id="studentStudioProfileLogo" class="studio-channel-logo">С</div>
+          </div>
+          <div class="studio-channel-copy">
+            <div class="studio-channel-identity">
+              <p class="eyebrow">Моя студия</p>
+              <h2 id="studentStudioProfileTitle">Танцевальная студия</h2>
+              <p id="studentStudioProfileDescription">Описание студии появится здесь.</p>
+              <div class="studio-channel-divider" aria-hidden="true"></div>
+              <div id="studentStudioProfileFacts" class="studio-channel-details"></div>
+            </div>
+            <div class="studio-channel-regalia">
+              <div class="award-shelf-widget" aria-label="Награды студии">
+                <div class="award-shelf-head">
+                  <p class="eyebrow">Награды</p>
+                  <h4>Витрина студии</h4>
+                </div>
+                <div id="studentStudioAchievementsList" class="award-shelf" aria-label="Полки с наградами студии"></div>
+              </div>
+            </div>
+          </div>
+          <button id="studentStudioBackButton" class="primary" type="button">Назад к урокам</button>
+        </article>
+      </section>
+
+      <div id="settingsOverlay" class="result-overlay" hidden>
+        <section class="settings-card" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
+          <div class="settings-head">
+            <div>
+              <p class="eyebrow">Настройки</p>
+              <h2 id="settingsTitle">Кабинет</h2>
+            </div>
+            <button id="settingsCloseButton" type="button" aria-label="Закрыть настройки">×</button>
+          </div>
+          <div class="settings-section">
+            <span>Режим кабинета</span>
+            <div class="settings-choice">
+              <button class="settings-view-button active" data-settings-view="student" type="button"><span aria-hidden="true">👤</span> Танцор</button>
+              <button class="settings-view-button" data-settings-view="teacher" type="button"><span aria-hidden="true">🏠</span> Педагог</button>
+            </div>
+          </div>
+          <div class="settings-section">
+            <span>Оформление</span>
+            <button id="themeToggleButton" class="settings-theme-toggle" type="button" aria-pressed="false">
+              <span aria-hidden="true">☀</span>
+              <strong>Светлая тема</strong>
+              <span aria-hidden="true">☾</span>
+            </button>
+          </div>
+          <div class="settings-section">
+            <span>Личный кабинет</span>
+            <button id="editDancerProfileButton" class="settings-profile-edit" type="button">
+              <span aria-hidden="true">✎</span>
+              <strong>Редактировать личный кабинет</strong>
+            </button>
+          </div>
+        </section>
+      </div>
+
+      <div id="teacherInviteOverlay" class="result-overlay" hidden>
+        <form id="teacherInviteForm" class="create-card invite-card-modal" role="dialog" aria-modal="true" aria-labelledby="teacherInviteTitle">
+          <p class="eyebrow">Приглашение</p>
+          <h2 id="teacherInviteTitle">Добавить ученика</h2>
+          <div class="invite-fields">
+            <label>
+              <span>Имя</span>
+              <input id="teacherInviteFirstName" type="text" autocomplete="given-name" placeholder="Имя ученика" required />
+            </label>
+            <label>
+              <span>Фамилия</span>
+              <input id="teacherInviteLastName" type="text" autocomplete="family-name" placeholder="Фамилия ученика" required />
+            </label>
+            <label>
+              <span>Группа</span>
+              <select id="teacherInviteGroup"></select>
+            </label>
+            <label>
+              <span>Контакт</span>
+              <input id="teacherInviteContact" type="text" autocomplete="off" placeholder="Телефон, ник или контакт родителя" />
+            </label>
+            <label class="invite-note-field">
+              <span>Комментарий</span>
+              <textarea id="teacherInviteNote" rows="3" placeholder="Например: пробное занятие, уровень, возраст, доступы"></textarea>
+            </label>
+          </div>
+          <div id="teacherInviteResult" class="invite-result" hidden>
+            <div>
+              <small>Ссылка приглашения</small>
+              <strong id="teacherInviteLink">—</strong>
+            </div>
+            <div class="invite-qr" aria-label="QR-код приглашения">
+              <span></span><span></span><span></span><span></span>
+              <span></span><span></span><span></span><span></span>
+              <span></span><span></span><span></span><span></span>
+            </div>
+          </div>
+          <div class="dialog-actions">
+            <button id="teacherInviteCancel" type="button">Закрыть</button>
+            <button class="primary" type="submit">Сгенерировать ссылку и QR</button>
+          </div>
+        </form>
+      </div>
+
+      <div id="teacherStudentProfileOverlay" class="result-overlay" hidden>
+        <section class="create-card teacher-student-profile-card" role="dialog" aria-modal="true" aria-labelledby="teacherStudentProfileTitle">
+          <div class="settings-head">
+            <div>
+              <p class="eyebrow">Карточка ученика</p>
+              <h2 id="teacherStudentProfileTitle">Ученик</h2>
+            </div>
+            <button id="teacherStudentProfileClose" class="icon-button" type="button" aria-label="Закрыть карточку ученика">×</button>
+          </div>
+          <div id="teacherStudentProfileBody" class="teacher-student-profile-body"></div>
         </section>
       </div>
 
@@ -715,6 +874,46 @@
             <span>Контакт / ссылка</span>
             <input id="teacherEditContact" type="text" autocomplete="off" />
           </label>
+          <div id="teacherStudioAchievementsField" class="studio-achievements-editor" hidden>
+            <div>
+              <span>Достижения</span>
+              <small>Добавляйте медальоны студии: кубок, диплом, фестиваль, чемпионат или свой логотип события.</small>
+            </div>
+            <div id="teacherAchievementItems" class="achievement-editor-list" aria-label="Список достижений"></div>
+            <button id="teacherAchievementAddToggle" class="achievement-add-toggle" type="button">
+              <span aria-hidden="true">+</span>
+              Добавить достижение
+            </button>
+            <div id="teacherAchievementForm" class="achievement-inline-form" hidden>
+              <label>
+                <span>Иконка</span>
+                <select id="teacherAchievementIcon">
+                  <option value="🏆">🏆 Кубок</option>
+                  <option value="🥇">🥇 Первое место</option>
+                  <option value="🎓">🎓 Диплом</option>
+                  <option value="🎖️">🎖️ Медаль</option>
+                  <option value="⭐">⭐ Звезда</option>
+                  <option value="🎭">🎭 Фестиваль</option>
+                  <option value="🔥">🔥 Баттл</option>
+                  <option value="💎">💎 Гран-при</option>
+                </select>
+              </label>
+              <label>
+                <span>Событие</span>
+                <input id="teacherAchievementTitle" type="text" autocomplete="off" placeholder="Dance Cup" />
+              </label>
+              <label>
+                <span>Место / звание</span>
+                <input id="teacherAchievementNote" type="text" autocomplete="off" placeholder="1 место" />
+              </label>
+              <label class="achievement-logo-field">
+                <span>Логотип события</span>
+                <input id="teacherEditAchievementImage" type="file" accept="image/*" />
+              </label>
+              <button id="teacherAchievementAddButton" class="primary" type="button">Добавить</button>
+            </div>
+            <textarea id="teacherEditAchievements" rows="4" hidden></textarea>
+          </div>
           <div class="create-actions">
             <button id="teacherEditCancel" type="button">Отмена</button>
             <button class="primary" type="submit">Сохранить</button>
@@ -724,19 +923,6 @@
     </main>
 
     <script>
-      document.querySelectorAll(".role-tab").forEach((tab) => {
-        tab.addEventListener("click", () => {
-          const view = tab.dataset.view;
-          document.querySelector(".app-shell")?.classList.toggle("student-mode", view === "student");
-          document.querySelector(".app-shell")?.classList.toggle("teacher-mode", view === "teacher");
-          document.querySelectorAll(".role-tab").forEach((item) => {
-            item.classList.toggle("active", item.dataset.view === view);
-          });
-          document.querySelector('[data-panel="student"]').hidden = view !== "student";
-          document.querySelector('[data-panel="teacher"]').hidden = view !== "teacher";
-        });
-      });
-
       window.__danceLocalVideos = {};
 
       function attachDirectUpload(inputId, previewId, statusId, type) {
@@ -805,6 +991,6 @@
         });
       }
     </script>
-    <script type="module" src="./app.js?v=20260626-29"></script>
+    <script type="module" src="./app.js?v=20260627-40"></script>
   </body>
 </html>

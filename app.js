@@ -20,6 +20,8 @@ const studentCtx = studentCanvas.getContext("2d");
 
 const els = {
   appShell: document.querySelector(".app-shell"),
+  brandHomeButton: document.querySelector("#brandHomeButton"),
+  accountNavButtons: document.querySelectorAll("[data-account-target]"),
   learningUpload: document.querySelector("#learningUpload"),
   examUpload: document.querySelector("#examUpload"),
   learningUploadStatus: document.querySelector("#learningUploadStatus"),
@@ -29,8 +31,12 @@ const els = {
   showLearningVideoButton: document.querySelector("#showLearningVideoButton"),
   showExamVideoButton: document.querySelector("#showExamVideoButton"),
   startDanceCardButton: document.querySelector("#startDanceCardButton"),
+  settingsButton: document.querySelector("#settingsButton"),
+  settingsOverlay: document.querySelector("#settingsOverlay"),
+  settingsCloseButton: document.querySelector("#settingsCloseButton"),
+  settingsViewButtons: document.querySelectorAll("[data-settings-view]"),
   themeToggleButton: document.querySelector("#themeToggleButton"),
-  roleTabs: document.querySelectorAll(".role-tab"),
+  editDancerProfileButton: document.querySelector("#editDancerProfileButton"),
   pipelineSteps: document.querySelectorAll(".pipeline-step"),
   lessonFlowSteps: document.querySelectorAll(".flow-step"),
   studentPanel: document.querySelector('[data-panel="student"]'),
@@ -53,6 +59,8 @@ const els = {
   reviewSkeletonButton: document.querySelector("#reviewSkeletonButton"),
   practiceButton: document.querySelector("#practiceButton"),
   danceButton: document.querySelector("#danceButton"),
+  studentStepNextButton: document.querySelector("#studentStepNextButton"),
+  studentRetakeStepButton: document.querySelector("#studentRetakeStepButton"),
   speedRange: document.querySelector("#speedRange"),
   speedValue: document.querySelector("#speedValue"),
   segmentRange: document.querySelector("#segmentRange"),
@@ -130,8 +138,21 @@ const els = {
   levelCardButton: document.querySelector("#levelCardButton"),
   levelOverlay: document.querySelector("#levelOverlay"),
   levelOverlayDetails: document.querySelector("#levelOverlayDetails"),
+  studentProfileDetails: document.querySelector("#studentProfileDetails"),
+  studentProfileCoverInput: document.querySelector("#studentProfileCoverInput"),
+  studentProfileAvatarInput: document.querySelector("#studentProfileAvatarInput"),
+  levelHistoryOverlay: document.querySelector("#levelHistoryOverlay"),
   levelHistoryList: document.querySelector("#levelHistoryList"),
+  levelHistoryCloseButton: document.querySelector("#levelHistoryCloseButton"),
   levelOverlayCloseButton: document.querySelector("#levelOverlayCloseButton"),
+  studentStudioProfilePage: document.querySelector("#studentStudioProfilePage"),
+  studentStudioProfileCoverImage: document.querySelector("#studentStudioProfileCoverImage"),
+  studentStudioProfileLogo: document.querySelector("#studentStudioProfileLogo"),
+  studentStudioProfileTitle: document.querySelector("#studentStudioProfileTitle"),
+  studentStudioProfileDescription: document.querySelector("#studentStudioProfileDescription"),
+  studentStudioProfileFacts: document.querySelector("#studentStudioProfileFacts"),
+  studentStudioAchievementsList: document.querySelector("#studentStudioAchievementsList"),
+  studentStudioBackButton: document.querySelector("#studentStudioBackButton"),
   teacherBreadcrumb: document.querySelector("#teacherBreadcrumb"),
   teacherFolderTitle: document.querySelector("#teacherFolderTitle"),
   teacherBackButton: document.querySelector("#teacherBackButton"),
@@ -144,6 +165,8 @@ const els = {
   teacherStudioList: document.querySelector("#teacherStudioList"),
   teacherGroupList: document.querySelector("#teacherGroupList"),
   teacherLessonList: document.querySelector("#teacherLessonList"),
+  teacherSpaceEyebrow: document.querySelector("#teacherSpaceEyebrow"),
+  teacherSpaceTitle: document.querySelector("#teacherSpaceTitle"),
   teacherLessonOpenTitle: document.querySelector("#teacherLessonOpenTitle"),
   teacherStudioChannel: document.querySelector("#teacherStudioChannel"),
   teacherStudioCover: document.querySelector("#teacherStudioCover"),
@@ -154,6 +177,25 @@ const els = {
   teacherStudioChannelAddress: document.querySelector("#teacherStudioChannelAddress"),
   teacherStudioChannelLink: document.querySelector("#teacherStudioChannelLink"),
   teacherStudioDirections: document.querySelector("#teacherStudioDirections"),
+  teacherStudioAchievementsList: document.querySelector("#teacherStudioAchievementsList"),
+  teacherInviteButton: document.querySelector("#teacherInviteButton"),
+  teacherInviteOverlay: document.querySelector("#teacherInviteOverlay"),
+  teacherInviteForm: document.querySelector("#teacherInviteForm"),
+  teacherInviteFirstName: document.querySelector("#teacherInviteFirstName"),
+  teacherInviteLastName: document.querySelector("#teacherInviteLastName"),
+  teacherInviteGroup: document.querySelector("#teacherInviteGroup"),
+  teacherInviteContact: document.querySelector("#teacherInviteContact"),
+  teacherInviteNote: document.querySelector("#teacherInviteNote"),
+  teacherInviteResult: document.querySelector("#teacherInviteResult"),
+  teacherInviteLink: document.querySelector("#teacherInviteLink"),
+  teacherInviteCancel: document.querySelector("#teacherInviteCancel"),
+  studioLibraryTabs: document.querySelectorAll("[data-studio-library-tab]"),
+  studioLibraryPanels: document.querySelectorAll("[data-studio-library-panel]"),
+  teacherStudentList: document.querySelector("#teacherStudentList"),
+  teacherStudentProfileOverlay: document.querySelector("#teacherStudentProfileOverlay"),
+  teacherStudentProfileTitle: document.querySelector("#teacherStudentProfileTitle"),
+  teacherStudentProfileBody: document.querySelector("#teacherStudentProfileBody"),
+  teacherStudentProfileClose: document.querySelector("#teacherStudentProfileClose"),
   teacherCreateOverlay: document.querySelector("#teacherCreateOverlay"),
   teacherCreateForm: document.querySelector("#teacherCreateForm"),
   teacherCreateEyebrow: document.querySelector("#teacherCreateEyebrow"),
@@ -183,6 +225,16 @@ const els = {
   teacherEditPlaceLabel: document.querySelector("#teacherEditPlaceLabel"),
   teacherEditPlace: document.querySelector("#teacherEditPlace"),
   teacherEditContact: document.querySelector("#teacherEditContact"),
+  teacherStudioAchievementsField: document.querySelector("#teacherStudioAchievementsField"),
+  teacherEditAchievements: document.querySelector("#teacherEditAchievements"),
+  teacherAchievementItems: document.querySelector("#teacherAchievementItems"),
+  teacherAchievementAddToggle: document.querySelector("#teacherAchievementAddToggle"),
+  teacherAchievementForm: document.querySelector("#teacherAchievementForm"),
+  teacherAchievementIcon: document.querySelector("#teacherAchievementIcon"),
+  teacherAchievementTitle: document.querySelector("#teacherAchievementTitle"),
+  teacherAchievementNote: document.querySelector("#teacherAchievementNote"),
+  teacherAchievementAddButton: document.querySelector("#teacherAchievementAddButton"),
+  teacherEditAchievementImage: document.querySelector("#teacherEditAchievementImage"),
   teacherEditCancel: document.querySelector("#teacherEditCancel"),
 };
 
@@ -306,6 +358,11 @@ const POSITION_POINTS = [0, 11, 12, 13, 14, 15, 16, 23, 24, 25, 26, 27, 28, 31, 
 const HIDDEN_FACE_POINTS = new Set([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
 const HIDDEN_HAND_POINTS = new Set([17, 18, 19, 20, 21, 22]);
 const REFERENCE_SCAN_FPS = 30;
+const DEFAULT_STUDIO_ACHIEVEMENTS = [
+  { icon: "🏆", title: "Фестивали", note: "Участники и призёры" },
+  { icon: "🎓", title: "Дипломы", note: "Лауреаты конкурсов" },
+  { icon: "★", title: "Рост учеников", note: "Уровни и звёзды" },
+];
 
 const state = {
   teacherLandmarker: null,
@@ -351,6 +408,9 @@ const state = {
   teacherCreateType: "",
   teacherEditImageData: "",
   teacherEditCoverData: "",
+  teacherEditAchievementsList: [],
+  teacherStudioLibraryTab: "lessons",
+  teacherStudentGroupId: "",
   teacherWorkspace: savedTeacherWorkspace || {
     studios: [],
     activeStudioId: "",
@@ -367,6 +427,8 @@ const state = {
     endSet: false,
   },
   lastResult: null,
+  lastAttempt: null,
+  studentLessonStep: "practice",
   modelLoading: false,
   modelFailed: false,
   modelReadyPromise: null,
@@ -431,8 +493,27 @@ els.examUpload.addEventListener("change", (event) => onTeacherUpload(event, "exa
 els.showLearningVideoButton.addEventListener("click", () => switchTeacherVideo("learning"));
 els.showExamVideoButton.addEventListener("click", () => switchTeacherVideo("exam"));
 els.startDanceCardButton.addEventListener("click", focusDanceStage);
-els.roleTabs.forEach((tab) => tab.addEventListener("click", () => switchView(tab.dataset.view)));
+els.brandHomeButton.addEventListener("click", goStudentHome);
+els.brandHomeButton.addEventListener("keydown", (event) => {
+  if (event.key !== "Enter" && event.key !== " ") return;
+  event.preventDefault();
+  goStudentHome();
+});
+els.accountNavButtons.forEach((button) => button.addEventListener("click", () => openAccountTarget(button.dataset.accountTarget)));
+els.settingsButton.addEventListener("click", openSettings);
+els.settingsCloseButton.addEventListener("click", closeSettings);
+els.settingsOverlay.addEventListener("click", (event) => {
+  if (event.target === els.settingsOverlay) closeSettings();
+});
+els.settingsViewButtons.forEach((button) => button.addEventListener("click", () => {
+  switchView(button.dataset.settingsView);
+  closeSettings();
+}));
 els.themeToggleButton.addEventListener("click", toggleTheme);
+els.editDancerProfileButton?.addEventListener("click", () => {
+  closeSettings();
+  showLevelOverlay();
+});
 els.studentProfileForm.addEventListener("submit", submitStudentProfile);
 els.teacherBrowser.addEventListener("click", (event) => {
   const createButton = event.target.closest("[data-create-type]");
@@ -469,6 +550,24 @@ els.teacherBrowser.addEventListener("click", (event) => {
   if (lessonButton) {
     state.teacherWorkspace.activeLessonId = lessonButton.dataset.lessonId;
     setTeacherFolderView("lesson");
+    return;
+  }
+  const studentButton = event.target.closest("[data-student-id]");
+  if (studentButton) {
+    openTeacherStudentProfile(studentButton.dataset.studentId || "");
+    return;
+  }
+  const studentGroupButton = event.target.closest("[data-student-group-id]");
+  if (studentGroupButton) {
+    state.teacherStudentGroupId = studentGroupButton.dataset.studentGroupId || "";
+    renderTeacherStudents(activeTeacherStudio());
+    updateTeacherStudioHeaderState();
+    return;
+  }
+  if (event.target.closest("[data-students-back]")) {
+    state.teacherStudentGroupId = "";
+    renderTeacherStudents(activeTeacherStudio());
+    updateTeacherStudioHeaderState();
   }
 });
 els.teacherBrowser.addEventListener("keydown", (event) => {
@@ -478,7 +577,13 @@ els.teacherBrowser.addEventListener("keydown", (event) => {
   event.preventDefault();
   openTeacherCreateDialog(createButton.dataset.createType || "");
 });
-els.teacherPrimaryAction.addEventListener("click", () => openTeacherCreateDialog());
+els.teacherPrimaryAction.addEventListener("click", () => {
+  if (state.teacherFolderView === "studio" && state.teacherStudioLibraryTab === "students") {
+    openTeacherInviteDialog();
+    return;
+  }
+  openTeacherCreateDialog();
+});
 els.teacherRootEmpty.addEventListener("click", () => openTeacherCreateDialog("studio"));
 els.teacherRootEmpty.addEventListener("keydown", (event) => {
   if (event.key !== "Enter" && event.key !== " ") return;
@@ -515,6 +620,24 @@ els.teacherEditForm.addEventListener("submit", submitTeacherEditDialog);
 els.teacherEditCancel.addEventListener("click", closeTeacherEditDialog);
 els.teacherEditImage.addEventListener("change", onTeacherEditImage);
 els.teacherEditCover.addEventListener("change", onTeacherEditCover);
+els.teacherAchievementAddToggle?.addEventListener("click", toggleAchievementForm);
+els.teacherAchievementAddButton?.addEventListener("click", addTeacherAchievementFromForm);
+els.teacherAchievementItems?.addEventListener("click", (event) => {
+  const removeButton = event.target.closest("[data-remove-achievement]");
+  if (!removeButton) return;
+  removeTeacherAchievement(Number(removeButton.dataset.removeAchievement));
+});
+els.teacherInviteButton?.addEventListener("click", openTeacherInviteDialog);
+els.teacherInviteForm?.addEventListener("submit", submitTeacherInviteDialog);
+els.teacherInviteCancel?.addEventListener("click", closeTeacherInviteDialog);
+els.teacherInviteOverlay?.addEventListener("click", (event) => {
+  if (event.target === els.teacherInviteOverlay) closeTeacherInviteDialog();
+});
+els.teacherStudentProfileClose?.addEventListener("click", closeTeacherStudentProfile);
+els.teacherStudentProfileOverlay?.addEventListener("click", (event) => {
+  if (event.target === els.teacherStudentProfileOverlay) closeTeacherStudentProfile();
+});
+els.studioLibraryTabs?.forEach((button) => button.addEventListener("click", () => setStudioLibraryTab(button.dataset.studioLibraryTab)));
 els.cameraButton.addEventListener("click", startCamera);
 els.studentVideoUpload.addEventListener("change", onStudentVideoUpload);
 els.studentPlayButton.addEventListener("click", toggleStudentPlayback);
@@ -537,11 +660,33 @@ els.resultCloseButton.addEventListener("click", publishStudentAttempt);
 els.retakeButton.addEventListener("click", retakeStudentAttempt);
 els.levelCardButton.addEventListener("click", showLevelOverlay);
 els.levelOverlayCloseButton.addEventListener("click", () => {
-  els.levelOverlay.hidden = true;
+  goStudentHome();
 });
+els.levelHistoryCloseButton.addEventListener("click", closeLevelHistory);
+els.levelHistoryOverlay.addEventListener("click", (event) => {
+  if (event.target === els.levelHistoryOverlay) closeLevelHistory();
+});
+els.studentProfileDetails.addEventListener("click", (event) => {
+  if (event.target.closest(".dancer-cover-edit")) {
+    els.studentProfileCoverInput.value = "";
+    els.studentProfileCoverInput.click();
+    return;
+  }
+  if (event.target.closest(".dancer-avatar-edit")) {
+    els.studentProfileAvatarInput.value = "";
+    els.studentProfileAvatarInput.click();
+    return;
+  }
+  if (event.target.closest(".dancer-level-button")) openLevelHistory();
+});
+els.studentProfileCoverInput?.addEventListener("change", (event) => updateStudentProfileImage(event, "coverImage"));
+els.studentProfileAvatarInput?.addEventListener("change", (event) => updateStudentProfileImage(event, "avatarImage"));
+els.studentStudioBackButton.addEventListener("click", goStudentHome);
 els.showMistakesButton.addEventListener("click", toggleMistakes);
 els.practiceButton.addEventListener("click", startPractice);
 els.danceButton.addEventListener("click", toggleDance);
+els.studentStepNextButton?.addEventListener("click", advanceStudentLessonStep);
+els.studentRetakeStepButton?.addEventListener("click", retakeStudentAttempt);
 els.speedRange.addEventListener("input", updateSpeed);
 els.segmentRange.addEventListener("input", updateSegment);
 els.mirrorToggle.addEventListener("change", updateMirror);
@@ -1308,9 +1453,10 @@ function finalizeAttemptResult(result, seconds) {
 
   state.mode = "idle";
   state.lastResult = result;
+  state.lastAttempt = attempt;
   els.appShell.classList.remove("practice-focus");
-  els.appShell.classList.add("student-result-mode");
-  els.appShell.classList.remove("student-learning-mode", "student-exam-mode");
+  els.appShell.classList.add("student-publish-mode");
+  els.appShell.classList.remove("student-learning-mode", "student-exam-mode", "student-result-mode");
   hideCountdown();
   teacherVideo.pause();
   if (state.studentVideoObjectUrl) {
@@ -1319,9 +1465,8 @@ function finalizeAttemptResult(result, seconds) {
     els.danceButton.textContent = "Сдать танец →";
   updateLevelDisplay();
   updateMeters(result);
-  updateLessonFlow("result");
-  els.taskStatus.textContent = stars >= 3 ? "уровень пройден" : "попробовать еще";
-  showResultOverlay(attempt);
+  updateLessonFlow("publish");
+  els.taskStatus.textContent = stars >= 3 ? "попытка готова к публикации" : "можно пересдать перед публикацией";
 }
 
 async function runExamCountdown() {
@@ -2257,13 +2402,193 @@ function updateLevelDisplay() {
     ? `${Math.max(0, levelTarget - levelEarned)} из ${levelTarget} ${pluralizeStars(levelTarget)} до уровня ${next.level}`
     : "максимальный уровень";
   els.scoreValue.title = `${stars} звезд всего`;
-  els.levelCardButton.title = "Открыть историю уровней";
+  els.levelCardButton.removeAttribute("title");
   els.studentStarsBadge.textContent = `★ ${stars}`;
 }
 
 function showLevelOverlay() {
+  renderDancerProfileDetails();
   renderLevelHistory();
+  els.studentStudioProfilePage.hidden = true;
   els.levelOverlay.hidden = false;
+  els.appShell.classList.add("dancer-profile-open");
+  els.appShell.classList.remove("student-studio-open");
+  updateAccountNav("profile");
+  els.levelOverlay.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function openLevelHistory() {
+  renderLevelHistory();
+  els.levelHistoryOverlay.hidden = false;
+}
+
+function closeLevelHistory() {
+  els.levelHistoryOverlay.hidden = true;
+}
+
+function showStudentStudioProfile() {
+  renderStudentStudioProfile();
+  els.levelOverlay.hidden = true;
+  els.studentStudioProfilePage.hidden = false;
+  els.appShell.classList.add("student-studio-open");
+  els.appShell.classList.remove("dancer-profile-open");
+  updateAccountNav("studio");
+  els.studentStudioProfilePage.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function renderStudentStudioProfile() {
+  const studio = activeTeacherStudio() || {};
+  const studioName = state.studentProfile?.studioName || studio.name || "Танцевальная студия";
+  els.studentStudioProfileTitle.textContent = studioName;
+  els.studentStudioProfileDescription.textContent = studio.description || "Здесь будут направления, расписание, достижения и общая жизнь студии.";
+  els.studentStudioProfileLogo.textContent = studio.image ? "" : (studioName || "С").slice(0, 1).toUpperCase();
+  els.studentStudioProfileLogo.style.backgroundImage = studio.image ? `url("${studio.image}")` : "";
+  els.studentStudioProfileCoverImage.hidden = !studio.cover;
+  if (studio.cover) els.studentStudioProfileCoverImage.src = studio.cover;
+  else els.studentStudioProfileCoverImage.removeAttribute("src");
+  els.studentStudioProfileFacts.innerHTML = `
+    <div class="studio-fact">
+      <span class="studio-fact-icon" aria-hidden="true">⌖</span>
+      <div><small>Адрес</small><strong>${escapeHtml(studio.address || studio.city || "Не указан")}</strong></div>
+    </div>
+    <div class="studio-fact">
+      <span class="studio-fact-icon" aria-hidden="true">♪</span>
+      <div><small>Направления</small><strong>${escapeHtml(studio.directions || "Пока не указаны")}</strong></div>
+    </div>
+    <div class="studio-fact">
+      <span class="studio-fact-icon" aria-hidden="true">◎</span>
+      <div><small>Группа</small><strong>6 группа</strong></div>
+    </div>
+    <div class="studio-fact">
+      <span class="studio-fact-icon" aria-hidden="true">+</span>
+      <div><small>Статус</small><strong>Участник студии</strong></div>
+    </div>
+  `;
+  renderAchievementsInto(els.studentStudioAchievementsList, studio.achievements);
+}
+
+function renderDancerProfileDetails() {
+  if (!els.studentProfileDetails) return;
+  const profile = state.studentProfile || {};
+  const stars = totalStars();
+  const { current, next } = levelInfoFromStars(stars);
+  const attemptsCount = state.attempts.length;
+  const bestAttempt = state.attempts.reduce((best, attempt) => Math.max(best, attempt.match || 0), 0);
+  const styles = Array.isArray(profile.styles) && profile.styles.length ? profile.styles : ["Свободный стиль"];
+  const ageText = Number.isFinite(profile.age) && profile.age > 0 ? `${profile.age} лет` : "возраст не указан";
+  const studioName = profile.studioName || "Танцевальная студия";
+  const firstName = profile.firstName || "Юный";
+  const lastName = profile.lastName || "танцор";
+  const nextText = next ? `${Math.max(0, next.stars - stars)} ★ до уровня ${next.level}` : "все уровни открыты";
+  const previousStars = current.stars;
+  const nextStars = next?.stars || current.stars;
+  const progress = next ? Math.min(100, Math.max(0, ((stars - previousStars) / Math.max(1, nextStars - previousStars)) * 100)) : 100;
+  const coverStyle = profile.coverImage ? ` style="background-image: url('${escapeHtml(profile.coverImage)}')"` : "";
+  const avatarStyle = profile.avatarImage ? ` style="background-image: url('${escapeHtml(profile.avatarImage)}')"` : "";
+  const avatarLetter = profile.avatarImage ? "" : escapeHtml((firstName || "Т").slice(0, 1).toUpperCase());
+  const dancerAchievements = [
+    { icon: "⭐", title: `${stars} звёзд`, note: "накоплено" },
+    { icon: "🎬", title: `${attemptsCount} сдач`, note: "записано" },
+    { icon: "🔥", title: `${Math.round(bestAttempt)}%`, note: "лучший танец" },
+  ];
+
+  els.studentProfileDetails.innerHTML = `
+    <div class="dancer-channel">
+      <div class="dancer-channel-cover"${coverStyle}>
+        <span class="dancer-cover-glow" aria-hidden="true"></span>
+        <button class="dancer-cover-edit" type="button" aria-label="Редактировать обложку профиля">✎</button>
+        <div class="dancer-avatar-large"${avatarStyle}>
+          ${avatarLetter}
+          <button class="dancer-avatar-edit" type="button" aria-label="Редактировать аватар">✎</button>
+        </div>
+      </div>
+      <div class="dancer-channel-copy">
+        <div class="dancer-channel-main">
+          <h3><span>${escapeHtml(firstName)}</span><span>${escapeHtml(lastName)}</span></h3>
+          <p>${escapeHtml(profile.nickname || "без никнейма")} · ${escapeHtml(ageText)}</p>
+          <p class="dancer-studio-label">${escapeHtml(studioName)}</p>
+          <button class="dancer-level-button" type="button" aria-label="Открыть уровни">Ур.${current.level}</button>
+          <div class="dancer-level-track" aria-label="Прогресс уровня">
+            <span style="width: ${progress}%"></span>
+          </div>
+          <small>${escapeHtml(nextText)}</small>
+          <div class="dancer-info-grid">
+            <span><b>Опыт</b><strong>${stars} ★</strong></span>
+            <span><b>Пройдено уроков</b><strong>${attemptsCount}</strong></span>
+            <span><b>Лучший результат</b><strong>${Math.round(bestAttempt)}%</strong></span>
+            <span><b>Статус</b><strong>${escapeHtml(current.name)}</strong></span>
+            <span><b>Стили</b><strong>${styles.map(escapeHtml).join(", ")}</strong></span>
+            <span><b>Студии</b><strong>${escapeHtml(studioName)}</strong></span>
+          </div>
+        </div>
+        <div class="studio-channel-regalia dancer-achievements-panel student-achievement-bubbles">
+          <div class="studio-quick-panels" aria-label="Достижения и трофеи танцора">
+            <div class="studio-quick-trigger">
+              <button class="studio-round-trigger" type="button" aria-label="Достижения танцора">
+                <span class="studio-icon-check" aria-hidden="true"></span>
+              </button>
+              <div class="studio-hover-popover">
+                <p class="eyebrow">Достижения</p>
+                <h4>Достижения танцора</h4>
+                <div class="achievement-orbit">
+                  ${dancerAchievements.map((achievement) => `
+                    <article class="achievement-medal" title="${escapeHtml(`${achievement.title} — ${achievement.note}`)}">
+                      <b><span aria-hidden="true">${escapeHtml(achievement.icon)}</span></b>
+                      <div>
+                        <strong>${escapeHtml(achievement.title)}</strong>
+                        <small>${escapeHtml(achievement.note)}</small>
+                      </div>
+                    </article>
+                  `).join("")}
+                </div>
+              </div>
+            </div>
+            <div class="studio-quick-trigger">
+              <button class="studio-round-trigger trophy" type="button" aria-label="Трофеи танцора">
+                <span class="studio-icon-cup" aria-hidden="true"><i></i></span>
+              </button>
+              <div class="studio-hover-popover">
+                <p class="eyebrow">Трофеи</p>
+                <h4>Трофеи танцора</h4>
+                <div class="achievement-orbit">
+                  ${dancerAchievements.map((achievement) => `
+                    <article class="achievement-medal" title="${escapeHtml(`${achievement.title} — ${achievement.note}`)}">
+                      <b><span aria-hidden="true">${escapeHtml(achievement.icon)}</span></b>
+                      <div>
+                        <strong>${escapeHtml(achievement.title)}</strong>
+                        <small>${escapeHtml(achievement.note)}</small>
+                      </div>
+                    </article>
+                  `).join("")}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="dancer-style-cloud">
+      ${styles.map((style) => `<span>${escapeHtml(style)}</span>`).join("")}
+    </div>
+    <div class="dancer-next">
+      <span aria-hidden="true">✦</span>
+      <strong>${escapeHtml(nextText)}</strong>
+      <small>Продолжайте сдавать уроки — каждая попытка добавляет прогресс.</small>
+    </div>
+  `;
+}
+
+async function updateStudentProfileImage(event, field) {
+  const file = event.target.files?.[0];
+  if (!file || !state.studentProfile) return;
+  const imageData = field === "coverImage"
+    ? await optimizeCoverImage(file)
+    : await optimizeAvatarImage(file);
+  if (!imageData) return;
+  state.studentProfile[field] = imageData;
+  persistStudentProfile();
+  renderStudentProfile();
+  renderDancerProfileDetails();
 }
 
 function renderLevelHistory() {
@@ -2453,13 +2778,60 @@ function publishTeacherLesson() {
 }
 
 function updateLessonFlow(activeStep) {
-  const order = ["choose", "practice", "exam", "result"];
+  const order = ["practice", "exam", "publish", "result"];
   const activeIndex = Math.max(0, order.indexOf(activeStep));
+  state.studentLessonStep = order[activeIndex] || "practice";
 
   els.lessonFlowSteps.forEach((step, index) => {
     step.classList.toggle("active", index === activeIndex);
     step.classList.toggle("completed", index < activeIndex);
   });
+
+  els.appShell.classList.toggle("student-step-practice", state.studentLessonStep === "practice");
+  els.appShell.classList.toggle("student-step-exam", state.studentLessonStep === "exam");
+  els.appShell.classList.toggle("student-step-publish", state.studentLessonStep === "publish");
+  els.appShell.classList.toggle("student-step-result", state.studentLessonStep === "result");
+
+  if (els.studentRetakeStepButton) {
+    els.studentRetakeStepButton.hidden = state.studentLessonStep !== "publish";
+  }
+  if (els.studentStepNextButton) {
+    const labels = {
+      practice: `Дальше <span aria-hidden="true">→</span>`,
+      exam: `Начать сдачу <span aria-hidden="true">→</span>`,
+      publish: `Опубликовать <span aria-hidden="true">→</span>`,
+      result: `Готово <span aria-hidden="true">✓</span>`,
+    };
+    els.studentStepNextButton.innerHTML = labels[state.studentLessonStep] || labels.practice;
+  }
+}
+
+async function advanceStudentLessonStep() {
+  if (state.studentLessonStep === "practice") {
+    updateLessonFlow("exam");
+    els.appShell.classList.add("student-exam-mode");
+    els.appShell.classList.remove("student-learning-mode", "student-result-mode", "student-publish-mode");
+    els.taskStatus.textContent = "подготовьте сдачу";
+    return;
+  }
+
+  if (state.studentLessonStep === "exam") {
+    await toggleDance();
+    return;
+  }
+
+  if (state.studentLessonStep === "publish") {
+    updateLessonFlow("result");
+    els.appShell.classList.add("student-result-mode");
+    els.appShell.classList.remove("student-learning-mode", "student-exam-mode", "student-publish-mode");
+    if (state.lastAttempt) showResultOverlay(state.lastAttempt);
+    else els.taskStatus.textContent = "сначала сдайте танец";
+    return;
+  }
+
+  if (state.studentLessonStep === "result") {
+    publishStudentAttempt();
+  }
 }
 
 function showResultOverlay(attempt) {
@@ -2482,7 +2854,7 @@ function retakeStudentAttempt() {
   updateLessonFlow("exam");
   els.taskStatus.textContent = "готов к пересдаче";
   els.appShell.classList.add("student-exam-mode");
-  els.appShell.classList.remove("student-result-mode", "student-learning-mode");
+  els.appShell.classList.remove("student-result-mode", "student-learning-mode", "student-publish-mode");
 }
 
 function publishStudentAttempt() {
@@ -2701,13 +3073,43 @@ async function reviewSkeleton() {
 }
 
 function switchView(view) {
-  els.roleTabs.forEach((tab) => tab.classList.toggle("active", tab.dataset.view === view));
+  els.settingsViewButtons.forEach((button) => button.classList.toggle("active", button.dataset.settingsView === view));
   els.studentPanel.hidden = view !== "student";
   els.teacherPanel.hidden = view !== "teacher";
   els.appShell.classList.toggle("student-mode", view === "student");
   els.appShell.classList.toggle("teacher-mode", view === "teacher");
+  closeStudentPages();
+  updateAccountNav("home");
   updateStageHeaderForView(view);
   window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function updateAccountNav(target) {
+  els.accountNavButtons.forEach((button) => {
+    button.classList.toggle("active", button.dataset.accountTarget === target);
+  });
+}
+
+function closeStudentPages() {
+  els.appShell.classList.remove("dancer-profile-open", "student-studio-open");
+  els.levelOverlay.hidden = true;
+  els.studentStudioProfilePage.hidden = true;
+}
+
+function goStudentHome() {
+  switchView("student");
+  closeSettings();
+  closeStudentPages();
+  updateAccountNav("home");
+}
+
+function openAccountTarget(target) {
+  switchView("student");
+  if (target === "studio") {
+    showStudentStudioProfile();
+    return;
+  }
+  showLevelOverlay();
 }
 
 function updateStageHeaderForView(view) {
@@ -2736,11 +3138,21 @@ function applyTheme(theme) {
   const safeTheme = theme === "dark" ? "dark" : "light";
   document.documentElement.dataset.theme = safeTheme === "dark" ? "dark" : "";
   els.themeToggleButton.setAttribute("aria-pressed", String(safeTheme === "dark"));
+  const themeLabel = els.themeToggleButton.querySelector("strong");
+  if (themeLabel) themeLabel.textContent = safeTheme === "dark" ? "Тёмная тема" : "Светлая тема";
   els.themeToggleButton.setAttribute(
     "aria-label",
     safeTheme === "dark" ? "Включить светлую тему" : "Включить тёмную тему"
   );
   document.querySelector('meta[name="theme-color"]')?.setAttribute("content", safeTheme === "dark" ? "#101114" : "#f1eee7");
+}
+
+function openSettings() {
+  els.settingsOverlay.hidden = false;
+}
+
+function closeSettings() {
+  els.settingsOverlay.hidden = true;
 }
 
 function toggleTheme() {
@@ -2787,11 +3199,16 @@ function setTeacherFolderView(view) {
   els.teacherSubgroupAction.hidden = safeView !== "group" || subgroups.length >= 3;
   if (lesson && els.teacherLessonOpenTitle) els.teacherLessonOpenTitle.textContent = lesson.name;
   els.appShell.classList.toggle("teacher-lesson-open", safeView === "lesson");
+  updateTeacherStudioHeaderState();
 }
 
 function renderTeacherBreadcrumb(view, studio, group, subgroups, lesson) {
   const parts = [];
   if (studio && ["studio", "group", "lesson"].includes(view)) parts.push({ label: studio.name, view: "studio" });
+  if (studio && view === "studio" && state.teacherStudioLibraryTab === "students") {
+    parts.push({ label: "Ученики", view: "studio" });
+    if (state.teacherStudentGroupId) parts.push({ label: teacherStudentFolderTitle(studio, state.teacherStudentGroupId), view: "studio" });
+  }
   if (!studio) parts.push({ label: "Создание студии", view: "root" });
   if (group && ["group", "lesson"].includes(view)) parts.push({ label: group.name, view: "group" });
   subgroups.forEach((subgroup, index) => {
@@ -2809,6 +3226,40 @@ function renderTeacherBreadcrumb(view, studio, group, subgroups, lesson) {
         : `<button type="button" data-breadcrumb-view="${part.view}" data-subgroup-depth="${part.subgroupDepth || 0}">${label}</button>`;
     })
     .join("<span aria-hidden=\"true\">/</span>");
+}
+
+function updateTeacherStudioHeaderState() {
+  if (state.teacherFolderView !== "studio") return;
+  const studio = activeTeacherStudio();
+  if (!studio) return;
+  const meta = teacherFolderMeta(studio, activeTeacherGroup(), activeTeacherSubgroupPath(), activeTeacherLesson());
+  els.teacherBreadcrumb.innerHTML = renderTeacherBreadcrumb("studio", studio, null, [], null);
+  els.teacherFolderTitle.textContent = state.teacherStudioLibraryTab === "students"
+    ? teacherStudentFolderTitle(studio, state.teacherStudentGroupId)
+    : meta.studio.title;
+  els.teacherPrimaryAction.lastChild.textContent = state.teacherStudioLibraryTab === "students" ? " Пригласить" : ` ${meta.studio.action}`;
+  els.teacherPrimaryAction.title = state.teacherStudioLibraryTab === "students" ? "Пригласить ученика" : meta.studio.action;
+  els.teacherEditAction.textContent = "Настройки";
+  updateTeacherSpaceHeading(studio);
+}
+
+function teacherStudentFolderTitle(studio, folderId) {
+  if (!folderId) return "Ученики";
+  if (folderId === "__hall") return "Холл";
+  if (folderId === "__ungrouped") return "Без группы";
+  return teacherStudioGroupOptions(studio).find((group) => group.id === folderId)?.label || "Ученики";
+}
+
+function updateTeacherSpaceHeading(studio) {
+  if (!els.teacherSpaceEyebrow || !els.teacherSpaceTitle) return;
+  if (state.teacherStudioLibraryTab === "students") {
+    const count = Array.isArray(studio?.students) ? studio.students.length : 0;
+    els.teacherSpaceEyebrow.textContent = "Ученики студии";
+    els.teacherSpaceTitle.textContent = `${studio?.name || "Студия"} · ${count} ${pluralizeStudents(count)}`;
+    return;
+  }
+  els.teacherSpaceEyebrow.textContent = "Пространства";
+  els.teacherSpaceTitle.textContent = "Материалы студии";
 }
 
 function goTeacherBack() {
@@ -2859,6 +3310,8 @@ function renderTeacherWorkspace() {
   els.teacherStudioList.innerHTML = studios.map((studio) => folderButton("studio", studio)).join("");
   const studio = activeTeacherStudio();
   renderStudioChannel(studio);
+  renderTeacherStudents(studio);
+  renderStudioLibraryTab();
   els.teacherGroupList.innerHTML = studio?.groups?.length
     ? studio.groups.map((group) => folderButton("group", group)).join("")
     : emptyFolderText("В этой студии пока нет групп", "Нажмите плюс сверху, чтобы создать группу.", "group");
@@ -2876,6 +3329,7 @@ function renderTeacherWorkspace() {
 function renderStudioChannel(studio) {
   els.teacherStudioChannel.hidden = !studio;
   if (!studio) return;
+  studio.students = Array.isArray(studio.students) ? studio.students : [];
   els.teacherStudioChannelName.textContent = studio.name || "Студия";
   els.teacherStudioChannelDescription.textContent = studio.description || "Добавьте описание студии в настройках.";
   els.teacherStudioChannelAddress.textContent = studio.address || studio.city || "Не указан";
@@ -2891,9 +3345,334 @@ function renderStudioChannel(studio) {
     els.teacherStudioChannelLink.href = link;
     els.teacherStudioChannelLink.textContent = link.replace(/^https?:\/\//, "").replace(/\/$/, "");
   }
+  renderStudioAchievements(studio);
+}
+
+function setStudioLibraryTab(tab = "lessons") {
+  state.teacherStudioLibraryTab = tab === "students" ? "students" : "lessons";
+  if (state.teacherStudioLibraryTab !== "students") state.teacherStudentGroupId = "";
+  renderStudioLibraryTab();
+  updateTeacherStudioHeaderState();
+}
+
+function renderStudioLibraryTab() {
+  els.studioLibraryTabs.forEach((button) => {
+    button.classList.toggle("active", button.dataset.studioLibraryTab === state.teacherStudioLibraryTab);
+  });
+  els.studioLibraryPanels.forEach((panel) => {
+    const isActive = panel.dataset.studioLibraryPanel === state.teacherStudioLibraryTab;
+    panel.classList.toggle("active", isActive);
+    panel.hidden = !isActive;
+  });
+}
+
+function renderTeacherStudents(studio) {
+  if (!els.teacherStudentList) return;
+  if (!studio) {
+    els.teacherStudentList.innerHTML = "";
+    return;
+  }
+  studio.students = Array.isArray(studio.students) ? studio.students : [];
+  if (!studio.students.length) {
+    els.teacherStudentList.innerHTML = emptyFolderText("В студии пока нет учеников", "Нажмите «Пригласить», чтобы добавить ученика и выдать ссылку.", "student");
+    return;
+  }
+  const groups = teacherStudioGroupOptions(studio);
+  const activeGroupId = state.teacherStudentGroupId;
+  const waitingStudents = studio.students.filter(isWaitingRegistrationStudent);
+  const activeStudents = studio.students.filter((student) => !isWaitingRegistrationStudent(student));
+
+  if (!activeGroupId) {
+    const groupCards = [
+      ...groups.map((group) => {
+        const count = activeStudents.filter((student) => student.groupId === group.id).length;
+        return studentGroupFolderCard(group.id, group.label, count);
+      }),
+      studentGroupFolderCard("__hall", "Холл", waitingStudents.length, `${waitingStudents.length} ждёт регистрации`, "⌛"),
+      studentGroupFolderCard("__ungrouped", "Без группы", activeStudents.filter((student) => !student.groupId).length),
+    ];
+    els.teacherStudentList.innerHTML = groupCards.join("");
+    return;
+  }
+
+  const isHall = activeGroupId === "__hall";
+  const normalizedGroupId = activeGroupId === "__ungrouped" || isHall ? "" : activeGroupId;
+  const activeGroup = groups.find((group) => group.id === normalizedGroupId);
+  const students = isHall
+    ? waitingStudents
+    : activeStudents.filter((student) => (student.groupId || "") === normalizedGroupId);
+  const title = isHall ? "Холл" : (activeGroup?.label || "Без группы");
+  els.teacherStudentList.innerHTML = `
+    <button class="folder-card students-back-card" type="button" data-students-back="1">
+      <span class="folder-icon" aria-hidden="true"><b>←</b></span>
+      <span class="folder-card-body">
+        <strong>${escapeHtml(title)}</strong>
+        <small class="folder-card-note">Назад к группам учеников</small>
+        <small class="folder-card-type">${students.length} ${pluralizeStudents(students.length)}</small>
+      </span>
+    </button>
+    ${students.length ? students.map((student) => {
+    const name = `${student.firstName || ""} ${student.lastName || ""}`.trim() || "Новый ученик";
+    const targetGroupId = student.requestedGroupId || student.groupId || "";
+    const group = groups.find((item) => item.id === targetGroupId);
+    const note = [
+      isWaitingRegistrationStudent(student) ? `будущая группа: ${group?.label || "—"}` : (group?.label || "Без группы"),
+      student.contact || "",
+      studentStatusLabel(student),
+    ].filter(Boolean).join(" · ");
+    return `
+      <button class="folder-card student-folder-card" type="button" data-student-id="${escapeHtml(student.id)}">
+        <span class="folder-icon" aria-hidden="true"><b>${escapeHtml((student.firstName || name || "У").slice(0, 1).toUpperCase())}</b></span>
+        <span class="folder-card-body">
+          <strong>${escapeHtml(name)}</strong>
+          <small class="folder-card-note">${escapeHtml(note)}</small>
+          <small class="folder-card-type">Ученик</small>
+        </span>
+      </button>
+    `;
+    }).join("") : emptyFolderText(isHall ? "Холл пуст" : "В этой группе пока нет учеников", isHall ? "Приглашённые ученики появятся здесь до регистрации." : "Пригласите ученика и назначьте его в эту группу.", "student")}
+  `;
+}
+
+function isWaitingRegistrationStudent(student) {
+  return student?.status === "pending_registration" || student?.status === "invited";
+}
+
+function studentStatusLabel(student) {
+  if (isWaitingRegistrationStudent(student)) return "ждёт регистрации";
+  return "активен";
+}
+
+function studentGroupFolderCard(id, label, count, note = "", icon = "👥") {
+  return `
+    <button class="folder-card student-group-folder-card" type="button" data-student-group-id="${escapeHtml(id)}">
+      <span class="folder-icon" aria-hidden="true"><b>${escapeHtml(icon)}</b></span>
+      <span class="folder-card-body">
+        <strong>${escapeHtml(label)}</strong>
+        <small class="folder-card-note">${escapeHtml(note || `${count} ${pluralizeStudents(count)}`)}</small>
+        <small class="folder-card-type">Группа учеников</small>
+      </span>
+    </button>
+  `;
+}
+
+function pluralizeStudents(count) {
+  const value = Math.abs(Number(count) || 0);
+  const mod10 = value % 10;
+  const mod100 = value % 100;
+  if (mod10 === 1 && mod100 !== 11) return "ученик";
+  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) return "ученика";
+  return "учеников";
+}
+
+function renderStudioAchievements(studio) {
+  renderAchievementsInto(els.teacherStudioAchievementsList, studio?.achievements);
+}
+
+function renderAchievementsInto(container, achievementsSource) {
+  if (!container) return;
+  const achievements = normalizeStudioAchievements(achievementsSource);
+  if (container.classList.contains("award-shelf")) {
+    renderAwardShelfInto(container, achievements);
+    return;
+  }
+  container.innerHTML = achievements.map((achievement) => {
+    const title = escapeHtml(achievement.title || "Достижение");
+    const note = escapeHtml(achievement.note || "Нажмите настройки, чтобы добавить описание.");
+    const tooltip = `${achievement.title || "Достижение"}${achievement.note ? ` — ${achievement.note}` : ""}`;
+    const icon = achievement.image
+      ? `<img src="${escapeHtml(achievement.image)}" alt="" />`
+      : `<span aria-hidden="true">${escapeHtml(achievement.icon || "★")}</span>`;
+    return `
+      <article class="achievement-medal" title="${escapeHtml(tooltip)}">
+        <b>${icon}</b>
+        <div>
+          <strong>${title}</strong>
+          <small>${note}</small>
+        </div>
+      </article>
+    `;
+  }).join("");
+}
+
+function renderAwardShelfInto(container, achievements) {
+  const pinned = achievements.slice(0, 3);
+  const liveAwards = achievements.slice(3, 8);
+  const archive = achievements.slice(8);
+  const fill = (items, size, archiveSlot = false) => {
+    const cells = [];
+    for (let index = 0; index < size; index += 1) {
+      const award = items[index];
+      if (archiveSlot && index === size - 1) {
+        cells.push(awardArchiveButton(archive));
+      } else if (award) {
+        cells.push(awardShelfItem(award));
+      } else {
+        cells.push(`<span class="award-shelf-empty" aria-hidden="true"></span>`);
+      }
+    }
+    return cells.join("");
+  };
+  container.innerHTML = `
+    <div class="award-shelf-row pinned" aria-label="Закреплённые крупные награды">
+      ${fill(pinned, 3)}
+    </div>
+    <div class="award-shelf-row" aria-label="Актуальные награды">
+      ${fill(liveAwards.slice(0, 3), 3)}
+    </div>
+    <div class="award-shelf-row" aria-label="Актуальные награды и архив">
+      ${fill(liveAwards.slice(3, 5), 3, true)}
+    </div>
+  `;
+}
+
+function awardShelfItem(award) {
+  const title = escapeHtml(award.title || "Награда");
+  const note = escapeHtml(award.note || "Студийная награда");
+  const image = award.image
+    ? `<img src="${escapeHtml(award.image)}" alt="" />`
+    : `<span aria-hidden="true">${escapeHtml(award.icon || "🏆")}</span>`;
+  return `
+    <article class="award-object" title="${title}${note ? ` — ${note}` : ""}">
+      <b>${image}</b>
+      <small>${title}</small>
+    </article>
+  `;
+}
+
+function awardArchiveButton(archive) {
+  const items = archive.length ? archive : [];
+  return `
+    <div class="award-archive">
+      <button class="award-archive-button" type="button" aria-label="Архив наград">•••</button>
+      <div class="award-archive-popover">
+        <p class="eyebrow">Архив</p>
+        <h4>Награды в запасе</h4>
+        ${items.length ? `
+          <div class="award-archive-list">
+            ${items.map((award) => `
+              <div>
+                <strong>${escapeHtml(award.title || "Награда")}</strong>
+                <small>${escapeHtml(award.note || "Можно закрепить на верхней полке через настройки.")}</small>
+              </div>
+            `).join("")}
+          </div>
+        ` : `<small class="award-archive-empty">Пока архив пуст. Новые награды будут сдвигать старые сюда.</small>`}
+        <small class="award-archive-hint">Закрепление верхней полки — через настройки студии.</small>
+      </div>
+    </div>
+  `;
+}
+
+function normalizeStudioAchievements(achievements) {
+  if (!Array.isArray(achievements) || !achievements.length) return DEFAULT_STUDIO_ACHIEVEMENTS;
+  return achievements
+    .map((achievement) => ({
+      icon: achievement.icon || "★",
+      title: achievement.title || "Достижение",
+      note: achievement.note || "",
+      image: achievement.image || "",
+    }))
+    .filter((achievement) => achievement.title || achievement.note || achievement.image)
+    .slice(0, 8);
+}
+
+function achievementsToText(achievements) {
+  return normalizeStudioAchievements(achievements)
+    .map((achievement) => `${achievement.icon || "★"} | ${achievement.title || ""} | ${achievement.note || ""}`.trim())
+    .join("\n");
+}
+
+function syncAchievementTextarea() {
+  if (els.teacherEditAchievements) {
+    els.teacherEditAchievements.value = achievementsToText(state.teacherEditAchievementsList);
+  }
+}
+
+function renderAchievementEditor() {
+  if (!els.teacherAchievementItems) return;
+  const achievements = state.teacherEditAchievementsList.length
+    ? state.teacherEditAchievementsList
+    : [];
+  els.teacherAchievementItems.innerHTML = achievements.map((achievement, index) => {
+    const icon = achievement.image
+      ? `<img src="${escapeHtml(achievement.image)}" alt="" />`
+      : `<span aria-hidden="true">${escapeHtml(achievement.icon || "★")}</span>`;
+    return `
+      <article class="achievement-edit-chip">
+        <b>${icon}</b>
+        <div>
+          <strong>${escapeHtml(achievement.title || "Достижение")}</strong>
+          <small>${escapeHtml(achievement.note || "Без описания")}</small>
+        </div>
+        <button type="button" data-remove-achievement="${index}" aria-label="Удалить достижение">×</button>
+      </article>
+    `;
+  }).join("");
+  syncAchievementTextarea();
+}
+
+function toggleAchievementForm() {
+  if (!els.teacherAchievementForm) return;
+  els.teacherAchievementForm.hidden = !els.teacherAchievementForm.hidden;
+  if (!els.teacherAchievementForm.hidden) {
+    window.requestAnimationFrame(() => els.teacherAchievementTitle?.focus());
+  }
+}
+
+async function addTeacherAchievementFromForm() {
+  const title = els.teacherAchievementTitle?.value.trim() || "";
+  const note = els.teacherAchievementNote?.value.trim() || "";
+  if (!title && !note) return;
+  const image = await readFileAsDataUrl(els.teacherEditAchievementImage?.files?.[0]);
+  state.teacherEditAchievementsList.push({
+    icon: els.teacherAchievementIcon?.value || "🏆",
+    title: title || "Достижение",
+    note,
+    image,
+  });
+  state.teacherEditAchievementsList = state.teacherEditAchievementsList.slice(0, 12);
+  clearAchievementForm();
+  renderAchievementEditor();
+}
+
+function removeTeacherAchievement(index) {
+  if (!Number.isInteger(index)) return;
+  state.teacherEditAchievementsList.splice(index, 1);
+  renderAchievementEditor();
+}
+
+function clearAchievementForm() {
+  if (els.teacherAchievementIcon) els.teacherAchievementIcon.value = "🏆";
+  if (els.teacherAchievementTitle) els.teacherAchievementTitle.value = "";
+  if (els.teacherAchievementNote) els.teacherAchievementNote.value = "";
+  if (els.teacherEditAchievementImage) els.teacherEditAchievementImage.value = "";
+  if (els.teacherAchievementForm) els.teacherAchievementForm.hidden = true;
+}
+
+function parseAchievementsText(value, firstImage = "") {
+  const parsed = String(value || "")
+    .split(/\n+/)
+    .map((line, index) => {
+      const parts = line.split("|").map((part) => part.trim()).filter(Boolean);
+      if (!parts.length) return null;
+      const icon = parts.length > 2 ? parts[0] : "★";
+      const title = parts.length > 2 ? parts[1] : parts[0];
+      const note = parts.length > 2 ? parts.slice(2).join(" · ") : (parts[1] || "");
+      return {
+        icon,
+        title,
+        note,
+        image: index === 0 ? firstImage : "",
+      };
+    })
+    .filter(Boolean)
+    .slice(0, 8);
+  return parsed.length ? parsed : DEFAULT_STUDIO_ACHIEVEMENTS;
 }
 
 function folderButton(type, item) {
+  if (type === "lesson") return lessonFolderCard(item);
   const typeLabel = {
     studio: "Студия",
     group: "Группа",
@@ -2919,6 +3698,28 @@ function folderButton(type, item) {
         ${status}
       </span>
       <span class="folder-card-arrow" aria-hidden="true">›</span>
+    </button>
+  `;
+}
+
+function lessonFolderCard(item) {
+  const note = itemSummary("lesson", item);
+  const image = item.image || "./assets/dance-lesson-thumb.png";
+  const meta = item.duration || "12 минут";
+  const statusLabel = item.published ? "опубликован" : "новое";
+  return `
+    <button class="folder-card folder-card-lesson lesson-showcase-card${item.published ? " is-published" : ""}" type="button" data-lesson-id="${escapeHtml(item.id)}">
+      <span class="lesson-showcase-preview">
+        <img src="${escapeHtml(image)}" alt="" />
+        <span class="lesson-showcase-play" aria-hidden="true">▶</span>
+        <small>${escapeHtml(statusLabel)}</small>
+      </span>
+      <span class="lesson-showcase-copy">
+        <small class="folder-card-type">Главный урок · ${escapeHtml(meta)}</small>
+        <strong>${escapeHtml(item.name || "Урок")}</strong>
+        <span class="folder-card-note">${escapeHtml(note)}</span>
+      </span>
+      <span class="lesson-showcase-cta">Открыть урок <b aria-hidden="true">→</b></span>
     </button>
   `;
 }
@@ -3008,6 +3809,17 @@ function openTeacherEditDialog() {
   els.teacherEditImageLabel.textContent = editType === "studio" ? "Логотип студии" : "Картинка / иконка";
   els.teacherEditCoverField.hidden = editType !== "studio";
   els.teacherEditCover.value = "";
+  if (els.teacherStudioAchievementsField) {
+    els.teacherStudioAchievementsField.hidden = editType !== "studio";
+  }
+  state.teacherEditAchievementsList = editType === "studio"
+    ? normalizeStudioAchievements(item.achievements).map((achievement) => ({ ...achievement }))
+    : [];
+  if (els.teacherEditAchievements) {
+    els.teacherEditAchievements.value = editType === "studio" ? achievementsToText(state.teacherEditAchievementsList) : "";
+  }
+  clearAchievementForm();
+  renderAchievementEditor();
   els.teacherEditOverlay.hidden = false;
   window.requestAnimationFrame(() => els.teacherEditName.focus());
 }
@@ -3016,6 +3828,147 @@ function closeTeacherEditDialog() {
   els.teacherEditOverlay.hidden = true;
   state.teacherEditImageData = "";
   state.teacherEditCoverData = "";
+  state.teacherEditAchievementsList = [];
+  clearAchievementForm();
+}
+
+function openTeacherInviteDialog() {
+  const studio = activeTeacherStudio();
+  if (!studio) return;
+  studio.students = Array.isArray(studio.students) ? studio.students : [];
+  renderInviteGroupOptions(studio);
+  els.teacherInviteFirstName.value = "";
+  els.teacherInviteLastName.value = "";
+  els.teacherInviteContact.value = "";
+  els.teacherInviteNote.value = "";
+  els.teacherInviteResult.hidden = true;
+  els.teacherInviteLink.textContent = "—";
+  els.teacherInviteOverlay.hidden = false;
+  window.requestAnimationFrame(() => els.teacherInviteFirstName.focus());
+}
+
+function closeTeacherInviteDialog() {
+  els.teacherInviteOverlay.hidden = true;
+}
+
+function renderInviteGroupOptions(studio) {
+  const groups = teacherStudioGroupOptions(studio);
+  els.teacherInviteGroup.innerHTML = [
+    `<option value="">Без группы / позже назначить</option>`,
+    ...groups.map((group) => `<option value="${escapeHtml(group.id)}">${escapeHtml(group.label)}</option>`),
+  ].join("");
+}
+
+function teacherStudioGroupOptions(studio) {
+  const result = [];
+  const walk = (items = [], prefix = "") => {
+    items.forEach((group) => {
+      const label = prefix ? `${prefix} / ${group.name || "Подгруппа"}` : group.name || "Группа";
+      result.push({ id: group.id, label });
+      walk(group.subgroups || [], label);
+    });
+  };
+  walk(studio?.groups || []);
+  return result;
+}
+
+function submitTeacherInviteDialog(event) {
+  event.preventDefault();
+  const studio = activeTeacherStudio();
+  if (!studio) return;
+  studio.students = Array.isArray(studio.students) ? studio.students : [];
+  const id = `student-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`;
+  const firstName = els.teacherInviteFirstName.value.trim();
+  const lastName = els.teacherInviteLastName.value.trim();
+  const requestedGroupId = els.teacherInviteGroup.value;
+  const token = btoa(`${studio.id}:${id}`).replace(/=+$/g, "").replace(/\+/g, "-").replace(/\//g, "_");
+  const inviteLink = `${window.location.origin}${window.location.pathname}?invite=${token}`;
+  const student = {
+    id,
+    firstName,
+    lastName,
+    groupId: "",
+    requestedGroupId,
+    contact: els.teacherInviteContact.value.trim(),
+    note: els.teacherInviteNote.value.trim(),
+    inviteLink,
+    status: "pending_registration",
+    lockedFields: ["firstName", "lastName", "requestedGroupId"],
+    invitedAt: new Date().toISOString(),
+  };
+  studio.students.unshift(student);
+  persistTeacherWorkspace();
+  state.teacherStudentGroupId = "__hall";
+  renderTeacherStudents(studio);
+  setStudioLibraryTab("students");
+  els.teacherInviteResult.hidden = false;
+  els.teacherInviteLink.textContent = inviteLink;
+}
+
+function openTeacherStudentProfile(studentId) {
+  const studio = activeTeacherStudio();
+  const student = studio?.students?.find((item) => item.id === studentId);
+  if (!student || !els.teacherStudentProfileOverlay || !els.teacherStudentProfileBody) return;
+  const groups = teacherStudioGroupOptions(studio);
+  const targetGroupId = student.requestedGroupId || student.groupId || "";
+  const targetGroup = groups.find((group) => group.id === targetGroupId);
+  const firstName = student.firstName || "—";
+  const lastName = student.lastName || "—";
+  const fullName = `${student.firstName || ""} ${student.lastName || ""}`.trim() || "Карточка ученика";
+  const initial = (student.firstName || student.lastName || "У").slice(0, 1).toUpperCase();
+  const avatarImage = student.avatarImage || student.image || "";
+  const avatarStyle = avatarImage ? ` style="background-image: url('${escapeHtml(avatarImage)}')"` : "";
+  const avatarContent = avatarImage ? "" : escapeHtml(initial);
+  const waiting = isWaitingRegistrationStudent(student);
+  els.teacherStudentProfileTitle.textContent = fullName;
+  els.teacherStudentProfileBody.innerHTML = `
+    <div class="teacher-student-profile-hero">
+      <div class="teacher-student-avatar"${avatarStyle} aria-hidden="true">${avatarContent}</div>
+      <div>
+        <span class="student-status-pill ${waiting ? "waiting" : "active"}">${escapeHtml(studentStatusLabel(student))}</span>
+        <h3><span>${escapeHtml(firstName)}</span><span>${escapeHtml(lastName)}</span></h3>
+        <p>${escapeHtml(studio?.name || "Студия")} · ${escapeHtml(targetGroup?.label || "—")}</p>
+      </div>
+      <strong class="student-level-mark">${escapeHtml(student.level || "Ур. 1")}</strong>
+    </div>
+    <div class="teacher-student-profile-grid">
+      <article>
+        <small>Статус</small>
+        <strong>${escapeHtml(waiting ? "ждёт регистрации" : "зарегистрирован")}</strong>
+      </article>
+      <article>
+        <small>Стили</small>
+        <strong>${escapeHtml(student.styles || "—")}</strong>
+      </article>
+      <article>
+        <small>Опыт</small>
+        <strong>${escapeHtml(student.experience || "—")}</strong>
+      </article>
+      <article>
+        <small>Другие студии</small>
+        <strong>${escapeHtml(student.otherStudios || "—")}</strong>
+      </article>
+      <article>
+        <small>Контакт</small>
+        <strong>${escapeHtml(student.contact || "—")}</strong>
+      </article>
+      <article>
+        <small>Назначенная группа</small>
+        <strong>${escapeHtml(targetGroup?.label || "—")}</strong>
+      </article>
+    </div>
+    <div class="teacher-student-lock-note">
+      <strong>Данные приглашения закреплены владельцем студии.</strong>
+      <span>Имя, фамилия и назначенная группа не будут редактироваться учеником после перехода по ссылке.</span>
+    </div>
+    ${student.note ? `<p class="teacher-student-note">${escapeHtml(student.note)}</p>` : ""}
+    ${student.inviteLink ? `<div class="teacher-student-invite-link"><small>Ссылка приглашения</small><span>${escapeHtml(student.inviteLink)}</span></div>` : ""}
+  `;
+  els.teacherStudentProfileOverlay.hidden = false;
+}
+
+function closeTeacherStudentProfile() {
+  if (els.teacherStudentProfileOverlay) els.teacherStudentProfileOverlay.hidden = true;
 }
 
 function onTeacherEditImage(event) {
@@ -3056,6 +4009,9 @@ async function submitTeacherEditDialog(event) {
   if (state.teacherFolderView === "studio") {
     item.directions = els.teacherEditAge.value.trim();
     item.address = els.teacherEditPlace.value.trim();
+    item.achievements = state.teacherEditAchievementsList.length
+      ? state.teacherEditAchievementsList.map((achievement) => ({ ...achievement }))
+      : parseAchievementsText(els.teacherEditAchievements?.value);
   } else if (state.teacherFolderView === "group") {
     item.age = els.teacherEditAge.value.trim();
     item.level = els.teacherEditPlace.value.trim();
@@ -3140,6 +4096,8 @@ async function submitTeacherCreateDialog(event) {
       address: els.teacherCreateAddress.value.trim(),
       directions: els.teacherCreateDirections.value.trim(),
       contact: els.teacherCreateLink.value.trim(),
+      achievements: DEFAULT_STUDIO_ACHIEVEMENTS,
+      students: [],
       groups: [],
     }];
     state.teacherWorkspace.activeStudioId = id;
@@ -3184,6 +4142,9 @@ async function submitTeacherCreateDialog(event) {
 function normalizeTeacherWorkspace() {
   const workspace = state.teacherWorkspace;
   workspace.studios = Array.isArray(workspace.studios) ? workspace.studios.slice(0, 1) : [];
+  workspace.studios.forEach((studio) => {
+    studio.students = Array.isArray(studio.students) ? studio.students : [];
+  });
   workspace.activeSubgroupIds = Array.isArray(workspace.activeSubgroupIds) ? workspace.activeSubgroupIds : [];
   if (workspace.studios.length && !workspace.studios.some((studio) => studio.id === workspace.activeStudioId)) {
     workspace.activeStudioId = workspace.studios[0].id;
@@ -3223,8 +4184,11 @@ function renderStudentProfile() {
   if (!hasProfile) return;
   els.studentStudioName.textContent = studioName;
   els.studentProfileName.textContent = `${state.studentProfile.firstName} ${state.studentProfile.lastName}`;
-  const badge = document.querySelector(".profile-badge");
-  if (badge) badge.textContent = (state.studentProfile.firstName || "Т").slice(0, 1).toUpperCase();
+  const badge = els.levelCardButton?.querySelector(".profile-badge");
+  if (badge) {
+    badge.textContent = state.studentProfile.avatarImage ? "" : (state.studentProfile.firstName || "Т").slice(0, 1).toUpperCase();
+    badge.style.backgroundImage = state.studentProfile.avatarImage ? `url("${state.studentProfile.avatarImage}")` : "";
+  }
 }
 
 function submitStudentProfile(event) {
@@ -3239,17 +4203,23 @@ function submitStudentProfile(event) {
     nickname: els.studentNickname.value.trim().replace(/^@?/, "@"),
     age: Number(els.studentAge.value),
     styles: selectedStyles,
+    coverImage: "",
+    avatarImage: "",
     studioId: studio?.id || "invite-studio",
     studioName: studio?.name || "Танцевальная студия",
     joinedAt: new Date().toISOString(),
   };
+  persistStudentProfile();
+  renderStudentProfile();
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function persistStudentProfile() {
   try {
     localStorage.setItem("danceReplayStudentProfile", JSON.stringify(state.studentProfile));
   } catch (error) {
     console.warn("Не удалось сохранить профиль ученика", error);
   }
-  renderStudentProfile();
-  window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
 function readStoredJson(key, fallback) {
@@ -3290,6 +4260,30 @@ async function optimizeCoverImage(file) {
     return canvas.toDataURL("image/jpeg", 0.84);
   } catch (error) {
     console.warn("Не удалось оптимизировать обложку", error);
+    return readFileAsDataUrl(file);
+  } finally {
+    URL.revokeObjectURL(source);
+  }
+}
+
+async function optimizeAvatarImage(file) {
+  if (!file) return "";
+  const source = URL.createObjectURL(file);
+  try {
+    const image = await loadImageSource(source);
+    const size = 640;
+    const canvas = document.createElement("canvas");
+    canvas.width = size;
+    canvas.height = size;
+    const context = canvas.getContext("2d");
+    if (!context) return readFileAsDataUrl(file);
+    const minSide = Math.min(image.naturalWidth, image.naturalHeight);
+    const sx = Math.max(0, (image.naturalWidth - minSide) / 2);
+    const sy = Math.max(0, (image.naturalHeight - minSide) / 2);
+    context.drawImage(image, sx, sy, minSide, minSide, 0, 0, size, size);
+    return canvas.toDataURL("image/jpeg", 0.86);
+  } catch (error) {
+    console.warn("Не удалось оптимизировать аватар", error);
     return readFileAsDataUrl(file);
   } finally {
     URL.revokeObjectURL(source);
