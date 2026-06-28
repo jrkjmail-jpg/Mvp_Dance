@@ -179,6 +179,11 @@ const els = {
   teacherStudioCover: document.querySelector("#teacherStudioCover"),
   teacherStudioCoverImage: document.querySelector("#teacherStudioCoverImage"),
   teacherStudioLogo: document.querySelector("#teacherStudioLogo"),
+  teacherStudioLogoLetter: document.querySelector("#teacherStudioLogoLetter"),
+  teacherStudioCoverEdit: document.querySelector("#teacherStudioCoverEdit"),
+  teacherStudioLogoEdit: document.querySelector("#teacherStudioLogoEdit"),
+  teacherStudioCoverInput: document.querySelector("#teacherStudioCoverInput"),
+  teacherStudioLogoInput: document.querySelector("#teacherStudioLogoInput"),
   teacherStudioChannelName: document.querySelector("#teacherStudioChannelName"),
   teacherStudioChannelDescription: document.querySelector("#teacherStudioChannelDescription"),
   teacherStudioChannelAddress: document.querySelector("#teacherStudioChannelAddress"),
@@ -620,6 +625,16 @@ els.teacherRootEmpty.addEventListener("keydown", (event) => {
 });
 els.teacherBackButton.addEventListener("click", goTeacherBack);
 els.teacherEditAction.addEventListener("click", openTeacherEditDialog);
+els.teacherStudioCoverEdit?.addEventListener("click", () => {
+  els.teacherStudioCoverInput.value = "";
+  els.teacherStudioCoverInput.click();
+});
+els.teacherStudioLogoEdit?.addEventListener("click", () => {
+  els.teacherStudioLogoInput.value = "";
+  els.teacherStudioLogoInput.click();
+});
+els.teacherStudioCoverInput?.addEventListener("change", (event) => updateTeacherStudioInlineImage(event, "cover"));
+els.teacherStudioLogoInput?.addEventListener("change", (event) => updateTeacherStudioInlineImage(event, "image"));
 els.teacherSubgroupAction.addEventListener("click", () => openTeacherCreateDialog("subgroup"));
 els.teacherBreadcrumb.addEventListener("click", (event) => {
   const button = event.target.closest("[data-breadcrumb-view]");
@@ -3597,7 +3612,9 @@ function renderStudioChannel(studio) {
   els.teacherStudioChannelDescription.textContent = studio.description || "Добавьте описание студии в настройках.";
   els.teacherStudioChannelAddress.textContent = studio.address || studio.city || "Не указан";
   els.teacherStudioDirections.textContent = studio.directions || "Пока не указаны";
-  els.teacherStudioLogo.textContent = studio.image ? "" : (studio.name || "С").slice(0, 1).toUpperCase();
+  if (els.teacherStudioLogoLetter) {
+    els.teacherStudioLogoLetter.textContent = studio.image ? "" : (studio.name || "С").slice(0, 1).toUpperCase();
+  }
   els.teacherStudioLogo.style.backgroundImage = studio.image ? `url("${studio.image}")` : "";
   els.teacherStudioCoverImage.hidden = !studio.cover;
   if (studio.cover) els.teacherStudioCoverImage.src = studio.cover;
@@ -3609,6 +3626,26 @@ function renderStudioChannel(studio) {
     els.teacherStudioChannelLink.textContent = link.replace(/^https?:\/\//, "").replace(/\/$/, "");
   }
   renderStudioAchievements(studio);
+}
+
+async function updateTeacherStudioInlineImage(event, field) {
+  const file = event.target.files?.[0];
+  if (!file) return;
+  const studio = activeTeacherStudio();
+  if (!studio) return;
+
+  const imageData = field === "cover"
+    ? await optimizeCoverImage(file)
+    : await optimizeAvatarImage(file);
+  if (!imageData) return;
+
+  studio[field] = imageData;
+  persistTeacherWorkspace();
+  renderStudioChannel(studio);
+  updateAccountAvatars();
+  if (!els.studentStudioProfilePage.hidden) {
+    renderStudentStudioProfile();
+  }
 }
 
 function setStudioLibraryTab(tab = "lessons") {

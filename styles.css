@@ -813,6 +813,68 @@ h2 {
   font-weight: 1000;
 }
 
+.studio-cover-edit,
+.studio-logo-edit {
+  width: 48px;
+  min-width: 48px;
+  min-height: 48px;
+  padding: 0;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.46);
+  display: grid;
+  place-items: center;
+  color: #10120f;
+  background:
+    radial-gradient(circle at 34% 24%, rgba(255, 255, 255, 0.74), transparent 2rem),
+    rgba(255, 255, 255, 0.72);
+  box-shadow: 0 16px 34px rgba(0, 0, 0, 0.16);
+  opacity: 0;
+  transform: translateY(4px) scale(0.94);
+  transition: opacity 160ms ease, transform 160ms ease, background 160ms ease;
+}
+
+.studio-cover-edit {
+  position: absolute;
+  z-index: 4;
+  right: 18px;
+  top: 18px;
+}
+
+.studio-logo-edit {
+  position: absolute;
+  z-index: 5;
+  inset: 50% auto auto 50%;
+  transform: translate(-50%, -50%) scale(0.92);
+  color: #fffaf2;
+  background:
+    radial-gradient(circle at 34% 24%, rgba(255, 255, 255, 0.18), transparent 2rem),
+    rgba(16, 18, 15, 0.7);
+  border-color: rgba(255, 255, 255, 0.34);
+  backdrop-filter: blur(10px);
+}
+
+.studio-channel-cover:hover .studio-cover-edit,
+.studio-channel-cover:focus-within .studio-cover-edit {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+.studio-channel-logo:hover .studio-logo-edit,
+.studio-channel-logo:focus-within .studio-logo-edit {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+.studio-cover-edit:hover,
+.studio-cover-edit:focus-visible,
+.studio-logo-edit:hover,
+.studio-logo-edit:focus-visible {
+  opacity: 1;
+  background:
+    radial-gradient(circle at 34% 24%, rgba(255, 255, 255, 0.72), transparent 2rem),
+    linear-gradient(135deg, var(--accent), var(--accent-2));
+}
+
 .studio-channel-copy {
   min-height: 178px;
   position: relative;

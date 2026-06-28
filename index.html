@@ -21,7 +21,7 @@
     <link rel="manifest" href="./manifest.webmanifest" />
     <link rel="icon" href="./assets/app-icon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="./assets/app-icon.svg" />
-    <link rel="stylesheet" href="./styles.css?v=20260628-26" />
+    <link rel="stylesheet" href="./styles.css?v=20260628-27" />
   </head>
   <body>
     <main class="app-shell student-mode">
@@ -183,8 +183,14 @@
             <div id="teacherStudioCover" class="studio-channel-cover">
               <img id="teacherStudioCoverImage" class="studio-channel-cover-image" alt="" hidden />
               <span class="studio-channel-cover-shade" aria-hidden="true"></span>
-              <div id="teacherStudioLogo" class="studio-channel-logo">С</div>
+              <button id="teacherStudioCoverEdit" class="studio-cover-edit" type="button" aria-label="Добавить картинку в шапку студии">✎</button>
+              <div id="teacherStudioLogo" class="studio-channel-logo">
+                <span id="teacherStudioLogoLetter">С</span>
+                <button id="teacherStudioLogoEdit" class="studio-logo-edit" type="button" aria-label="Добавить аватар студии">✎</button>
+              </div>
             </div>
+            <input id="teacherStudioCoverInput" class="visually-hidden" type="file" accept="image/*" />
+            <input id="teacherStudioLogoInput" class="visually-hidden" type="file" accept="image/*" />
             <div class="studio-channel-copy">
               <div class="studio-channel-identity">
                 <p class="eyebrow">Танцевальная студия</p>
@@ -992,6 +998,6 @@
         });
       }
     </script>
-    <script type="module" src="./app.js?v=20260628-26"></script>
+    <script type="module" src="./app.js?v=20260628-27"></script>
   </body>
 </html>
