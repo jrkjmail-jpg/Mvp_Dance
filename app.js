@@ -2617,7 +2617,10 @@ function renderStudentStudioMaterials(studio = {}, access = studentStudioAccess(
     if (els.studentStudioMaterialsBreadcrumb) els.studentStudioMaterialsBreadcrumb.textContent = studioName;
     if (els.studentStudioMaterialsPath) els.studentStudioMaterialsPath.innerHTML = "";
     if (els.studentStudioMaterialsBack) els.studentStudioMaterialsBack.hidden = true;
-    els.studentStudioMaterialsList.innerHTML = emptyFolderText("Группа пока не назначена", "Когда педагог добавит вас в группу, здесь появятся доступные уроки.");
+    els.studentStudioMaterialsList.innerHTML = studentEmptyLessonCard(
+      "Группа пока не назначена",
+      "Когда педагог добавит вас в группу, здесь появятся доступные уроки."
+    );
     return;
   }
   const currentPath = studentAccessCurrentPath(access);
@@ -2649,11 +2652,21 @@ function renderStudentStudioMaterials(studio = {}, access = studentStudioAccess(
   const cards = [...subgroupCards, ...lessonCards];
   els.studentStudioMaterialsList.innerHTML = cards.length
     ? cards.join("")
-    : emptyFolderText("В этой папке пока нет открытых уроков", "Как только педагог опубликует урок, он появится здесь.");
+    : studentEmptyLessonCard("Скоро здесь будет урок", "Педагог добавит материалы — они появятся в этой папке.");
 }
 
 function studentAccessibleLessonCard(lesson) {
   return stripTeacherDeleteControl(lessonFolderCard(lesson)).replace("data-lesson-id=", "data-student-access-lesson-id=");
+}
+
+function studentEmptyLessonCard(title, text) {
+  return `
+    <article class="student-empty-lesson-card" aria-label="${escapeHtml(title)}">
+      <span class="student-empty-lesson-icon" aria-hidden="true">•</span>
+      <strong>${escapeHtml(title)}</strong>
+      <small>${escapeHtml(text)}</small>
+    </article>
+  `;
 }
 
 function stripTeacherDeleteControl(html = "") {
@@ -3480,7 +3493,7 @@ function openStudentEditDialog() {
   els.studentEditFirstName.value = state.studentProfile.firstName || "";
   els.studentEditLastName.value = state.studentProfile.lastName || "";
   els.studentEditNickname.value = state.studentProfile.nickname || "";
-  els.studentEditAge.value = state.studentProfile.age || "";
+  els.studentEditAge.value = profileBirthDate(state.studentProfile);
   renderDanceStyleOptions(els.studentEditStyleOptions, state.studentProfile.styles || []);
   els.studentEditOverlay.hidden = false;
   window.requestAnimationFrame(() => els.studentEditFirstName.focus());
@@ -4700,7 +4713,8 @@ function submitStudentProfile(event) {
     firstName: els.studentFirstName.value.trim(),
     lastName: els.studentLastName.value.trim(),
     nickname: els.studentNickname.value.trim().replace(/^@?/, "@"),
-    age: Number(els.studentAge.value),
+    birthDate: els.studentAge.value,
+    age: ageFromBirthDate(els.studentAge.value),
     styles: selectedStyles,
     coverImage: "",
     avatarImage: "",
@@ -4723,7 +4737,8 @@ function submitStudentEditDialog(event) {
     firstName: els.studentEditFirstName.value.trim(),
     lastName: els.studentEditLastName.value.trim(),
     nickname: els.studentEditNickname.value.trim().replace(/^@?/, "@"),
-    age: Number(els.studentEditAge.value),
+    birthDate: els.studentEditAge.value,
+    age: ageFromBirthDate(els.studentEditAge.value),
     styles: selectedStyles,
   };
   persistStudentProfile();
@@ -4834,6 +4849,23 @@ function escapeHtml(value) {
       "'": "&#039;",
     }[char]
   ));
+}
+
+function ageFromBirthDate(value) {
+  if (!value) return 0;
+  const birthDate = new Date(`${value}T00:00:00`);
+  if (Number.isNaN(birthDate.getTime())) return 0;
+  const today = new Date();
+  let age = today.getFullYear() - birthDate.getFullYear();
+  const birthdayHasNotPassed =
+    today.getMonth() < birthDate.getMonth() ||
+    (today.getMonth() === birthDate.getMonth() && today.getDate() < birthDate.getDate());
+  if (birthdayHasNotPassed) age -= 1;
+  return Math.max(age, 0);
+}
+
+function profileBirthDate(profile = {}) {
+  return profile.birthDate || "";
 }
 
 function updateExamMarker() {

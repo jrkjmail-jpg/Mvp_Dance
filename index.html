@@ -21,7 +21,7 @@
     <link rel="manifest" href="./manifest.webmanifest" />
     <link rel="icon" href="./assets/app-icon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="./assets/app-icon.svg" />
-    <link rel="stylesheet" href="./styles.css?v=20260628-29" />
+    <link rel="stylesheet" href="./styles.css?v=20260628-30" />
   </head>
   <body>
     <main class="app-shell student-mode">
@@ -85,8 +85,8 @@
                 <input id="studentNickname" type="text" autocomplete="nickname" placeholder="@nickname" required />
               </label>
               <label>
-                <span>Возраст</span>
-                <input id="studentAge" type="number" min="4" max="99" inputmode="numeric" required />
+                <span>Дата рождения</span>
+                <input id="studentAge" type="date" required />
               </label>
             </div>
             <fieldset class="dance-style-fieldset">
@@ -761,8 +761,8 @@
               <input id="studentEditNickname" type="text" autocomplete="nickname" placeholder="@nickname" required />
             </label>
             <label>
-              <span>Возраст</span>
-              <input id="studentEditAge" type="number" min="4" max="99" inputmode="numeric" required />
+              <span>Дата рождения</span>
+              <input id="studentEditAge" type="date" required />
             </label>
           </div>
           <fieldset class="dance-style-fieldset">
@@ -1031,6 +1031,6 @@
         });
       }
     </script>
-    <script type="module" src="./app.js?v=20260628-29"></script>
+    <script type="module" src="./app.js?v=20260628-30"></script>
   </body>
 </html>
