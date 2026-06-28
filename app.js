@@ -532,8 +532,10 @@ els.settingsOverlay.addEventListener("click", (event) => {
   if (event.target === els.settingsOverlay) closeSettings();
 });
 els.settingsViewButtons.forEach((button) => button.addEventListener("click", () => {
-  switchView(button.dataset.settingsView);
+  const view = button.dataset.settingsView;
+  switchView(view);
   closeSettings();
+  openCabinetEditorFromSettings(view);
 }));
 els.themeToggleButton.addEventListener("click", toggleTheme);
 els.editDancerProfileButton?.addEventListener("click", () => {
@@ -3431,6 +3433,27 @@ function openSettings() {
 
 function closeSettings() {
   els.settingsOverlay.hidden = true;
+}
+
+function openCabinetEditorFromSettings(view) {
+  window.requestAnimationFrame(() => {
+    if (view === "teacher") {
+      if (!activeTeacherStudio()) {
+        openTeacherCreateDialog("studio");
+        return;
+      }
+      state.teacherWorkspace.activeGroupId = "";
+      state.teacherWorkspace.activeSubgroupIds = [];
+      state.teacherWorkspace.activeLessonId = "";
+      setTeacherFolderView("studio");
+      openTeacherEditDialog();
+      return;
+    }
+
+    if (state.studentProfile) {
+      showLevelOverlay();
+    }
+  });
 }
 
 function toggleTheme() {
