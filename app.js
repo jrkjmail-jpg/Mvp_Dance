@@ -3309,7 +3309,30 @@ function updateAccountAvatars() {
   setAccountButtonImage(studioButton, studio.image || "");
 }
 
+function syncAccountMenuPrimary(target) {
+  const menu = document.querySelector(".account-menu");
+  const drawer = menu?.querySelector(".account-drawer");
+  const profileButton = menu?.querySelector('[data-account-target="profile"]');
+  const studioButton = menu?.querySelector('[data-account-target="studio"]');
+  if (!menu || !drawer || !profileButton || !studioButton) return;
+
+  const primaryButton = target === "studio" ? studioButton : profileButton;
+  const secondaryButton = target === "studio" ? profileButton : studioButton;
+
+  primaryButton.classList.add("account-main");
+  secondaryButton.classList.remove("account-main");
+
+  if (primaryButton.parentElement !== menu) {
+    menu.insertBefore(primaryButton, drawer);
+  }
+
+  if (secondaryButton.parentElement !== drawer || drawer.firstElementChild !== secondaryButton) {
+    drawer.insertBefore(secondaryButton, drawer.firstElementChild);
+  }
+}
+
 function updateAccountNav(target) {
+  syncAccountMenuPrimary(target);
   els.accountNavButtons.forEach((button) => {
     button.classList.toggle("active", button.dataset.accountTarget === target);
   });
