@@ -9661,3 +9661,49 @@ h3,
     bottom: calc(clamp(22px, 3vw, 44px) + 76px);
   }
 }
+
+/* Teacher mobile-safe wizard actions: buttons stay below the video controls */
+.teacher-step-actions {
+  order: 4;
+  margin: 12px 12px 0;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 12px;
+}
+
+.teacher-step-actions .teacher-step-next,
+.teacher-step-actions .teacher-step-secondary {
+  position: static;
+  inset: auto;
+  width: auto;
+  min-height: 60px;
+  align-self: auto;
+}
+
+.teacher-step-actions .teacher-step-next {
+  min-width: 180px;
+}
+
+.teacher-step-actions .teacher-step-secondary {
+  min-width: 220px;
+}
+
+.app-shell.teacher-mode .video-setup-panel {
+  order: 5;
+}
+
+@media (max-width: 720px) {
+  .teacher-step-actions {
+    flex-direction: column-reverse;
+    align-items: stretch;
+    margin: 12px 8px 0;
+  }
+
+  .teacher-step-actions .teacher-step-next,
+  .teacher-step-actions .teacher-step-secondary {
+    width: 100%;
+    min-width: 0;
+    min-height: 58px;
+  }
+}

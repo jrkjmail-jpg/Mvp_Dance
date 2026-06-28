@@ -21,7 +21,7 @@
     <link rel="manifest" href="./manifest.webmanifest" />
     <link rel="icon" href="./assets/app-icon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="./assets/app-icon.svg" />
-    <link rel="stylesheet" href="./styles.css?v=20260629-2" />
+    <link rel="stylesheet" href="./styles.css?v=20260629-3" />
   </head>
   <body>
     <main class="app-shell student-mode">
@@ -429,8 +429,6 @@
               <strong id="scanProgressValue">0%</strong>
               <span id="scanOverlayText">Считываю эталон</span>
             </div>
-            <button id="teacherRebuildReferenceButton" class="teacher-step-secondary" type="button" hidden>Пересчитать эталон</button>
-            <button id="teacherStepNextButton" class="teacher-step-next" type="button" hidden>Дальше <span aria-hidden="true">→</span></button>
           </div>
           <div class="video-marker-bar">
             <button id="teacherPlayButton" class="transport-button" type="button" title="Воспроизвести">
@@ -457,6 +455,10 @@
                 <span>Скелет</span>
               </label>
             </div>
+          </div>
+          <div class="teacher-step-actions">
+            <button id="teacherRebuildReferenceButton" class="teacher-step-secondary" type="button" hidden>Пересчитать эталон</button>
+            <button id="teacherStepNextButton" class="teacher-step-next" type="button" hidden>Дальше <span aria-hidden="true">→</span></button>
           </div>
 
           <section class="control-band student-video-controls">
@@ -1032,6 +1034,6 @@
         });
       }
     </script>
-    <script type="module" src="./app.js?v=20260629-2"></script>
+    <script type="module" src="./app.js?v=20260629-3"></script>
   </body>
 </html>

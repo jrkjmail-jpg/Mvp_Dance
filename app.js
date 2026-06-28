@@ -976,19 +976,10 @@ async function onTeacherUpload(event, type) {
   if (type === "exam") {
     els.teacherScanOverlay.hidden = true;
     state.pendingExamScan = false;
-    const restored = loadStoredReference();
-    if (restored) {
-      setUploadStatus("exam", "Эталон загружен из памяти", "ready");
-      els.reviewStatus.textContent = "эталон сохранён";
-      els.scanStatus.textContent = `${state.reference.length} кадров эталона из памяти`;
-      updatePipeline("review");
-      renderTeacherPoseFrame();
-    } else {
-      setUploadStatus("exam", "Видео готово", "ready");
-      els.reviewStatus.textContent = "видео готово";
-      els.scanStatus.textContent = "Поставьте начало/конец и нажмите «Дальше»";
-      updatePipeline("scan");
-    }
+    setUploadStatus("exam", "Видео готово", "ready");
+    els.reviewStatus.textContent = "видео готово";
+    els.scanStatus.textContent = "Поставьте начало/конец и нажмите «Дальше»";
+    updatePipeline("scan");
   } else {
     setUploadStatus("learning", "Обучающее видео готово", "ready");
     els.scanStatus.textContent = "Обучающее видео готово";
@@ -1147,6 +1138,7 @@ function bindTeacherVideoToClip(type) {
   state.activeTeacherVideo = type;
   teacherVideo.pause();
   setTeacherVideoNativeControls(true);
+  els.appShell.classList.toggle("teacher-video-ready", Boolean(clip.objectUrl));
   if (clip.objectUrl) {
     teacherVideo.src = clip.objectUrl;
     teacherVideo.load();
@@ -1255,6 +1247,7 @@ async function switchTeacherVideo(type) {
     teacherVideo.load();
   }
 
+  els.appShell.classList.toggle("teacher-video-ready", Boolean(clip.objectUrl));
   els.teacherEmpty.hidden = Boolean(clip.objectUrl);
   els.teacherVideoModeLabel.textContent = els.appShell.classList.contains("teacher-mode")
     ? "Мастер урока"
@@ -3347,11 +3340,12 @@ function segmentEnd() {
 function markExamStart() {
   if (!teacherVideo.src) return;
   const clip = activeClip();
+  const currentStep = els.appShell.dataset.teacherStep || "upload";
   clip.start = Math.max(0, teacherVideo.currentTime || 0);
   clip.startSet = true;
   normalizeClipRange(clip);
   updateExamControls();
-  updatePipeline("markers");
+  updatePipeline(currentStep);
   els.scanStatus.textContent = `Начало: ${formatTime(clip.start)}`;
   refreshReferenceForMarkers();
 }
@@ -3359,27 +3353,31 @@ function markExamStart() {
 function markExamEnd() {
   if (!teacherVideo.src) return;
   const clip = activeClip();
+  const currentStep = els.appShell.dataset.teacherStep || "upload";
   clip.end = Math.max(0, teacherVideo.currentTime || 0);
   clip.endSet = true;
   normalizeClipRange(clip);
   updateExamControls();
-  updatePipeline("publish");
+  updatePipeline(currentStep);
   els.scanStatus.textContent = `Конец: ${formatTime(activeClipEnd())}`;
   refreshReferenceForMarkers();
 }
 
 function refreshReferenceForMarkers() {
   if (state.activeTeacherVideo !== "exam" || !state.exam.objectUrl) return;
+  const currentStep = els.appShell.dataset.teacherStep || "upload";
+  if (!state.reference.length && currentStep !== "review" && currentStep !== "markers" && currentStep !== "publish") return;
   state.reference = [];
   if (loadStoredReference()) {
     setUploadStatus("exam", "Эталон загружен из памяти", "ready");
     els.reviewStatus.textContent = "эталон сохранён";
     els.scanStatus.textContent = `${state.reference.length} кадров эталона из памяти`;
-    updatePipeline("review");
+    updatePipeline(currentStep);
     renderTeacherPoseFrame();
   } else {
     setUploadStatus("exam", "Нажмите «Считать эталон»", "processing");
     els.reviewStatus.textContent = "эталон нужно считать";
+    updatePipeline(currentStep);
   }
 }
 
