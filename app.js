@@ -21,6 +21,7 @@ const studentCtx = studentCanvas.getContext("2d");
 const els = {
   appShell: document.querySelector(".app-shell"),
   brandHomeButton: document.querySelector("#brandHomeButton"),
+  accountMenu: document.querySelector(".account-menu"),
   accountNavButtons: document.querySelectorAll("[data-account-target]"),
   learningUpload: document.querySelector("#learningUpload"),
   examUpload: document.querySelector("#examUpload"),
@@ -511,7 +512,15 @@ els.brandHomeButton.addEventListener("keydown", (event) => {
   event.preventDefault();
   goStudentHome();
 });
-els.accountNavButtons.forEach((button) => button.addEventListener("click", () => openAccountTarget(button.dataset.accountTarget)));
+els.accountNavButtons.forEach((button) => button.addEventListener("click", () => {
+  openAccountTarget(button.dataset.accountTarget);
+  button.blur();
+}));
+els.accountMenu?.addEventListener("mouseleave", () => {
+  if (els.accountMenu.contains(document.activeElement)) {
+    document.activeElement.blur();
+  }
+});
 els.settingsButton.addEventListener("click", openSettings);
 els.settingsCloseButton.addEventListener("click", closeSettings);
 els.settingsOverlay.addEventListener("click", (event) => {

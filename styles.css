@@ -7570,6 +7570,10 @@ h3,
     rgba(255, 255, 255, 0.09);
 }
 
+.icon-account-switch .account-nav-button:focus-visible {
+  outline: none;
+}
+
 .icon-account-switch .account-nav-button.active {
   width: 52px;
   min-width: 52px;
@@ -7660,6 +7664,23 @@ h3,
     inset 0 0 0 1px rgba(255, 255, 255, 0.04),
     0 8px 18px rgba(0, 0, 0, 0.14) !important;
   overflow: hidden;
+}
+
+.icon-account-switch .account-nav-button.has-account-image.active,
+.icon-account-switch .account-nav-button.has-account-image:focus-visible {
+  border-color: rgba(255, 255, 255, 0.16) !important;
+  outline: none !important;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.05),
+    0 10px 22px rgba(0, 0, 0, 0.16) !important;
+}
+
+.icon-account-switch .account-main.has-account-image.active,
+.icon-account-switch .account-main.has-account-image:focus-visible {
+  border-color: rgba(255, 255, 255, 0.18) !important;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.06),
+    0 12px 28px rgba(16, 18, 15, 0.18) !important;
 }
 
 .account-nav-button.has-account-image::after {
