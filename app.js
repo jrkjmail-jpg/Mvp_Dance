@@ -1146,6 +1146,7 @@ function bindTeacherVideoToClip(type) {
   const clip = clipFor(type);
   state.activeTeacherVideo = type;
   teacherVideo.pause();
+  setTeacherVideoNativeControls(true);
   if (clip.objectUrl) {
     teacherVideo.src = clip.objectUrl;
     teacherVideo.load();
@@ -1243,6 +1244,7 @@ async function switchTeacherVideo(type) {
   const clip = clipFor(type);
   state.activeTeacherVideo = type;
   teacherVideo.pause();
+  setTeacherVideoNativeControls(els.appShell.classList.contains("teacher-mode"));
   clearCanvas(teacherCtx, teacherCanvas);
 
   if (clip.objectUrl && teacherVideo.src !== clip.objectUrl) {
@@ -1266,6 +1268,18 @@ async function switchTeacherVideo(type) {
   updateTeacherLayerVisibility();
   updateExamControls();
   syncTeacherTimeline();
+}
+
+function setTeacherVideoNativeControls(enabled) {
+  teacherVideo.setAttribute("playsinline", "");
+  teacherVideo.setAttribute("webkit-playsinline", "");
+  if (enabled) {
+    teacherVideo.controls = true;
+    teacherVideo.setAttribute("controls", "");
+    return;
+  }
+  teacherVideo.controls = false;
+  teacherVideo.removeAttribute("controls");
 }
 
 async function scanTeacherVideo(options = {}) {
@@ -3401,6 +3415,7 @@ function switchView(view) {
   els.teacherPanel.hidden = view !== "teacher";
   els.appShell.classList.toggle("student-mode", view === "student");
   els.appShell.classList.toggle("teacher-mode", view === "teacher");
+  setTeacherVideoNativeControls(view === "teacher");
   closeStudentPages();
   updateAccountNav("home");
   updateStageHeaderForView(view);
