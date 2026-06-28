@@ -21,7 +21,7 @@
     <link rel="manifest" href="./manifest.webmanifest" />
     <link rel="icon" href="./assets/app-icon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="./assets/app-icon.svg" />
-    <link rel="stylesheet" href="./styles.css?v=20260628-30" />
+    <link rel="stylesheet" href="./styles.css?v=20260629-1" />
   </head>
   <body>
     <main class="app-shell student-mode">
@@ -410,8 +410,8 @@
           </div>
 
           <div class="video-frame">
-            <label class="teacher-upload-empty" for="examUpload">
-              <input id="examUpload" type="file" accept="video/*" />
+            <input id="examUpload" class="teacher-hidden-file" type="file" accept="video/*" />
+            <label id="teacherUploadLabel" class="teacher-upload-empty" for="learningUpload">
               <span class="upload-cloud" aria-hidden="true">↥</span>
               <strong>Загрузите видео урока</strong>
               <span>Лучше выбрать чистовую запись под музыку: её увидят ученики, а система рассчитает по ней эталон движения.</span>
@@ -429,7 +429,8 @@
               <strong id="scanProgressValue">0%</strong>
               <span id="scanOverlayText">Считываю эталон</span>
             </div>
-            <button id="teacherStepNextButton" class="teacher-step-next" type="button">Дальше <span aria-hidden="true">→</span></button>
+            <button id="teacherRebuildReferenceButton" class="teacher-step-secondary" type="button" hidden>Пересчитать эталон</button>
+            <button id="teacherStepNextButton" class="teacher-step-next" type="button" hidden>Дальше <span aria-hidden="true">→</span></button>
           </div>
           <div class="video-marker-bar">
             <button id="teacherPlayButton" class="transport-button" type="button" title="Воспроизвести">
@@ -1031,6 +1032,6 @@
         });
       }
     </script>
-    <script type="module" src="./app.js?v=20260628-30"></script>
+    <script type="module" src="./app.js?v=20260629-1"></script>
   </body>
 </html>

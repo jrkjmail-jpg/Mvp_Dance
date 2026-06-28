@@ -27,6 +27,7 @@ const els = {
   examUpload: document.querySelector("#examUpload"),
   learningUploadStatus: document.querySelector("#learningUploadStatus"),
   examUploadStatus: document.querySelector("#examUploadStatus"),
+  teacherUploadLabel: document.querySelector("#teacherUploadLabel"),
   learningPreviewVideo: document.querySelector("#learningPreviewVideo"),
   examPreviewVideo: document.querySelector("#examPreviewVideo"),
   showLearningVideoButton: document.querySelector("#showLearningVideoButton"),
@@ -126,6 +127,7 @@ const els = {
   endMarkerTick: document.querySelector("#endMarkerTick"),
   reviewStatus: document.querySelector("#reviewStatus"),
   buildReferenceButton: document.querySelector("#buildReferenceButton"),
+  teacherRebuildReferenceButton: document.querySelector("#teacherRebuildReferenceButton"),
   teacherStepEyebrow: document.querySelector("#teacherStepEyebrow"),
   teacherStepTitle: document.querySelector("#teacherStepTitle"),
   teacherStepDescription: document.querySelector("#teacherStepDescription"),
@@ -709,6 +711,7 @@ els.markExamEndButton.addEventListener("click", markExamEnd);
 els.previewExamButton.addEventListener("click", previewExamFromMarker);
 els.reviewSkeletonButton.addEventListener("click", reviewSkeleton);
 els.buildReferenceButton.addEventListener("click", buildReferenceFromExam);
+els.teacherRebuildReferenceButton?.addEventListener("click", buildReferenceFromExam);
 els.teacherStepNextButton.addEventListener("click", advanceTeacherWizard);
 els.publishLessonButton.addEventListener("click", publishTeacherLesson);
 els.teacherVideoToggle.addEventListener("change", updateTeacherLayerVisibility);
@@ -931,7 +934,7 @@ async function onTeacherUpload(event, type) {
   resetClip(clip);
   showUploadPreview(type, clip.objectUrl);
   bindTeacherVideoToClip(type);
-  if (type === "exam") {
+  if (type === "learning" || type === "exam") {
     els.appShell.classList.add("teacher-video-ready");
   }
 
@@ -947,9 +950,10 @@ async function onTeacherUpload(event, type) {
     els.reviewStatus.textContent = "экзамен загружен";
     els.scanStatus.textContent = "Жду метаданные видео под музыку";
     showScanOverlay("Готовлю видео", 0);
-    updatePipeline("upload");
+    updatePipeline("scan");
   } else {
     els.scanStatus.textContent = "Загружаю обучающее видео";
+    updatePipeline("upload");
   }
 
   const uploadScanId = state.scanId;
@@ -967,7 +971,7 @@ async function onTeacherUpload(event, type) {
   await showClipStartFrame(clip);
   document.querySelector(".stage-grid")?.scrollIntoView({ behavior: "smooth", block: "start" });
   updateExamControls();
-  updatePipeline("upload");
+  updatePipeline(type === "exam" ? "scan" : "upload");
 
   if (type === "exam") {
     els.teacherScanOverlay.hidden = true;
@@ -983,11 +987,12 @@ async function onTeacherUpload(event, type) {
       setUploadStatus("exam", "Видео готово", "ready");
       els.reviewStatus.textContent = "видео готово";
       els.scanStatus.textContent = "Поставьте начало/конец и нажмите «Дальше»";
-      updatePipeline("upload");
+      updatePipeline("scan");
     }
   } else {
     setUploadStatus("learning", "Обучающее видео готово", "ready");
     els.scanStatus.textContent = "Обучающее видео готово";
+    updatePipeline("upload");
   }
 }
 
@@ -1212,7 +1217,7 @@ async function buildReferenceFromExam() {
 
 function setUploadStatus(type, text, status) {
   const input = type === "learning" ? els.learningUpload : els.examUpload;
-  const label = input.closest(".upload-drop, .teacher-upload-empty");
+  const label = input.closest(".upload-drop, .teacher-upload-empty") || els.teacherUploadLabel;
   const statusEl = type === "learning" ? els.learningUploadStatus : els.examUploadStatus;
   statusEl.textContent = text;
   label?.classList.toggle("is-ready", status === "ready");
@@ -2911,8 +2916,8 @@ function updatePipeline(activeStep) {
   els.pipelineSteps.forEach((step) => {
     const index = order.indexOf(step.dataset.step);
     const completed =
-      (step.dataset.step === "upload" && hasExamVideo) ||
-      (step.dataset.step === "scan" && hasReference) ||
+      (step.dataset.step === "upload" && hasLearningVideo && activeIndex > index) ||
+      (step.dataset.step === "scan" && hasExamVideo && activeIndex > index) ||
       (step.dataset.step === "review" && hasReference && activeIndex > index) ||
       (step.dataset.step === "markers" && hasMarkers && activeStep === "publish");
 
@@ -2929,29 +2934,34 @@ function updateTeacherWizard(activeStep) {
   const steps = {
     upload: {
       eyebrow: "Шаг 1 · Видео",
-      title: state.exam.objectUrl ? "Разметьте видео урока" : "Загрузите видео урока",
-      description: state.exam.objectUrl
-        ? "Поставьте начало и конец полезного отрезка. Всё лишнее до начала и после конца не будет показываться ученикам в задании."
-        : "Добавьте чистовую запись под музыку. Пока видео не загружено, плеер и инструменты разметки скрыты, чтобы не мешать.",
-      hint: state.exam.objectUrl ? "Когда границы готовы, нажмите «Дальше» — система сама посчитает эталон." : "Выберите файл в большом окне видео.",
+      title: state.learning.objectUrl ? "Разметьте видео обучения" : "Загрузите видео обучения",
+      description: state.learning.objectUrl
+        ? "Поставьте начало и конец по желанию. Этот ролик ученики будут смотреть на этапе изучения."
+        : "Добавьте обучающее видео: объяснение, разбор или чистовую запись, по которой ученики будут учиться.",
+      hint: state.learning.objectUrl ? "Когда видео готово, нажмите «Дальше» и загрузите эталон для проверки." : "Выберите файл в большом окне видео.",
       button: "Дальше",
-      disabled: false,
+      disabled: !state.learning.objectUrl,
+      uploadType: "learning",
     },
     scan: {
       eyebrow: "Шаг 2 · Эталон",
-      title: "Считываем эталон движения",
-      description: "Система проходит по видео и собирает скелет педагога. На этом шаге ничего нажимать не нужно.",
-      hint: "Когда оцифровка закончится, вы автоматически попадёте на проверку.",
-      button: "Считываем...",
-      disabled: true,
+      title: state.exam.objectUrl ? "Разметьте видео эталона" : "Загрузите видео эталона",
+      description: state.exam.objectUrl
+        ? "Поставьте начало и конец по желанию. После нажатия «Дальше» система считает эталон движения."
+        : "Добавьте видео под музыку или чистовой прогон — по нему система построит эталон для сравнения.",
+      hint: state.exam.objectUrl ? "Нажмите «Дальше», чтобы считать эталон." : "Загрузите эталонное видео в большом окне.",
+      button: "Дальше",
+      disabled: !state.exam.objectUrl,
+      uploadType: "exam",
     },
     review: {
       eyebrow: "Шаг 3 · Проверка",
       title: "Проверьте, как лёг эталон",
       description: "Просмотрите видео со скелетом. Если тело считывается верно и не прыгает, можно переходить дальше.",
-      hint: "Если скелет выглядит плохо — загрузите другое видео или поправьте границы фрагмента.",
+      hint: "Если скелет выглядит плохо — нажмите «Пересчитать эталон» после правки границ.",
       button: "Дальше",
       disabled: !state.reference.length,
+      uploadType: "exam",
     },
     markers: {
       eyebrow: "Шаг 4 · Фрагмент",
@@ -2960,6 +2970,7 @@ function updateTeacherWizard(activeStep) {
       hint: "Ученику будет предложено повторить именно этот кусок, а сравнение пойдёт по эталону внутри выбранных границ.",
       button: "Дальше",
       disabled: !state.exam.objectUrl,
+      uploadType: "exam",
     },
     publish: {
       eyebrow: "Шаг 5 · Публикация",
@@ -2968,22 +2979,72 @@ function updateTeacherWizard(activeStep) {
       hint: "Публикацию можно будет доработать: добавить описание, материалы и доступы.",
       button: "Опубликовать урок",
       disabled: !(state.reference.length && clipReady(state.exam)),
+      uploadType: "exam",
     },
   };
   const current = steps[activeStep] || steps.upload;
+  updateTeacherUploadTarget(current.uploadType || "learning");
   if (els.teacherStepEyebrow) els.teacherStepEyebrow.textContent = current.eyebrow;
   if (els.teacherStepTitle) els.teacherStepTitle.textContent = current.title;
   if (els.teacherStepDescription) els.teacherStepDescription.textContent = current.description;
   if (els.teacherStepHint) els.teacherStepHint.textContent = current.hint;
+  if (els.buildReferenceButton) els.buildReferenceButton.hidden = true;
+  if (els.teacherRebuildReferenceButton) {
+    els.teacherRebuildReferenceButton.hidden = activeStep !== "review" || !state.exam.objectUrl;
+    els.teacherRebuildReferenceButton.disabled = state.mode === "scan";
+  }
   if (els.teacherStepNextButton) {
+    els.teacherStepNextButton.hidden = current.disabled && (activeStep === "upload" || activeStep === "scan");
     els.teacherStepNextButton.disabled = current.disabled;
     els.teacherStepNextButton.innerHTML = `${current.button} <span aria-hidden="true">→</span>`;
+  }
+}
+
+function updateTeacherUploadTarget(type) {
+  if (!els.teacherUploadLabel) return;
+  const title = els.teacherUploadLabel.querySelector("strong");
+  const description = els.teacherUploadLabel.querySelector("span:not(.upload-cloud)");
+  const status = els.teacherUploadLabel.querySelector("small");
+  const target = type === "exam" ? "examUpload" : "learningUpload";
+  els.teacherUploadLabel.setAttribute("for", target);
+  if (title) {
+    title.textContent = type === "exam"
+      ? (state.exam.objectUrl ? "Видео эталона загружено" : "Загрузите видео эталона")
+      : (state.learning.objectUrl ? "Видео обучения загружено" : "Загрузите видео обучения");
+  }
+  if (description) {
+    description.textContent = type === "exam"
+      ? "Это видео система использует для считывания эталона движения. Начало и конец можно выставить по желанию."
+      : "Это видео увидят ученики на этапе изучения. Начало и конец можно выставить по желанию.";
+  }
+  if (status) {
+    status.textContent = type === "exam" ? els.examUploadStatus.textContent : els.learningUploadStatus.textContent;
   }
 }
 
 async function advanceTeacherWizard() {
   const currentStep = els.appShell.dataset.teacherStep || "upload";
   if (currentStep === "upload") {
+    if (!state.learning.objectUrl) {
+      els.learningUpload.click();
+      return;
+    }
+    const clip = state.learning;
+    if (!clip.startSet) {
+      clip.start = 0;
+      clip.startSet = true;
+    }
+    if (!clip.endSet) {
+      clip.end = clip.duration || teacherVideo.duration || 0;
+      clip.endSet = true;
+    }
+    normalizeClipRange(clip);
+    updateExamControls();
+    updatePipeline("scan");
+    await switchTeacherVideo("exam");
+    return;
+  }
+  if (currentStep === "scan") {
     if (!state.exam.objectUrl) {
       els.examUpload.click();
       return;

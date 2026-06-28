@@ -9610,8 +9610,54 @@ h3,
     grid-template-columns: 1fr;
   }
 
-  .student-empty-lesson-card {
+.student-empty-lesson-card {
     width: min(320px, 100%);
     padding: 28px;
+  }
+}
+
+/* Teacher lesson wizard: reference recalculation lives next to the main action */
+.teacher-step-secondary {
+  position: absolute;
+  right: clamp(220px, 18vw, 264px);
+  bottom: clamp(22px, 3vw, 44px);
+  z-index: 8;
+  min-width: 210px;
+  min-height: 64px;
+  border: 1px solid rgba(245, 247, 241, 0.18);
+  border-radius: 22px;
+  padding: 0 22px;
+  background: rgba(255, 255, 255, 0.12);
+  color: #fffaf2;
+  box-shadow: 0 18px 38px rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(14px);
+}
+
+:root[data-theme="light"] .teacher-step-secondary {
+  border-color: rgba(16, 18, 15, 0.14);
+  background: rgba(16, 18, 15, 0.78);
+  color: #fffaf2;
+}
+
+.teacher-step-secondary:disabled {
+  opacity: 0.58;
+  cursor: wait;
+}
+
+.app-shell.teacher-mode[data-teacher-step="scan"] .teacher-step-next {
+  pointer-events: auto;
+}
+
+@media (max-width: 720px) {
+  .teacher-step-next,
+  .teacher-step-secondary {
+    left: clamp(16px, 5vw, 24px);
+    right: clamp(16px, 5vw, 24px);
+    width: auto;
+    min-width: 0;
+  }
+
+  .teacher-step-secondary {
+    bottom: calc(clamp(22px, 3vw, 44px) + 76px);
   }
 }
