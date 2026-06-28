@@ -38,6 +38,14 @@ const els = {
   settingsViewButtons: document.querySelectorAll("[data-settings-view]"),
   themeToggleButton: document.querySelector("#themeToggleButton"),
   editDancerProfileButton: document.querySelector("#editDancerProfileButton"),
+  studentEditOverlay: document.querySelector("#studentEditOverlay"),
+  studentEditForm: document.querySelector("#studentEditForm"),
+  studentEditCancel: document.querySelector("#studentEditCancel"),
+  studentEditFirstName: document.querySelector("#studentEditFirstName"),
+  studentEditLastName: document.querySelector("#studentEditLastName"),
+  studentEditNickname: document.querySelector("#studentEditNickname"),
+  studentEditAge: document.querySelector("#studentEditAge"),
+  studentEditStyleOptions: document.querySelector("#studentEditStyleOptions"),
   pipelineSteps: document.querySelectorAll(".pipeline-step"),
   lessonFlowSteps: document.querySelectorAll(".flow-step"),
   studentPanel: document.querySelector('[data-panel="student"]'),
@@ -535,12 +543,16 @@ els.settingsViewButtons.forEach((button) => button.addEventListener("click", () 
   const view = button.dataset.settingsView;
   switchView(view);
   closeSettings();
-  openCabinetEditorFromSettings(view);
 }));
 els.themeToggleButton.addEventListener("click", toggleTheme);
 els.editDancerProfileButton?.addEventListener("click", () => {
   closeSettings();
-  showLevelOverlay();
+  openCurrentCabinetEditor();
+});
+els.studentEditForm?.addEventListener("submit", submitStudentEditDialog);
+els.studentEditCancel?.addEventListener("click", closeStudentEditDialog);
+els.studentEditOverlay?.addEventListener("click", (event) => {
+  if (event.target === els.studentEditOverlay) closeStudentEditDialog();
 });
 els.studentProfileForm.addEventListener("submit", submitStudentProfile);
 els.teacherBrowser.addEventListener("click", (event) => {
@@ -3428,6 +3440,7 @@ function applyTheme(theme) {
 }
 
 function openSettings() {
+  updateSettingsEditAction();
   els.settingsOverlay.hidden = false;
 }
 
@@ -3435,25 +3448,46 @@ function closeSettings() {
   els.settingsOverlay.hidden = true;
 }
 
-function openCabinetEditorFromSettings(view) {
-  window.requestAnimationFrame(() => {
-    if (view === "teacher") {
-      if (!activeTeacherStudio()) {
-        openTeacherCreateDialog("studio");
-        return;
-      }
-      state.teacherWorkspace.activeGroupId = "";
-      state.teacherWorkspace.activeSubgroupIds = [];
-      state.teacherWorkspace.activeLessonId = "";
-      setTeacherFolderView("studio");
-      openTeacherEditDialog();
+function updateSettingsEditAction() {
+  const label = els.editDancerProfileButton?.querySelector("strong");
+  if (!label) return;
+  const isTeacher = els.appShell.classList.contains("teacher-mode");
+  label.textContent = isTeacher ? "Редактировать кабинет студии" : "Редактировать кабинет танцора";
+}
+
+function openCurrentCabinetEditor() {
+  if (els.appShell.classList.contains("teacher-mode")) {
+    if (!activeTeacherStudio()) {
+      openTeacherCreateDialog("studio");
       return;
     }
+    state.teacherWorkspace.activeGroupId = "";
+    state.teacherWorkspace.activeSubgroupIds = [];
+    state.teacherWorkspace.activeLessonId = "";
+    setTeacherFolderView("studio");
+    openTeacherEditDialog();
+    return;
+  }
 
-    if (state.studentProfile) {
-      showLevelOverlay();
-    }
-  });
+  openStudentEditDialog();
+}
+
+function openStudentEditDialog() {
+  if (!state.studentProfile) {
+    switchView("student");
+    return;
+  }
+  els.studentEditFirstName.value = state.studentProfile.firstName || "";
+  els.studentEditLastName.value = state.studentProfile.lastName || "";
+  els.studentEditNickname.value = state.studentProfile.nickname || "";
+  els.studentEditAge.value = state.studentProfile.age || "";
+  renderDanceStyleOptions(els.studentEditStyleOptions, state.studentProfile.styles || []);
+  els.studentEditOverlay.hidden = false;
+  window.requestAnimationFrame(() => els.studentEditFirstName.focus());
+}
+
+function closeStudentEditDialog() {
+  els.studentEditOverlay.hidden = true;
 }
 
 function toggleTheme() {
@@ -4625,12 +4659,7 @@ function persistTeacherWorkspace() {
 
 function renderStudentProfile() {
   if (!els.studentStyleOptions.children.length) {
-    els.studentStyleOptions.innerHTML = DANCE_STYLES.map((style) => `
-      <label class="style-check">
-        <input type="checkbox" name="danceStyle" value="${escapeHtml(style)}" />
-        <span>${escapeHtml(style)}</span>
-      </label>
-    `).join("");
+    renderDanceStyleOptions(els.studentStyleOptions);
   }
   const studio = activeTeacherStudio();
   const studioName = state.studentProfile?.studioName || studio?.name || "Танцевальная студия";
@@ -4648,6 +4677,17 @@ function renderStudentProfile() {
     badge.style.backgroundImage = state.studentProfile.avatarImage ? `url("${state.studentProfile.avatarImage}")` : "";
   }
   updateAccountAvatars();
+}
+
+function renderDanceStyleOptions(container, selectedStyles = []) {
+  if (!container) return;
+  const selected = new Set(selectedStyles);
+  container.innerHTML = DANCE_STYLES.map((style) => `
+    <label class="style-check">
+      <input type="checkbox" name="danceStyle" value="${escapeHtml(style)}"${selected.has(style) ? " checked" : ""} />
+      <span>${escapeHtml(style)}</span>
+    </label>
+  `).join("");
 }
 
 function submitStudentProfile(event) {
@@ -4671,6 +4711,26 @@ function submitStudentProfile(event) {
   persistStudentProfile();
   renderStudentProfile();
   window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function submitStudentEditDialog(event) {
+  event.preventDefault();
+  if (!state.studentProfile) return;
+  const selectedStyles = [...els.studentEditForm.querySelectorAll('input[name="danceStyle"]:checked')]
+    .map((input) => input.value);
+  state.studentProfile = {
+    ...state.studentProfile,
+    firstName: els.studentEditFirstName.value.trim(),
+    lastName: els.studentEditLastName.value.trim(),
+    nickname: els.studentEditNickname.value.trim().replace(/^@?/, "@"),
+    age: Number(els.studentEditAge.value),
+    styles: selectedStyles,
+  };
+  persistStudentProfile();
+  renderStudentProfile();
+  renderDancerProfileDetails();
+  updateAccountAvatars();
+  closeStudentEditDialog();
 }
 
 function persistStudentProfile() {

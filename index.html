@@ -21,7 +21,7 @@
     <link rel="manifest" href="./manifest.webmanifest" />
     <link rel="icon" href="./assets/app-icon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="./assets/app-icon.svg" />
-    <link rel="stylesheet" href="./styles.css?v=20260628-28" />
+    <link rel="stylesheet" href="./styles.css?v=20260628-29" />
   </head>
   <body>
     <main class="app-shell student-mode">
@@ -743,6 +743,39 @@
         </section>
       </div>
 
+      <div id="studentEditOverlay" class="result-overlay" hidden>
+        <form id="studentEditForm" class="create-card student-edit-card" role="dialog" aria-modal="true" aria-labelledby="studentEditTitle">
+          <p class="eyebrow">Редактирование</p>
+          <h2 id="studentEditTitle">Кабинет танцора</h2>
+          <div class="profile-fields">
+            <label>
+              <span>Имя</span>
+              <input id="studentEditFirstName" type="text" autocomplete="given-name" required />
+            </label>
+            <label>
+              <span>Фамилия</span>
+              <input id="studentEditLastName" type="text" autocomplete="family-name" required />
+            </label>
+            <label>
+              <span>Никнейм</span>
+              <input id="studentEditNickname" type="text" autocomplete="nickname" placeholder="@nickname" required />
+            </label>
+            <label>
+              <span>Возраст</span>
+              <input id="studentEditAge" type="number" min="4" max="99" inputmode="numeric" required />
+            </label>
+          </div>
+          <fieldset class="dance-style-fieldset">
+            <legend>Стили танца</legend>
+            <div id="studentEditStyleOptions" class="style-check-grid"></div>
+          </fieldset>
+          <div class="create-actions">
+            <button id="studentEditCancel" type="button">Отмена</button>
+            <button class="primary" type="submit">Сохранить</button>
+          </div>
+        </form>
+      </div>
+
       <div id="teacherInviteOverlay" class="result-overlay" hidden>
         <form id="teacherInviteForm" class="create-card invite-card-modal" role="dialog" aria-modal="true" aria-labelledby="teacherInviteTitle">
           <p class="eyebrow">Приглашение</p>
@@ -998,6 +1031,6 @@
         });
       }
     </script>
-    <script type="module" src="./app.js?v=20260628-28"></script>
+    <script type="module" src="./app.js?v=20260628-29"></script>
   </body>
 </html>
