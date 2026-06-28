@@ -21,7 +21,7 @@
     <link rel="manifest" href="./manifest.webmanifest" />
     <link rel="icon" href="./assets/app-icon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="./assets/app-icon.svg" />
-    <link rel="stylesheet" href="./styles.css?v=20260627-40" />
+    <link rel="stylesheet" href="./styles.css?v=20260628-21" />
   </head>
   <body>
     <main class="app-shell student-mode">
@@ -33,17 +33,21 @@
             <h1>Танцуй</h1>
           </div>
         </div>
-        <nav class="role-tabs account-switch icon-account-switch" aria-label="Быстрый переход">
-          <button class="account-nav-button active" data-account-target="profile" type="button" aria-label="Профиль танцора">
-            <span aria-hidden="true">👤</span>
+        <nav class="account-menu icon-account-switch" aria-label="Быстрый переход">
+          <button class="account-nav-button account-main active" data-account-target="profile" type="button" aria-label="Профиль танцора">
+            <span class="account-icon account-icon-person" aria-hidden="true"></span>
           </button>
-          <button class="account-nav-button" data-account-target="studio" type="button" aria-label="Профиль студии">
-            <span aria-hidden="true">🏠</span>
-          </button>
+          <div class="account-drawer" aria-label="Переходы аккаунта">
+            <button class="account-nav-button" data-account-target="studio" type="button" aria-label="Профиль студии">
+              <span class="account-icon account-icon-home" aria-hidden="true"></span>
+              <span class="account-action-label">Студия</span>
+            </button>
+            <button id="settingsButton" class="account-nav-button settings-toggle" type="button" aria-label="Открыть настройки">
+              <span class="account-icon account-icon-gear" aria-hidden="true"></span>
+              <span class="account-action-label">Настройки</span>
+            </button>
+          </div>
         </nav>
-        <button id="settingsButton" class="settings-toggle" type="button" aria-label="Открыть настройки">
-          <span aria-hidden="true">⚙</span>
-        </button>
       </header>
 
       <section class="student-dashboard" data-panel="student">
@@ -108,6 +112,7 @@
             </div>
             <span id="scoreValue" class="level-badge">Ур. 1</span>
             <div class="level-progress"><span id="levelProgressBar"></span></div>
+            <small class="level-motivation">Продолжайте сдавать уроки — каждая попытка добавляет прогресс.</small>
             <small id="levelNextValue">0 из 5 до уровня 2</small>
             <small id="studentStarsBadge" class="level-total-stars">★ 0</small>
           </button>
@@ -219,18 +224,11 @@
                   <a id="teacherStudioChannelLink" href="#" target="_blank" rel="noreferrer" hidden>Открыть ссылку</a>
                 </div>
               </div>
-              <div class="studio-channel-regalia">
+              <div class="studio-channel-tools">
                 <button id="teacherInviteButton" class="studio-invite-button" type="button">
                   <span aria-hidden="true">+</span>
                   Пригласить
                 </button>
-                <div class="award-shelf-widget" aria-label="Награды студии">
-                  <div class="award-shelf-head">
-                    <p class="eyebrow">Награды</p>
-                    <h4>Витрина студии</h4>
-                  </div>
-                  <div id="teacherStudioAchievementsList" class="award-shelf" aria-label="Полки с наградами студии"></div>
-                </div>
                 <div class="studio-library-tabs" role="tablist" aria-label="Раздел студии">
                   <button id="studioLessonsTab" class="active" data-studio-library-tab="lessons" type="button">Уроки</button>
                   <button id="studioStudentsTab" data-studio-library-tab="students" type="button">Ученики</button>
@@ -281,16 +279,6 @@
 
             <div class="teacher-folder-view" data-teacher-view="group" hidden>
               <div id="teacherLessonList" class="folder-grid" aria-label="Уроки группы"></div>
-              <div class="invite-card">
-                <div class="qr-mock" aria-hidden="true">
-                  <span></span><span></span><span></span><span></span>
-                </div>
-                <div>
-                  <strong>Пригласить учеников</strong>
-                  <small>Ссылка или QR-код этой группы</small>
-                </div>
-                <button type="button">Создать QR</button>
-              </div>
             </div>
 
             <div class="teacher-folder-view lesson-view" data-teacher-view="lesson" hidden>
@@ -664,7 +652,6 @@
           <input id="studentProfileCoverInput" class="visually-hidden" type="file" accept="image/*" />
           <input id="studentProfileAvatarInput" class="visually-hidden" type="file" accept="image/*" />
           <div id="studentProfileDetails" class="dancer-profile-details" aria-label="Информация о танцоре"></div>
-          <button id="levelOverlayCloseButton" class="primary" type="button">Назад к урокам</button>
         </article>
       </section>
 
@@ -696,17 +683,22 @@
               <div class="studio-channel-divider" aria-hidden="true"></div>
               <div id="studentStudioProfileFacts" class="studio-channel-details"></div>
             </div>
-            <div class="studio-channel-regalia">
-              <div class="award-shelf-widget" aria-label="Награды студии">
-                <div class="award-shelf-head">
-                  <p class="eyebrow">Награды</p>
-                  <h4>Витрина студии</h4>
-                </div>
-                <div id="studentStudioAchievementsList" class="award-shelf" aria-label="Полки с наградами студии"></div>
+          </div>
+          <section class="student-studio-materials" aria-labelledby="studentStudioMaterialsTitle">
+            <div class="panel-head student-materials-head">
+              <div>
+                <div id="studentStudioMaterialsBreadcrumb" class="teacher-breadcrumb" aria-label="Путь">Студия</div>
+                <h2 id="studentStudioMaterialsTitle">Материалы студии</h2>
+                <div id="studentStudioMaterialsPath" class="student-materials-path" aria-label="Путь по материалам студии"></div>
+              </div>
+              <div class="teacher-actions">
+                <button id="studentStudioMaterialsBack" class="ghost-action student-materials-back" type="button" hidden>Назад</button>
               </div>
             </div>
-          </div>
-          <button id="studentStudioBackButton" class="primary" type="button">Назад к урокам</button>
+            <div class="student-materials-workspace">
+              <div id="studentStudioMaterialsList" class="folder-grid student-access-grid" aria-label="Доступные уроки ученика"></div>
+            </div>
+          </section>
         </article>
       </section>
 
@@ -813,6 +805,10 @@
             <span>Описание</span>
             <input id="teacherCreateDescription" type="text" autocomplete="off" placeholder="необязательно" />
           </label>
+          <label id="teacherCreateCategoryField" hidden>
+            <span>Категория</span>
+            <input id="teacherCreateCategory" type="text" autocomplete="off" placeholder="Например: подгруппа / партия" />
+          </label>
           <div id="teacherStudioCreateFields" class="studio-create-fields" hidden>
             <label>
               <span>Логотип</span>
@@ -861,6 +857,10 @@
           <label>
             <span>Краткое описание</span>
             <input id="teacherEditDescription" type="text" autocomplete="off" />
+          </label>
+          <label id="teacherEditCategoryField" hidden>
+            <span>Категория</span>
+            <input id="teacherEditCategory" type="text" autocomplete="off" />
           </label>
           <label>
             <span id="teacherEditAgeLabel">Возраст / уровень</span>
@@ -991,6 +991,6 @@
         });
       }
     </script>
-    <script type="module" src="./app.js?v=20260627-40"></script>
+    <script type="module" src="./app.js?v=20260628-21"></script>
   </body>
 </html>

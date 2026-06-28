@@ -115,6 +115,7 @@ button:disabled {
   align-items: center;
   justify-content: space-between;
   gap: 16px;
+  overflow: visible;
 }
 
 .topbar > div:first-child {
@@ -256,8 +257,15 @@ h2 {
 }
 
 .level-card .level-progress,
+.level-card .level-motivation,
 .level-card #levelNextValue {
   grid-column: 1 / -1;
+}
+
+.level-card .level-motivation {
+  margin-top: 4px;
+  color: rgba(255, 255, 255, 0.78);
+  font-weight: 850;
 }
 
 .level-total-stars {
@@ -806,13 +814,13 @@ h2 {
 }
 
 .studio-channel-copy {
-  min-height: 205px;
+  min-height: 178px;
   position: relative;
   z-index: 1;
-  padding: 54px 24px 24px;
+  padding: 54px 24px 20px;
   display: grid;
-  grid-template-columns: minmax(0, 0.9fr) minmax(430px, 1.1fr);
-  gap: 40px;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 22px;
   align-items: center;
   background:
     linear-gradient(110deg, rgba(36, 214, 181, 0.035), transparent 42%),
@@ -2457,7 +2465,32 @@ meter::-webkit-meter-optimum-value {
 
   .studio-channel-copy {
     gap: 18px;
-    padding: 46px 16px 16px;
+    padding: 46px 16px 18px;
+  }
+
+  .studio-channel-tools {
+    position: static;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    max-width: none;
+    justify-content: flex-start;
+    margin-top: 2px;
+    pointer-events: auto;
+  }
+
+  .studio-invite-button,
+  .studio-library-tabs {
+    position: static;
+  }
+
+  .teacher-space-panel .studio-channel-identity {
+    padding-right: 0;
+  }
+
+  .teacher-space-panel .studio-channel-divider {
+    width: 100%;
+    max-width: none;
   }
 
   .studio-channel-facts {
@@ -5229,23 +5262,70 @@ h3,
 .teacher-space-panel #teacherLessonList .lesson-showcase-card {
   width: 100%;
   max-width: 320px;
+  justify-self: start;
   min-height: 0;
   aspect-ratio: 1 / 1;
-  border-radius: 30px;
   overflow: hidden;
+}
+
+.teacher-space-panel #teacherLessonList .lesson-showcase-card {
+  border-radius: 30px;
+}
+
+.teacher-space-panel #teacherGroupList .folder-card-group,
+.teacher-space-panel #teacherLessonList .folder-card-subgroup,
+.teacher-space-panel #teacherLessonList .lesson-showcase-card,
+.folder-card {
+  position: relative;
+}
+
+.folder-delete {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  z-index: 8;
+  width: 38px;
+  height: 38px;
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: rgba(16, 18, 15, 0.72);
+  color: #fffaf2;
+  font-size: 1.6rem;
+  font-weight: 900;
+  line-height: 1;
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.22);
+  opacity: 0;
+  transform: translateY(-4px) scale(0.92);
+  transition: opacity 160ms ease, transform 160ms ease, background 160ms ease, border-color 160ms ease;
+}
+
+.folder-card:hover .folder-delete,
+.folder-card:focus-within .folder-delete {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+.folder-delete:hover {
+  background: linear-gradient(135deg, #ff684d, #ffd23f);
+  border-color: rgba(255, 255, 255, 0.66);
+  color: #10120f;
 }
 
 .teacher-space-panel #teacherGroupList .folder-card-group,
 .teacher-space-panel #teacherLessonList .folder-card-subgroup {
-  position: relative;
-  padding: 22px;
+  padding: clamp(34px, 4vw, 46px);
   border: 1px solid rgba(255, 210, 63, 0.42);
   display: grid;
   grid-template-columns: 1fr;
-  grid-template-rows: auto 1fr auto;
+  grid-template-rows: auto minmax(0, 1fr) auto;
   justify-items: center;
-  align-items: center;
+  align-items: stretch;
+  align-content: center;
+  gap: clamp(10px, 1.2vw, 14px);
   text-align: center;
+  border-radius: 50%;
   background:
     radial-gradient(circle at 50% 40%, rgba(200, 255, 72, 0.08), transparent 10rem),
     linear-gradient(145deg, rgba(54, 64, 70, 0.96), rgba(29, 34, 38, 0.98));
@@ -5257,59 +5337,79 @@ h3,
 
 .teacher-space-panel #teacherGroupList .folder-card-group .folder-icon,
 .teacher-space-panel #teacherLessonList .folder-card-subgroup .folder-icon {
-  width: 128px;
-  height: 128px;
-  margin: 0 auto;
-  border-radius: 50%;
-  border: 2px solid rgba(44, 171, 147, 0.58);
-  background:
-    radial-gradient(circle at 34% 24%, rgba(255, 255, 255, 0.08), transparent 2.5rem),
-    rgba(44, 171, 147, 0.18);
+  order: 2;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  margin: -4px auto -2px;
+  border-radius: 0;
+  border: 0;
+  display: grid;
+  place-items: center;
+  background: transparent;
   color: #ffd23f;
-  box-shadow: inset 0 0 0 1px rgba(200, 255, 72, 0.08);
+  box-shadow: none;
+  overflow: visible;
 }
 
 .teacher-space-panel #teacherGroupList .folder-card-group .folder-icon b,
 .teacher-space-panel #teacherLessonList .folder-card-subgroup .folder-icon b,
 .teacher-space-panel #teacherGroupList .folder-card-group .folder-icon span,
 .teacher-space-panel #teacherLessonList .folder-card-subgroup .folder-icon span {
-  color: #ffd23f;
-  font-size: clamp(3rem, 7vw, 4.35rem);
+  color: #fffaf2;
+  max-width: min(82%, 240px);
+  overflow: hidden;
+  text-align: center;
+  font-size: clamp(5.4rem, 11.5vw, 9.8rem);
   font-weight: 1000;
-  line-height: 0.9;
+  line-height: 0.72;
+  letter-spacing: -0.14em;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 .teacher-space-panel #teacherGroupList .folder-card-group .folder-card-copy,
 .teacher-space-panel #teacherLessonList .folder-card-subgroup .folder-card-copy {
-  display: grid;
-  gap: 8px;
-  justify-items: center;
+  display: contents;
 }
 
 .teacher-space-panel #teacherGroupList .folder-card-group .folder-card-type,
 .teacher-space-panel #teacherLessonList .folder-card-subgroup .folder-card-type {
-  color: #ffd23f;
-  font-size: 0.76rem;
-  letter-spacing: 0.13em;
+  order: 1;
+  align-self: end;
+  color: #10120f;
+  max-width: 76%;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #c8ff48, #ffd23f);
+  box-shadow: 0 10px 28px rgba(200, 255, 72, 0.12);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: clamp(0.72rem, 1.25vw, 0.9rem);
+  font-weight: 950;
+  letter-spacing: 0.16em;
 }
 
 .teacher-space-panel #teacherGroupList .folder-card-group strong,
 .teacher-space-panel #teacherLessonList .folder-card-subgroup strong {
-  max-width: 100%;
-  color: #fffaf2;
-  font-size: clamp(2rem, 4vw, 3.15rem);
-  line-height: 0.92;
-  letter-spacing: -0.06em;
+  display: none;
 }
 
 .teacher-space-panel #teacherGroupList .folder-card-group .folder-card-note,
 .teacher-space-panel #teacherLessonList .folder-card-subgroup .folder-card-note {
+  order: 3;
+  align-self: start;
   display: -webkit-box;
-  max-width: 210px;
+  max-width: min(74%, 230px);
+  padding: 10px 16px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.045);
   overflow: hidden;
-  color: rgba(230, 234, 224, 0.72);
-  font-size: 1rem;
-  line-height: 1.25;
+  color: rgba(230, 234, 224, 0.82);
+  font-size: clamp(0.82rem, 1.35vw, 1rem);
+  line-height: 1.08;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
 }
@@ -5317,10 +5417,11 @@ h3,
 .teacher-space-panel #teacherGroupList .folder-card-group .folder-card-arrow,
 .teacher-space-panel #teacherLessonList .folder-card-subgroup .folder-card-arrow {
   position: absolute;
-  right: 22px;
-  bottom: 20px;
+  right: 50%;
+  bottom: 16px;
   color: var(--accent);
-  font-size: 2.5rem;
+  font-size: 2rem;
+  transform: translateX(50%);
 }
 
 .teacher-space-panel #teacherLessonList .lesson-showcase-card {
@@ -5854,8 +5955,8 @@ h3,
 
 /* Studio information board */
 .studio-channel-copy {
-  grid-template-columns: minmax(0, 1fr) minmax(280px, 0.46fr);
-  gap: clamp(22px, 4vw, 48px);
+  grid-template-columns: minmax(0, 1fr);
+  gap: clamp(18px, 3vw, 32px);
   align-items: stretch;
 }
 
@@ -5865,11 +5966,27 @@ h3,
 }
 
 .studio-channel-divider {
-  width: min(100%, 720px);
+  width: 100%;
   height: 4px;
   margin: 22px 0 20px;
   border-radius: 999px;
   background: linear-gradient(90deg, var(--accent), var(--accent-2), #ff684d);
+}
+
+.studio-channel-tools {
+  position: absolute;
+  inset: 24px;
+  z-index: 6;
+  pointer-events: none;
+}
+
+.teacher-space-panel .studio-channel-identity {
+  padding-right: min(380px, 34vw);
+}
+
+.teacher-space-panel .studio-channel-divider {
+  width: calc(100% + min(380px, 34vw));
+  max-width: calc(100vw - 96px);
 }
 
 .studio-channel-details {
@@ -6629,6 +6746,107 @@ h3,
   background: var(--accent);
 }
 
+.completed-lessons-panel {
+  border-radius: 34px;
+  padding: clamp(18px, 3vw, 28px);
+  background:
+    radial-gradient(circle at 84% 10%, rgba(200, 255, 72, 0.12), transparent 14rem),
+    rgba(16, 18, 15, 0.055);
+}
+
+.completed-lessons-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: end;
+  margin-bottom: 16px;
+}
+
+.completed-lessons-head h3 {
+  margin: 0;
+  font-size: clamp(1.8rem, 3.5vw, 3rem);
+  line-height: 0.95;
+  letter-spacing: -0.05em;
+}
+
+.completed-lessons-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 14px;
+}
+
+.completed-lesson-card {
+  min-height: 220px;
+  border-radius: 26px;
+  padding: 12px;
+  display: grid;
+  grid-template-rows: 1fr auto;
+  gap: 12px;
+  background: rgba(255, 255, 255, 0.72);
+  box-shadow: inset 0 0 0 1px rgba(16, 18, 15, 0.08);
+}
+
+.completed-lesson-preview {
+  position: relative;
+  min-height: 126px;
+  border-radius: 20px;
+  overflow: hidden;
+  background: #10120f;
+}
+
+.completed-lesson-preview img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+}
+
+.completed-lesson-preview i {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--accent);
+  color: #10120f;
+  font-style: normal;
+  font-weight: 1000;
+}
+
+.completed-lesson-copy {
+  display: grid;
+  gap: 4px;
+}
+
+.completed-lesson-copy small {
+  color: var(--green);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-size: 0.72rem;
+  font-weight: 900;
+}
+
+.completed-lesson-copy strong {
+  font-size: clamp(1.35rem, 2.4vw, 2rem);
+  line-height: 0.95;
+}
+
+.completed-lesson-copy b {
+  color: #ffd23f;
+  letter-spacing: 0.03em;
+}
+
+.completed-lessons-empty {
+  border-radius: 24px;
+  padding: 24px;
+  background: rgba(255, 255, 255, 0.58);
+  color: var(--muted);
+  font-weight: 850;
+}
+
 @media (max-width: 1100px) {
   .app-shell.student-mode:not(.student-onboarding) .stage-grid .video-marker-bar,
   .app-shell.student-mode:not(.student-onboarding) .control-band {
@@ -6705,19 +6923,23 @@ h3,
 }
 
 .studio-invite-button {
+  position: absolute;
+  top: 0;
+  right: 0;
   width: fit-content;
   min-height: 46px;
   display: inline-flex;
   gap: 8px;
   align-items: center;
   justify-self: end;
-  margin: 0 0 4px;
+  margin: 0;
   border-radius: 999px;
   padding: 0 18px;
   background: linear-gradient(135deg, var(--accent), var(--accent-2));
   color: #10120f;
   border-color: transparent;
   box-shadow: 0 16px 36px rgba(200, 255, 72, 0.22);
+  pointer-events: auto;
 }
 
 .studio-invite-button span {
@@ -6726,16 +6948,23 @@ h3,
   display: grid;
   place-items: center;
   border-radius: 50%;
-  background: rgba(16, 18, 15, 0.12);
+  background: #d6df3f;
+  color: #10120f;
+  box-shadow: inset 0 0 0 1px rgba(16, 18, 15, 0.06);
+  font-weight: 1000;
 }
 
 .studio-library-tabs {
+  position: absolute;
+  right: 0;
+  bottom: 0;
   display: inline-grid;
   grid-template-columns: repeat(2, minmax(110px, 1fr));
   gap: 6px;
   padding: 6px;
   border-radius: 999px;
   background: rgba(16, 18, 15, 0.06);
+  pointer-events: auto;
 }
 
 .studio-library-tabs button {
@@ -7212,56 +7441,215 @@ h3,
 
 /* Account navigation + settings drawer */
 .icon-account-switch {
+  order: 3;
+  position: relative;
   min-width: auto;
   border-radius: 999px;
   padding: 6px;
-  gap: 6px;
+  display: grid;
+  place-items: center;
+  isolation: isolate;
+}
+
+.icon-account-switch::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: 999px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.08), transparent 42%),
+    rgba(28, 32, 35, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 18px 42px rgba(0, 0, 0, 0.2);
+  transition: inset 180ms ease, border-radius 180ms ease, background 180ms ease;
+}
+
+.icon-account-switch:hover::before,
+.icon-account-switch:focus-within::before {
+  inset: 0 0 -132px 0;
+  border-radius: 999px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.09), transparent 46%),
+    rgba(27, 31, 34, 0.97);
+}
+
+.account-drawer {
+  position: absolute;
+  top: calc(100% - 3px);
+  left: 6px;
+  right: 6px;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  gap: 9px;
+  padding: 12px 0 7px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  box-shadow: none;
+  opacity: 0;
+  transform: translateY(-14px) scale(0.94);
+  transform-origin: top center;
+  pointer-events: none;
+  transition: opacity 170ms ease, transform 170ms ease;
+}
+
+.account-menu:hover .account-drawer,
+.account-menu:focus-within .account-drawer {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
 }
 
 .icon-account-switch .account-nav-button {
-  width: 52px;
-  min-width: 52px;
-  min-height: 52px;
+  width: 50px;
+  min-width: 50px;
+  min-height: 50px;
   padding: 0;
+  position: relative;
   display: grid;
   place-items: center;
   border-radius: 50%;
-  font-size: 1.25rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background:
+    radial-gradient(circle at 34% 26%, rgba(255, 255, 255, 0.12), transparent 2rem),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.025));
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.035),
+    0 8px 18px rgba(0, 0, 0, 0.12);
+  transition: transform 160ms ease, background 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
 }
 
-.icon-account-switch .account-nav-button span {
-  filter: saturate(0.2);
-  opacity: 0.72;
+.icon-account-switch .account-nav-button:hover,
+.icon-account-switch .account-nav-button:focus-visible {
+  transform: translateY(-1px);
+  border-color: rgba(255, 255, 255, 0.22);
+  background:
+    radial-gradient(circle at 34% 26%, rgba(255, 255, 255, 0.18), transparent 2rem),
+    rgba(255, 255, 255, 0.09);
 }
 
 .icon-account-switch .account-nav-button.active {
-  background: #fff;
-  box-shadow: 0 12px 28px rgba(16, 18, 15, 0.14);
+  width: 52px;
+  min-width: 52px;
+  min-height: 52px;
+  background:
+    radial-gradient(circle at 34% 24%, rgba(255, 255, 255, 0.18), transparent 1.8rem),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.035));
+  border-color: rgba(255, 255, 255, 0.2);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.06),
+    0 12px 28px rgba(16, 18, 15, 0.18);
 }
 
-.icon-account-switch .account-nav-button.active span {
-  filter: saturate(1);
-  opacity: 1;
+.account-main {
+  position: relative;
+  z-index: 2;
+  background:
+    radial-gradient(circle at 34% 24%, rgba(255, 255, 255, 0.18), transparent 1.8rem),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.035)) !important;
+  border-color: rgba(255, 255, 255, 0.2) !important;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.06),
+    0 12px 28px rgba(16, 18, 15, 0.18) !important;
+}
+
+.account-main .account-icon {
+  color: rgba(232, 234, 230, 0.82);
+}
+
+.account-drawer .account-nav-button {
+  width: 48px;
+  min-width: 48px;
+  min-height: 48px;
+  background:
+    radial-gradient(circle at 34% 25%, rgba(255, 255, 255, 0.11), transparent 1.75rem),
+    rgba(255, 255, 255, 0.045);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.account-drawer .account-nav-button.active {
+  width: 50px;
+  min-width: 50px;
+  min-height: 50px;
+  background:
+    radial-gradient(circle at 34% 24%, rgba(255, 255, 255, 0.16), transparent 1.75rem),
+    rgba(255, 255, 255, 0.075);
+  border-color: rgba(255, 255, 255, 0.18);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.06),
+    0 10px 22px rgba(0, 0, 0, 0.16);
+}
+
+.account-drawer .account-nav-button.active .account-icon,
+.account-drawer .account-nav-button:hover .account-icon,
+.account-drawer .account-nav-button:focus-visible .account-icon {
+  color: rgba(255, 253, 248, 0.9);
+}
+
+.account-action-label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.account-icon {
+  position: relative;
+  width: 27px;
+  height: 27px;
+  display: block;
+  color: rgba(232, 234, 230, 0.82);
+  background: currentColor;
+  -webkit-mask: var(--account-icon-mask) center / contain no-repeat;
+  mask: var(--account-icon-mask) center / contain no-repeat;
+}
+
+.account-nav-button.has-account-image {
+  background-image: var(--account-image) !important;
+  background-size: contain !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+  background-color: transparent !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+  overflow: hidden;
+}
+
+.account-nav-button.has-account-image::after {
+  content: none;
+}
+
+.account-nav-button.has-account-image .account-icon {
+  display: none;
+}
+
+.account-nav-button.active .account-icon {
+  color: rgba(255, 253, 248, 0.9);
+}
+
+.account-icon-person {
+  --account-icon-mask: url("data:image/svg+xml,%3Csvg viewBox='0 0 28 28' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' stroke='black' stroke-width='2.55' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='14' cy='8.8' r='4.15'/%3E%3Cpath d='M6.4 23.1v-2.35c0-4.05 3.4-6.95 7.6-6.95s7.6 2.9 7.6 6.95v2.35Z'/%3E%3C/g%3E%3C/svg%3E");
+}
+
+.account-icon-home {
+  --account-icon-mask: url("data:image/svg+xml,%3Csvg viewBox='0 0 28 28' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' stroke='black' stroke-width='2.55' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 13.2 14 5.4l9 7.8'/%3E%3Cpath d='M7.3 11.7v11h13.4v-11'/%3E%3Cpath d='M11.2 22.7v-6h5.6v6'/%3E%3C/g%3E%3C/svg%3E");
+}
+
+.account-icon-gear {
+  --account-icon-mask: url("data:image/svg+xml,%3Csvg viewBox='0 0 28 28' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath fill='black' fill-rule='evenodd' d='M12.6 2.8h2.8l.8 3.2c.55.18 1.08.4 1.58.66l2.82-1.7 1.98 1.98-1.7 2.82c.26.5.48 1.03.66 1.58l3.16.76v2.8l-3.16.76c-.18.55-.4 1.08-.66 1.58l1.7 2.82-1.98 1.98-2.82-1.7c-.5.26-1.03.48-1.58.66l-.8 3.2h-2.8l-.8-3.2a8.55 8.55 0 0 1-1.58-.66l-2.82 1.7-1.98-1.98 1.7-2.82a8.55 8.55 0 0 1-.66-1.58l-3.16-.76v-2.8l3.16-.76c.18-.55.4-1.08.66-1.58L5.42 6.94 7.4 4.96l2.82 1.7c.5-.26 1.03-.48 1.58-.66l.8-3.2Zm1.4 7.35a3.85 3.85 0 1 0 0 7.7 3.85 3.85 0 0 0 0-7.7Zm0 2.25a1.6 1.6 0 1 1 0 3.2 1.6 1.6 0 0 1 0-3.2Z'/%3E%3C/svg%3E");
 }
 
 .settings-toggle {
-  order: 4;
-  width: 54px;
-  min-width: 54px;
-  min-height: 54px;
+  width: 46px;
+  min-width: 46px;
+  min-height: 46px;
   padding: 0;
-  display: grid;
-  place-items: center;
-  border-radius: 50%;
-  color: var(--text);
-  background: rgba(16, 18, 15, 0.08);
-  box-shadow:
-    inset 0 0 0 1px rgba(16, 18, 15, 0.08),
-    0 12px 26px rgba(16, 18, 15, 0.12);
-}
-
-.settings-toggle span {
-  font-size: 1.35rem;
 }
 
 .settings-card {
@@ -7376,6 +7764,26 @@ h3,
   background:
     radial-gradient(circle at 86% 14%, rgba(200, 255, 72, 0.2), transparent 20rem),
     var(--paper, #fffaf2);
+}
+
+.dancer-profile-page {
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  overflow: visible;
+}
+
+.student-studio-profile-page {
+  padding: 0;
+  border: 0 !important;
+  border-radius: 0;
+  background: transparent !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  overflow: visible;
 }
 
 .dancer-profile-page[hidden],
@@ -7561,7 +7969,7 @@ h3,
   border-radius: 0;
   background: transparent !important;
   background-image: none !important;
-  color: rgba(255, 255, 255, 0.92);
+  color: #10120f;
   box-shadow: none;
   font-size: clamp(5.3rem, 13vw, 10.4rem);
   line-height: 0.82;
@@ -7577,7 +7985,7 @@ h3,
 
 .dancer-level-button:hover {
   transform: none;
-  color: #fff;
+  color: #10120f;
   border-color: transparent;
 }
 
@@ -7590,6 +7998,10 @@ h3,
   padding-top: 58px;
 }
 
+.dancer-channel-copy {
+  grid-template-columns: minmax(0, 1fr);
+}
+
 .dancer-channel-main h3,
 .student-studio-copy h2 {
   margin: 0;
@@ -7600,7 +8012,7 @@ h3,
 
 .dancer-channel-main {
   position: relative;
-  min-height: 390px;
+  min-height: 0;
 }
 
 .dancer-channel-main h3 {
@@ -7649,6 +8061,10 @@ h3,
   height: 100%;
   border-radius: inherit;
   background: linear-gradient(90deg, var(--accent), var(--accent-2), #ff684d);
+}
+
+.dancer-channel-main .dancer-next {
+  margin: 14px 0 0;
 }
 
 .dancer-info-grid,
@@ -7758,8 +8174,264 @@ h3,
   overflow: visible !important;
 }
 
+.student-studio-card.studio-channel {
+  border: 0;
+  border-radius: 0;
+  gap: 0;
+  background: transparent;
+  box-shadow: none;
+  overflow: visible;
+}
+
+.student-studio-card .studio-channel-cover {
+  position: relative;
+  z-index: 8;
+  overflow: visible;
+  border-radius: 32px 32px 0 0;
+}
+
+.student-studio-card .studio-channel-cover-image,
+.student-studio-card .studio-channel-cover-shade {
+  border-radius: 32px 32px 0 0;
+}
+
+.student-studio-card .studio-channel-logo {
+  z-index: 60;
+  pointer-events: auto;
+}
+
+.student-studio-card .studio-channel-copy {
+  position: relative;
+  z-index: 1;
+  border-radius: 0 0 32px 32px;
+}
+
 .student-studio-card > .primary {
-  width: fit-content;
+  display: none !important;
+}
+
+.student-studio-materials {
+  display: grid;
+  margin-top: 22px;
+  border: 1px solid var(--line);
+  border-radius: 28px;
+  overflow: hidden;
+  background: var(--panel);
+}
+
+.student-studio-materials > .panel-head {
+  border-radius: 28px 28px 0 0;
+  color: #fff;
+  background: #171815;
+}
+
+.student-studio-materials > .panel-head .teacher-breadcrumb,
+.student-studio-materials > .panel-head .teacher-breadcrumb span {
+  color: rgba(255, 255, 255, 0.52);
+}
+
+.student-studio-materials > .panel-head .teacher-breadcrumb b {
+  margin: 0 8px;
+  color: rgba(255, 255, 255, 0.34);
+}
+
+.student-studio-materials > .panel-head .teacher-breadcrumb span:first-child {
+  color: var(--accent);
+}
+
+.student-studio-materials > .panel-head .teacher-actions button {
+  border-color: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.94);
+  color: #141512;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.18);
+  font-weight: 850;
+}
+
+.student-materials-workspace {
+  min-height: 360px;
+  padding: 22px;
+  background: var(--panel);
+}
+
+.student-materials-path {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  margin-top: 10px;
+  color: rgba(230, 234, 224, 0.58);
+  font-weight: 850;
+}
+
+.student-materials-path span {
+  color: var(--green);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-size: 0.78rem;
+}
+
+.student-materials-path b {
+  color: rgba(255, 255, 255, 0.28);
+}
+
+.student-materials-back {
+  align-self: center;
+}
+
+.student-access-grid.folder-grid {
+  grid-template-columns: repeat(auto-fill, minmax(260px, 320px));
+  justify-content: start;
+  align-items: start;
+  gap: 18px;
+}
+
+.student-access-grid .folder-card-group,
+.student-access-grid .folder-card-subgroup,
+.student-access-grid .lesson-showcase-card {
+  width: 100%;
+  max-width: 320px;
+  justify-self: start;
+  min-height: 0;
+  aspect-ratio: 1 / 1;
+  overflow: hidden;
+}
+
+.student-access-grid .lesson-showcase-card {
+  border-radius: 30px;
+}
+
+.student-access-grid .folder-card-group,
+.student-access-grid .folder-card-subgroup {
+  position: relative;
+  padding: clamp(34px, 4vw, 46px);
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  justify-items: center;
+  align-items: stretch;
+  align-content: center;
+  gap: 12px;
+  text-align: center;
+  border: 1px solid rgba(255, 210, 63, 0.42);
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 50% 40%, rgba(200, 255, 72, 0.1), transparent 10rem),
+    linear-gradient(145deg, rgba(54, 64, 70, 0.96), rgba(29, 34, 38, 0.98));
+  color: #fffaf2;
+}
+
+.student-access-grid .folder-card-group .folder-icon,
+.student-access-grid .folder-card-subgroup .folder-icon {
+  order: 2;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  margin: -4px auto -2px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: #ffd23f;
+}
+
+.student-access-grid .folder-card-group .folder-icon b,
+.student-access-grid .folder-card-subgroup .folder-icon b,
+.student-access-grid .folder-card-group .folder-icon span,
+.student-access-grid .folder-card-subgroup .folder-icon span {
+  color: #fffaf2;
+  max-width: min(82%, 240px);
+  overflow: hidden;
+  text-align: center;
+  font-size: clamp(5.4rem, 11.5vw, 9.8rem);
+  font-weight: 1000;
+  line-height: 0.72;
+  letter-spacing: -0.14em;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.student-access-grid .folder-card-group .folder-card-copy,
+.student-access-grid .folder-card-subgroup .folder-card-copy {
+  display: contents;
+}
+
+.student-access-grid .folder-card-group .folder-card-type,
+.student-access-grid .folder-card-subgroup .folder-card-type {
+  order: 1;
+  align-self: end;
+  color: #10120f;
+  max-width: 76%;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #c8ff48, #ffd23f);
+  box-shadow: 0 10px 28px rgba(200, 255, 72, 0.12);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: clamp(0.72rem, 1.25vw, 0.9rem);
+  font-weight: 950;
+  letter-spacing: 0.16em;
+}
+
+.student-access-grid .folder-card-group strong,
+.student-access-grid .folder-card-subgroup strong {
+  display: none;
+}
+
+.student-access-grid .folder-card-group .folder-card-note,
+.student-access-grid .folder-card-subgroup .folder-card-note {
+  order: 3;
+  align-self: start;
+  max-width: min(74%, 230px);
+  padding: 10px 16px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.045);
+  color: rgba(230, 234, 224, 0.82);
+  font-size: clamp(0.82rem, 1.35vw, 1rem);
+  line-height: 1.08;
+}
+
+.student-access-grid .folder-card-group .folder-card-arrow,
+.student-access-grid .folder-card-subgroup .folder-card-arrow {
+  display: none;
+}
+
+.student-access-grid .lesson-showcase-card {
+  padding: 14px;
+  grid-template-rows: 42% auto 52px;
+  gap: 10px;
+}
+
+.student-access-grid .lesson-showcase-preview {
+  min-height: 0;
+  height: 100%;
+  border-radius: 22px;
+}
+
+.student-access-grid .lesson-showcase-copy {
+  align-content: start;
+  gap: 6px;
+  min-height: 0;
+}
+
+.student-access-grid .lesson-showcase-copy strong {
+  font-size: clamp(1.8rem, 3vw, 2.45rem);
+}
+
+.student-access-grid .lesson-showcase-copy .folder-card-note {
+  display: -webkit-box;
+  overflow: hidden;
+  font-size: 0.92rem;
+  line-height: 1.22;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.student-access-grid .lesson-showcase-cta {
+  min-height: 52px;
+  align-self: end;
 }
 
 .app-shell.student-studio-open .student-studio-profile-page {
@@ -7773,11 +8445,39 @@ h3,
 }
 
 :root[data-theme="dark"] .student-studio-profile-page .studio-channel-regalia,
-:root[data-theme="dark"] .dancer-achievements-panel {
+:root[data-theme="dark"] .dancer-achievements-panel,
+:root[data-theme="dark"] .student-studio-materials {
   background:
     radial-gradient(circle at 80% 10%, rgba(200, 255, 72, 0.13), transparent 9rem),
     rgba(255, 255, 255, 0.055);
   border-color: rgba(200, 255, 72, 0.22);
+}
+
+:root[data-theme="dark"] .student-studio-profile-page {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+:root[data-theme="dark"] .student-studio-materials > .panel-head {
+  border-color: rgba(255, 255, 255, 0.13);
+  background:
+    radial-gradient(circle at 88% 8%, rgba(255, 207, 61, 0.08), transparent 12rem),
+    var(--surface-active);
+  color: var(--text);
+}
+
+:root[data-theme="dark"] .student-materials-workspace {
+  border-color: var(--line);
+  background: rgba(27, 31, 35, 0.94);
+  color: var(--text);
+}
+
+:root[data-theme="dark"] .student-studio-materials > .panel-head .teacher-actions button {
+  border-color: rgba(255, 255, 255, 0.28);
+  background: rgba(255, 255, 255, 0.95);
+  color: #141512;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.24);
 }
 
 .app-shell.student-mode:not(.student-onboarding) #studentAccountContent,
@@ -7794,24 +8494,56 @@ h3,
 }
 
 :root[data-theme="dark"] .settings-card,
-:root[data-theme="dark"] .dancer-profile-page,
 :root[data-theme="dark"] .student-studio-profile-page {
   background:
     radial-gradient(circle at 86% 14%, rgba(200, 255, 72, 0.12), transparent 20rem),
     #151715;
 }
 
+:root[data-theme="dark"] .dancer-profile-page,
+:root[data-theme="dark"] .student-studio-profile-page {
+  background: transparent !important;
+}
+
 @media (max-width: 720px) {
+  .icon-account-switch:hover::before,
+  .icon-account-switch:focus-within::before {
+    inset: 0 0 -116px 0;
+  }
+
+  .account-drawer {
+    gap: 7px;
+    padding: 10px 0 7px;
+  }
+
   .icon-account-switch .account-nav-button {
     width: 46px;
     min-width: 46px;
     min-height: 46px;
   }
 
-  .settings-toggle {
+  .icon-account-switch .account-nav-button.active {
     width: 48px;
     min-width: 48px;
     min-height: 48px;
+  }
+
+  .account-drawer .account-nav-button,
+  .settings-toggle {
+    width: 44px;
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  .account-drawer .account-nav-button.active {
+    width: 46px;
+    min-width: 46px;
+    min-height: 46px;
+  }
+
+  .account-icon {
+    width: 24px;
+    height: 24px;
   }
 
   .settings-choice {
@@ -7827,7 +8559,7 @@ h3,
 }
 
 .app-shell.student-mode .dancer-profile-page .dancer-level-button {
-  color: rgba(255, 255, 255, 0.92) !important;
+  color: #10120f !important;
   background: transparent !important;
   background-color: transparent !important;
   background-image: none !important;
@@ -7837,7 +8569,7 @@ h3,
 }
 
 .app-shell.student-mode .dancer-profile-page .dancer-level-button:hover {
-  color: #fff !important;
+  color: #10120f !important;
 }
 
 :root[data-theme="dark"] .app-shell.student-mode .dancer-profile-page .dancer-level-button {
@@ -8265,7 +8997,17 @@ h3,
 .teacher-space-panel .studio-channel-copy {
   overflow: visible !important;
   position: relative;
-  z-index: 14;
+  z-index: 10;
+}
+
+.teacher-space-panel .studio-channel-cover {
+  position: relative;
+  z-index: 30 !important;
+  overflow: visible !important;
+}
+
+.teacher-space-panel .studio-channel-logo {
+  z-index: 32 !important;
 }
 
 .teacher-space-panel .studio-invite-button {

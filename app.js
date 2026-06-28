@@ -152,6 +152,11 @@ const els = {
   studentStudioProfileDescription: document.querySelector("#studentStudioProfileDescription"),
   studentStudioProfileFacts: document.querySelector("#studentStudioProfileFacts"),
   studentStudioAchievementsList: document.querySelector("#studentStudioAchievementsList"),
+  studentStudioMaterialsBreadcrumb: document.querySelector("#studentStudioMaterialsBreadcrumb"),
+  studentStudioMaterialsTitle: document.querySelector("#studentStudioMaterialsTitle"),
+  studentStudioMaterialsPath: document.querySelector("#studentStudioMaterialsPath"),
+  studentStudioMaterialsBack: document.querySelector("#studentStudioMaterialsBack"),
+  studentStudioMaterialsList: document.querySelector("#studentStudioMaterialsList"),
   studentStudioBackButton: document.querySelector("#studentStudioBackButton"),
   teacherBreadcrumb: document.querySelector("#teacherBreadcrumb"),
   teacherFolderTitle: document.querySelector("#teacherFolderTitle"),
@@ -203,6 +208,8 @@ const els = {
   teacherCreateNameLabel: document.querySelector("#teacherCreateNameLabel"),
   teacherCreateName: document.querySelector("#teacherCreateName"),
   teacherCreateDescription: document.querySelector("#teacherCreateDescription"),
+  teacherCreateCategoryField: document.querySelector("#teacherCreateCategoryField"),
+  teacherCreateCategory: document.querySelector("#teacherCreateCategory"),
   teacherStudioCreateFields: document.querySelector("#teacherStudioCreateFields"),
   teacherCreateLogo: document.querySelector("#teacherCreateLogo"),
   teacherCreateCover: document.querySelector("#teacherCreateCover"),
@@ -220,6 +227,8 @@ const els = {
   teacherEditCover: document.querySelector("#teacherEditCover"),
   teacherEditName: document.querySelector("#teacherEditName"),
   teacherEditDescription: document.querySelector("#teacherEditDescription"),
+  teacherEditCategoryField: document.querySelector("#teacherEditCategoryField"),
+  teacherEditCategory: document.querySelector("#teacherEditCategory"),
   teacherEditAgeLabel: document.querySelector("#teacherEditAgeLabel"),
   teacherEditAge: document.querySelector("#teacherEditAge"),
   teacherEditPlaceLabel: document.querySelector("#teacherEditPlaceLabel"),
@@ -411,6 +420,8 @@ const state = {
   teacherEditAchievementsList: [],
   teacherStudioLibraryTab: "lessons",
   teacherStudentGroupId: "",
+  studentStudioGroupOpen: false,
+  studentStudioSubgroupIds: [],
   teacherWorkspace: savedTeacherWorkspace || {
     studios: [],
     activeStudioId: "",
@@ -516,6 +527,13 @@ els.editDancerProfileButton?.addEventListener("click", () => {
 });
 els.studentProfileForm.addEventListener("submit", submitStudentProfile);
 els.teacherBrowser.addEventListener("click", (event) => {
+  const deleteButton = event.target.closest("[data-delete-folder-type]");
+  if (deleteButton) {
+    event.preventDefault();
+    event.stopPropagation();
+    deleteTeacherFolderItem(deleteButton.dataset.deleteFolderType || "", deleteButton.dataset.deleteFolderId || "");
+    return;
+  }
   const createButton = event.target.closest("[data-create-type]");
   if (createButton) {
     openTeacherCreateDialog(createButton.dataset.createType || "");
@@ -659,7 +677,7 @@ els.teacherSkeletonToggle.addEventListener("change", updateTeacherLayerVisibilit
 els.resultCloseButton.addEventListener("click", publishStudentAttempt);
 els.retakeButton.addEventListener("click", retakeStudentAttempt);
 els.levelCardButton.addEventListener("click", showLevelOverlay);
-els.levelOverlayCloseButton.addEventListener("click", () => {
+els.levelOverlayCloseButton?.addEventListener("click", () => {
   goStudentHome();
 });
 els.levelHistoryCloseButton.addEventListener("click", closeLevelHistory);
@@ -681,7 +699,24 @@ els.studentProfileDetails.addEventListener("click", (event) => {
 });
 els.studentProfileCoverInput?.addEventListener("change", (event) => updateStudentProfileImage(event, "coverImage"));
 els.studentProfileAvatarInput?.addEventListener("change", (event) => updateStudentProfileImage(event, "avatarImage"));
-els.studentStudioBackButton.addEventListener("click", goStudentHome);
+els.studentStudioProfilePage?.addEventListener("click", (event) => {
+  const lessonButton = event.target.closest("[data-student-access-lesson-id]");
+  if (lessonButton) {
+    openStudentAccessibleLesson(lessonButton.dataset.studentAccessLessonId || "");
+    return;
+  }
+  const groupButton = event.target.closest("[data-student-access-group-id]");
+  if (groupButton) {
+    openStudentAccessGroup(groupButton.dataset.studentAccessGroupId || "");
+    return;
+  }
+  const subgroupButton = event.target.closest("[data-student-access-subgroup-id]");
+  if (subgroupButton) {
+    openStudentAccessSubgroup(subgroupButton.dataset.studentAccessSubgroupId || "");
+  }
+});
+els.studentStudioMaterialsBack?.addEventListener("click", backStudentStudioFolder);
+els.studentStudioBackButton?.addEventListener("click", goStudentHome);
 els.showMistakesButton.addEventListener("click", toggleMistakes);
 els.practiceButton.addEventListener("click", startPractice);
 els.danceButton.addEventListener("click", toggleDance);
@@ -1432,12 +1467,16 @@ function finishAttempt() {
 
 function finalizeAttemptResult(result, seconds) {
   const stars = Math.max(1, matchToStars(result.total));
+  const lesson = activeTeacherLesson() || {};
   const attempt = {
     score: result.score,
     stars,
     match: result.total,
     scores: result,
     seconds,
+    lessonId: lesson.id || "",
+    lessonName: lesson.name || "Танец недели",
+    lessonImage: lesson.image || "./assets/dance-lesson-thumb.png",
     at: new Date().toLocaleString("ru-RU", {
       day: "2-digit",
       month: "2-digit",
@@ -2427,6 +2466,8 @@ function closeLevelHistory() {
 }
 
 function showStudentStudioProfile() {
+  state.studentStudioGroupOpen = false;
+  state.studentStudioSubgroupIds = [];
   renderStudentStudioProfile();
   els.levelOverlay.hidden = true;
   els.studentStudioProfilePage.hidden = false;
@@ -2439,6 +2480,7 @@ function showStudentStudioProfile() {
 function renderStudentStudioProfile() {
   const studio = activeTeacherStudio() || {};
   const studioName = state.studentProfile?.studioName || studio.name || "Танцевальная студия";
+  const access = studentStudioAccess(studio);
   els.studentStudioProfileTitle.textContent = studioName;
   els.studentStudioProfileDescription.textContent = studio.description || "Здесь будут направления, расписание, достижения и общая жизнь студии.";
   els.studentStudioProfileLogo.textContent = studio.image ? "" : (studioName || "С").slice(0, 1).toUpperCase();
@@ -2457,7 +2499,7 @@ function renderStudentStudioProfile() {
     </div>
     <div class="studio-fact">
       <span class="studio-fact-icon" aria-hidden="true">◎</span>
-      <div><small>Группа</small><strong>6 группа</strong></div>
+      <div><small>Группа</small><strong>${escapeHtml(access.group?.name || "Пока не назначена")}</strong></div>
     </div>
     <div class="studio-fact">
       <span class="studio-fact-icon" aria-hidden="true">+</span>
@@ -2465,6 +2507,183 @@ function renderStudentStudioProfile() {
     </div>
   `;
   renderAchievementsInto(els.studentStudioAchievementsList, studio.achievements);
+  renderStudentStudioMaterials(studio, access);
+}
+
+function studentStudioAccess(studio = {}) {
+  const profile = state.studentProfile || {};
+  const groupId = profile.groupId || profile.requestedGroupId || profile.studioGroupId || "";
+  const studentRecord = findStudentRecordForProfile(studio, profile);
+  const recordGroupId = studentRecord?.groupId || studentRecord?.requestedGroupId || "";
+  const groupMatch = findStudioGroupById(studio, groupId || recordGroupId);
+  const fallbackGroup = firstStudioGroup(studio);
+  const group = groupMatch?.group || fallbackGroup || null;
+  return {
+    group,
+    path: groupMatch?.path || (fallbackGroup ? [fallbackGroup] : []),
+    lessons: accessibleLessonsForGroup(group),
+  };
+}
+
+function findStudentRecordForProfile(studio = {}, profile = {}) {
+  const students = Array.isArray(studio.students) ? studio.students : [];
+  if (!students.length || !profile) return null;
+  return students.find((student) => student.id && student.id === profile.id) ||
+    students.find((student) => {
+      const firstNameMatches = !student.firstName || !profile.firstName || student.firstName.trim().toLowerCase() === profile.firstName.trim().toLowerCase();
+      const lastNameMatches = !student.lastName || !profile.lastName || student.lastName.trim().toLowerCase() === profile.lastName.trim().toLowerCase();
+      return firstNameMatches && lastNameMatches && (student.firstName || student.lastName);
+    }) ||
+    null;
+}
+
+function findStudioGroupById(studio = {}, groupId = "") {
+  if (!groupId) return null;
+  const walk = (items = [], path = []) => {
+    for (const group of items) {
+      const nextPath = [...path, group];
+      if (group.id === groupId) return { group, path: nextPath };
+      const nested = walk(group.subgroups || [], nextPath);
+      if (nested) return nested;
+    }
+    return null;
+  };
+  return walk(studio.groups || []);
+}
+
+function firstStudioGroup(studio = {}) {
+  return Array.isArray(studio.groups) && studio.groups.length ? studio.groups[0] : null;
+}
+
+function accessibleLessonsForGroup(group) {
+  if (!group) return [];
+  const lessons = [];
+  const walk = (container) => {
+    lessons.push(...(container.lessons || []).filter((lesson) => lesson.published || lesson.hasVideo || lesson.status === "published"));
+    (container.subgroups || []).forEach(walk);
+  };
+  walk(group);
+  return lessons;
+}
+
+function renderStudentStudioMaterials(studio = {}, access = studentStudioAccess(studio)) {
+  if (!els.studentStudioMaterialsList) return;
+  const studioName = state.studentProfile?.studioName || studio.name || "Студия";
+  if (!access.group) {
+    if (els.studentStudioMaterialsTitle) els.studentStudioMaterialsTitle.textContent = "Доступные уроки";
+    if (els.studentStudioMaterialsBreadcrumb) els.studentStudioMaterialsBreadcrumb.textContent = studioName;
+    if (els.studentStudioMaterialsPath) els.studentStudioMaterialsPath.innerHTML = "";
+    if (els.studentStudioMaterialsBack) els.studentStudioMaterialsBack.hidden = true;
+    els.studentStudioMaterialsList.innerHTML = emptyFolderText("Группа пока не назначена", "Когда педагог добавит вас в группу, здесь появятся доступные уроки.");
+    return;
+  }
+  const currentPath = studentAccessCurrentPath(access);
+  const currentFolder = currentPath.length ? currentPath[currentPath.length - 1] : null;
+  const currentContainer = currentFolder || access.group;
+  const isRoot = !state.studentStudioGroupOpen;
+  if (els.studentStudioMaterialsTitle) {
+    els.studentStudioMaterialsTitle.textContent = isRoot ? "Материалы студии" : (currentContainer.name || "Материалы группы");
+  }
+  renderStudentMaterialsPath(access, currentPath, studioName);
+  if (els.studentStudioMaterialsBack) els.studentStudioMaterialsBack.hidden = isRoot;
+
+  if (isRoot) {
+    els.studentStudioMaterialsList.innerHTML = stripTeacherDeleteControl(
+      folderButton("group", access.group)
+        .replace("data-group-id=", "data-student-access-group-id=")
+        .replace("folder-card-group", "folder-card-group student-current-group")
+    );
+    return;
+  }
+
+  const subgroupCards = (currentContainer.subgroups || []).map((subgroup) => stripTeacherDeleteControl(
+    folderButton("subgroup", subgroup)
+      .replace("data-subgroup-id=", "data-student-access-subgroup-id=")
+  ));
+  const lessonCards = (currentContainer.lessons || [])
+    .filter(isLessonAccessible)
+    .map((lesson) => studentAccessibleLessonCard(lesson));
+  const cards = [...subgroupCards, ...lessonCards];
+  els.studentStudioMaterialsList.innerHTML = cards.length
+    ? cards.join("")
+    : emptyFolderText("В этой папке пока нет открытых уроков", "Как только педагог опубликует урок, он появится здесь.");
+}
+
+function studentAccessibleLessonCard(lesson) {
+  return stripTeacherDeleteControl(lessonFolderCard(lesson)).replace("data-lesson-id=", "data-student-access-lesson-id=");
+}
+
+function stripTeacherDeleteControl(html = "") {
+  return html.replace(/\s*<span class="folder-delete"[\s\S]*?<\/span>/, "");
+}
+
+function openStudentAccessibleLesson(lessonId) {
+  const studio = activeTeacherStudio();
+  const access = studentStudioAccess(studio);
+  const lesson = access.lessons.find((item) => item.id === lessonId);
+  if (!lesson) return;
+  state.teacherWorkspace.activeLessonId = lesson.id;
+  goStudentHome();
+  focusDanceStage();
+}
+
+function isLessonAccessible(lesson = {}) {
+  return lesson.published || lesson.hasVideo || lesson.status === "published";
+}
+
+function studentAccessCurrentPath(access = {}) {
+  const path = [];
+  let cursor = access.group;
+  for (const subgroupId of state.studentStudioSubgroupIds || []) {
+    const next = cursor?.subgroups?.find((subgroup) => subgroup.id === subgroupId);
+    if (!next) break;
+    path.push(next);
+    cursor = next;
+  }
+  return path;
+}
+
+function renderStudentMaterialsPath(access = {}, currentPath = [], studioName = "Студия") {
+  const crumbs = [access.group, ...currentPath].filter(Boolean);
+  const fullPath = [studioName, ...crumbs.map((item, index) => item.name || (index ? "Подгруппа" : "Группа"))];
+  if (els.studentStudioMaterialsBreadcrumb) {
+    els.studentStudioMaterialsBreadcrumb.innerHTML = fullPath.map((label, index) => {
+      const safeLabel = escapeHtml(label);
+      return index === 0 ? `<span>${safeLabel}</span>` : `<b>/</b><span>${safeLabel}</span>`;
+    }).join("");
+  }
+  if (els.studentStudioMaterialsPath) {
+    els.studentStudioMaterialsPath.innerHTML = "";
+  }
+}
+
+function openStudentAccessGroup(groupId) {
+  const access = studentStudioAccess(activeTeacherStudio());
+  if (!access.group || access.group.id !== groupId) return;
+  state.studentStudioGroupOpen = true;
+  state.studentStudioSubgroupIds = [];
+  renderStudentStudioMaterials(activeTeacherStudio(), access);
+}
+
+function openStudentAccessSubgroup(subgroupId) {
+  const access = studentStudioAccess(activeTeacherStudio());
+  state.studentStudioGroupOpen = true;
+  const currentPath = studentAccessCurrentPath(access);
+  const currentContainer = currentPath.length ? currentPath[currentPath.length - 1] : access.group;
+  const subgroup = currentContainer?.subgroups?.find((item) => item.id === subgroupId);
+  if (!subgroup) return;
+  state.studentStudioSubgroupIds.push(subgroup.id);
+  renderStudentStudioMaterials(activeTeacherStudio(), access);
+}
+
+function backStudentStudioFolder() {
+  if (!state.studentStudioSubgroupIds.length) {
+    state.studentStudioSubgroupIds = [];
+    state.studentStudioGroupOpen = false;
+  } else {
+    state.studentStudioSubgroupIds.pop();
+  }
+  renderStudentStudioMaterials(activeTeacherStudio(), studentStudioAccess(activeTeacherStudio()));
 }
 
 function renderDancerProfileDetails() {
@@ -2474,7 +2693,7 @@ function renderDancerProfileDetails() {
   const { current, next } = levelInfoFromStars(stars);
   const attemptsCount = state.attempts.length;
   const bestAttempt = state.attempts.reduce((best, attempt) => Math.max(best, attempt.match || 0), 0);
-  const styles = Array.isArray(profile.styles) && profile.styles.length ? profile.styles : ["Свободный стиль"];
+  const styles = Array.isArray(profile.styles) && profile.styles.length ? profile.styles : ["Не указаны"];
   const ageText = Number.isFinite(profile.age) && profile.age > 0 ? `${profile.age} лет` : "возраст не указан";
   const studioName = profile.studioName || "Танцевальная студия";
   const firstName = profile.firstName || "Юный";
@@ -2486,11 +2705,6 @@ function renderDancerProfileDetails() {
   const coverStyle = profile.coverImage ? ` style="background-image: url('${escapeHtml(profile.coverImage)}')"` : "";
   const avatarStyle = profile.avatarImage ? ` style="background-image: url('${escapeHtml(profile.avatarImage)}')"` : "";
   const avatarLetter = profile.avatarImage ? "" : escapeHtml((firstName || "Т").slice(0, 1).toUpperCase());
-  const dancerAchievements = [
-    { icon: "⭐", title: `${stars} звёзд`, note: "накоплено" },
-    { icon: "🎬", title: `${attemptsCount} сдач`, note: "записано" },
-    { icon: "🔥", title: `${Math.round(bestAttempt)}%`, note: "лучший танец" },
-  ];
 
   els.studentProfileDetails.innerHTML = `
     <div class="dancer-channel">
@@ -2511,7 +2725,11 @@ function renderDancerProfileDetails() {
           <div class="dancer-level-track" aria-label="Прогресс уровня">
             <span style="width: ${progress}%"></span>
           </div>
-          <small>${escapeHtml(nextText)}</small>
+          <div class="dancer-next">
+            <span aria-hidden="true">✦</span>
+            <strong>${escapeHtml(nextText)}</strong>
+            <small>Продолжайте сдавать уроки — каждая попытка добавляет прогресс.</small>
+          </div>
           <div class="dancer-info-grid">
             <span><b>Опыт</b><strong>${stars} ★</strong></span>
             <span><b>Пройдено уроков</b><strong>${attemptsCount}</strong></span>
@@ -2521,60 +2739,44 @@ function renderDancerProfileDetails() {
             <span><b>Студии</b><strong>${escapeHtml(studioName)}</strong></span>
           </div>
         </div>
-        <div class="studio-channel-regalia dancer-achievements-panel student-achievement-bubbles">
-          <div class="studio-quick-panels" aria-label="Достижения и трофеи танцора">
-            <div class="studio-quick-trigger">
-              <button class="studio-round-trigger" type="button" aria-label="Достижения танцора">
-                <span class="studio-icon-check" aria-hidden="true"></span>
-              </button>
-              <div class="studio-hover-popover">
-                <p class="eyebrow">Достижения</p>
-                <h4>Достижения танцора</h4>
-                <div class="achievement-orbit">
-                  ${dancerAchievements.map((achievement) => `
-                    <article class="achievement-medal" title="${escapeHtml(`${achievement.title} — ${achievement.note}`)}">
-                      <b><span aria-hidden="true">${escapeHtml(achievement.icon)}</span></b>
-                      <div>
-                        <strong>${escapeHtml(achievement.title)}</strong>
-                        <small>${escapeHtml(achievement.note)}</small>
-                      </div>
-                    </article>
-                  `).join("")}
-                </div>
-              </div>
-            </div>
-            <div class="studio-quick-trigger">
-              <button class="studio-round-trigger trophy" type="button" aria-label="Трофеи танцора">
-                <span class="studio-icon-cup" aria-hidden="true"><i></i></span>
-              </button>
-              <div class="studio-hover-popover">
-                <p class="eyebrow">Трофеи</p>
-                <h4>Трофеи танцора</h4>
-                <div class="achievement-orbit">
-                  ${dancerAchievements.map((achievement) => `
-                    <article class="achievement-medal" title="${escapeHtml(`${achievement.title} — ${achievement.note}`)}">
-                      <b><span aria-hidden="true">${escapeHtml(achievement.icon)}</span></b>
-                      <div>
-                        <strong>${escapeHtml(achievement.title)}</strong>
-                        <small>${escapeHtml(achievement.note)}</small>
-                      </div>
-                    </article>
-                  `).join("")}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
       </div>
     </div>
-    <div class="dancer-style-cloud">
-      ${styles.map((style) => `<span>${escapeHtml(style)}</span>`).join("")}
-    </div>
-    <div class="dancer-next">
-      <span aria-hidden="true">✦</span>
-      <strong>${escapeHtml(nextText)}</strong>
-      <small>Продолжайте сдавать уроки — каждая попытка добавляет прогресс.</small>
-    </div>
+    ${renderDancerCompletedLessons()}
+  `;
+}
+
+function renderDancerCompletedLessons() {
+  const attempts = state.attempts.slice(0, 6);
+  const activeLesson = activeTeacherLesson() || {};
+  const cards = attempts.map((attempt, index) => {
+    const stars = Number.isFinite(attempt.stars) ? attempt.stars : matchToStars(attempt.match || 0);
+    const name = attempt.lessonName || activeLesson.name || `Урок ${index + 1}`;
+    const image = attempt.lessonImage || activeLesson.image || "./assets/dance-lesson-thumb.png";
+    const meta = attempt.at || "последняя сдача";
+    return `
+      <article class="completed-lesson-card">
+        <span class="completed-lesson-preview">
+          <img src="${escapeHtml(image)}" alt="" />
+          <i aria-hidden="true">✓</i>
+        </span>
+        <span class="completed-lesson-copy">
+          <small>${escapeHtml(meta)}</small>
+          <strong>${escapeHtml(name)}</strong>
+          <b>${renderStars(stars)}</b>
+        </span>
+      </article>
+    `;
+  }).join("");
+  return `
+    <section class="completed-lessons-panel" aria-label="Пройденные уроки">
+      <div class="completed-lessons-head">
+        <p class="eyebrow">История</p>
+        <h3>Пройденные уроки</h3>
+      </div>
+      <div class="completed-lessons-grid">
+        ${cards || `<div class="completed-lessons-empty">Здесь появятся уроки после первой сдачи.</div>`}
+      </div>
+    </section>
   `;
 }
 
@@ -2761,10 +2963,14 @@ async function advanceTeacherWizard() {
 function publishTeacherLesson() {
   const lesson = activeTeacherLesson();
   if (!lesson) return;
+  const lessonDuration = Math.max(0, (examEnd() || 0) - (state.exam.start || 0)) || state.exam.duration || teacherVideo.duration || 0;
   lesson.published = true;
   lesson.status = "published";
   lesson.hasVideo = Boolean(state.exam.objectUrl);
   lesson.hasReference = state.reference.length > 0;
+  lesson.durationSeconds = lessonDuration;
+  lesson.duration = lessonDuration ? formatLessonDuration(lessonDuration) : "";
+  lesson.lessonType = lesson.lessonType || "Видеоурок";
   lesson.publishedAt = new Date().toISOString();
   lesson.description = lesson.description || "Видео урок опубликован. Ученики могут учить связку и сдавать фрагмент.";
   persistTeacherWorkspace();
@@ -3084,10 +3290,30 @@ function switchView(view) {
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
+function setAccountButtonImage(button, image) {
+  if (!button) return;
+  if (image) {
+    button.classList.add("has-account-image");
+    button.style.setProperty("--account-image", `url("${image}")`);
+    return;
+  }
+  button.classList.remove("has-account-image");
+  button.style.removeProperty("--account-image");
+}
+
+function updateAccountAvatars() {
+  const profileButton = document.querySelector('[data-account-target="profile"]');
+  const studioButton = document.querySelector('[data-account-target="studio"]');
+  const studio = activeTeacherStudio() || {};
+  setAccountButtonImage(profileButton, state.studentProfile?.avatarImage || "");
+  setAccountButtonImage(studioButton, studio.image || "");
+}
+
 function updateAccountNav(target) {
   els.accountNavButtons.forEach((button) => {
     button.classList.toggle("active", button.dataset.accountTarget === target);
   });
+  updateAccountAvatars();
 }
 
 function closeStudentPages() {
@@ -3673,23 +3899,28 @@ function parseAchievementsText(value, firstImage = "") {
 
 function folderButton(type, item) {
   if (type === "lesson") return lessonFolderCard(item);
-  const typeLabel = {
+  const typeLabel = item.category || {
     studio: "Студия",
     group: "Группа",
     subgroup: "Подгруппа / партия",
     lesson: "Урок",
   }[type];
   const number = ["group", "subgroup"].includes(type) ? String(item.name || "").match(/\d+/)?.[0] : "";
+  const groupMark = ["group", "subgroup"].includes(type) ? (number || item.name || "") : "";
   const icon = item.image
     ? `<img src="${escapeHtml(item.image)}" alt="" />`
-    : number
-      ? `<b aria-hidden="true">${escapeHtml(number)}</b>`
+    : groupMark
+      ? `<b aria-hidden="true">${escapeHtml(groupMark)}</b>`
       : `<span aria-hidden="true">${type === "lesson" ? (item.published ? "▶" : "□") : type === "subgroup" ? "◌" : "▣"}</span>`;
   const dataset = type === "studio" ? "studio" : type === "group" ? "group" : type === "lesson" ? "lesson" : "subgroup";
   const note = itemSummary(type, item);
   const status = type === "lesson" && item.published ? `<em class="folder-card-status">Опубликован</em>` : "";
+  const removable = ["group", "subgroup"].includes(type)
+    ? deleteFolderControl(type, item)
+    : "";
   return `
     <button class="folder-card folder-card-${type}${item.published ? " is-published" : ""}" type="button" data-${dataset}-id="${escapeHtml(item.id)}">
+      ${removable}
       <span class="folder-icon">${icon}</span>
       <span class="folder-card-copy">
         <small class="folder-card-type">${escapeHtml(typeLabel)}</small>
@@ -3705,23 +3936,59 @@ function folderButton(type, item) {
 function lessonFolderCard(item) {
   const note = itemSummary("lesson", item);
   const image = item.image || "./assets/dance-lesson-thumb.png";
-  const meta = item.duration || "12 минут";
+  const meta = lessonDurationLabel(item);
+  const typeLabel = item.lessonType || item.category || "Видеоурок";
   const statusLabel = item.published ? "опубликован" : "новое";
   return `
     <button class="folder-card folder-card-lesson lesson-showcase-card${item.published ? " is-published" : ""}" type="button" data-lesson-id="${escapeHtml(item.id)}">
+      ${deleteFolderControl("lesson", item)}
       <span class="lesson-showcase-preview">
         <img src="${escapeHtml(image)}" alt="" />
         <span class="lesson-showcase-play" aria-hidden="true">▶</span>
         <small>${escapeHtml(statusLabel)}</small>
       </span>
       <span class="lesson-showcase-copy">
-        <small class="folder-card-type">Главный урок · ${escapeHtml(meta)}</small>
+        <small class="folder-card-type">${escapeHtml(typeLabel)} · ${escapeHtml(meta)}</small>
         <strong>${escapeHtml(item.name || "Урок")}</strong>
         <span class="folder-card-note">${escapeHtml(note)}</span>
       </span>
       <span class="lesson-showcase-cta">Открыть урок <b aria-hidden="true">→</b></span>
     </button>
   `;
+}
+
+function deleteFolderControl(type, item = {}) {
+  return `
+    <span class="folder-delete" role="button" tabindex="0" data-delete-folder-type="${escapeHtml(type)}" data-delete-folder-id="${escapeHtml(item.id || "")}" aria-label="Удалить">
+      ×
+    </span>
+  `;
+}
+
+function lessonDurationLabel(item = {}) {
+  if (typeof item.duration === "string" && item.duration.trim()) return item.duration.trim();
+  const currentLessonMatches = item.id && item.id === state.teacherWorkspace.activeLessonId;
+  const currentClipDuration = currentLessonMatches
+    ? Math.max(0, (examEnd() || 0) - (state.exam.start || 0))
+    : 0;
+  const seconds = Number(
+    item.durationSeconds ||
+    item.videoDuration ||
+    item.duration ||
+    currentClipDuration ||
+    (currentLessonMatches ? state.exam.duration : 0)
+  );
+  if (!Number.isFinite(seconds) || seconds <= 0) return item.hasVideo || item.published ? "видео готово" : "без видео";
+  return formatLessonDuration(seconds);
+}
+
+function formatLessonDuration(seconds) {
+  const rounded = Math.max(1, Math.round(Number(seconds) || 0));
+  const minutes = Math.floor(rounded / 60);
+  const rest = rounded % 60;
+  if (minutes <= 0) return `${rounded} сек`;
+  if (rest === 0) return `${minutes} мин`;
+  return `${minutes}:${String(rest).padStart(2, "0")} мин`;
 }
 
 function itemSummary(type, item) {
@@ -3776,6 +4043,77 @@ function activeTeacherLesson() {
   return container?.lessons?.find((lesson) => lesson.id === state.teacherWorkspace.activeLessonId) || null;
 }
 
+function deleteTeacherFolderItem(type, id) {
+  const studio = activeTeacherStudio();
+  if (!studio || !id || !["group", "subgroup", "lesson"].includes(type)) return;
+  const labels = { group: "группу", subgroup: "подгруппу", lesson: "урок" };
+  const itemName = findTeacherFolderItemName(studio, type, id);
+  const title = itemName ? `«${itemName}»` : labels[type];
+  if (!window.confirm(`Удалить ${labels[type]} ${title}?`)) return;
+
+  let removed = false;
+  if (type === "group") {
+    const before = studio.groups.length;
+    studio.groups = studio.groups.filter((group) => group.id !== id);
+    removed = studio.groups.length !== before;
+  } else {
+    removed = removeFromNestedGroups(studio.groups || [], type, id);
+  }
+  if (!removed) return;
+
+  if (type === "group" && state.teacherWorkspace.activeGroupId === id) {
+    state.teacherWorkspace.activeGroupId = "";
+    state.teacherWorkspace.activeSubgroupIds = [];
+    state.teacherWorkspace.activeLessonId = "";
+    persistTeacherWorkspace();
+    setTeacherFolderView("studio");
+    return;
+  }
+  state.teacherWorkspace.activeSubgroupIds = state.teacherWorkspace.activeSubgroupIds.filter((subgroupId) => subgroupId !== id);
+  if (state.teacherWorkspace.activeLessonId === id) state.teacherWorkspace.activeLessonId = "";
+  persistTeacherWorkspace();
+  renderTeacherWorkspace();
+  updateTeacherStudioHeaderState();
+}
+
+function removeFromNestedGroups(groups = [], type, id) {
+  for (const group of groups) {
+    if (type === "lesson" && Array.isArray(group.lessons)) {
+      const before = group.lessons.length;
+      group.lessons = group.lessons.filter((lesson) => lesson.id !== id);
+      if (group.lessons.length !== before) return true;
+    }
+    if (!Array.isArray(group.subgroups)) continue;
+    if (type === "subgroup") {
+      const before = group.subgroups.length;
+      group.subgroups = group.subgroups.filter((subgroup) => subgroup.id !== id);
+      if (group.subgroups.length !== before) return true;
+    }
+    if (removeFromNestedGroups(group.subgroups, type, id)) return true;
+  }
+  return false;
+}
+
+function findTeacherFolderItemName(studio = {}, type, id) {
+  const walk = (groups = []) => {
+    for (const group of groups) {
+      if (type === "group" && group.id === id) return group.name || "";
+      if (type === "lesson") {
+        const lesson = (group.lessons || []).find((item) => item.id === id);
+        if (lesson) return lesson.name || "";
+      }
+      if (type === "subgroup") {
+        const subgroup = (group.subgroups || []).find((item) => item.id === id);
+        if (subgroup) return subgroup.name || "";
+      }
+      const nested = walk(group.subgroups || []);
+      if (nested) return nested;
+    }
+    return "";
+  };
+  return walk(studio.groups || []);
+}
+
 function activeTeacherEditableItem() {
   if (state.teacherFolderView === "studio") return activeTeacherStudio();
   if (state.teacherFolderView === "group") return activeTeacherContainer();
@@ -3802,6 +4140,12 @@ function openTeacherEditDialog() {
   els.teacherEditPlaceLabel.textContent = placeLabel;
   els.teacherEditName.value = item.name || "";
   els.teacherEditDescription.value = item.description || "";
+  els.teacherEditCategoryField.hidden = editType === "studio";
+  els.teacherEditCategory.value = item.category || item.lessonType || ({
+    group: "Группа",
+    subgroup: "Подгруппа / партия",
+    lesson: "Видеоурок",
+  }[editType] || "");
   els.teacherEditAge.value = item.age || item.directions || "";
   els.teacherEditPlace.value = item.address || item.city || item.level || item.music || "";
   els.teacherEditContact.value = item.contact || "";
@@ -4006,6 +4350,10 @@ async function submitTeacherEditDialog(event) {
   item.name = els.teacherEditName.value.trim() || item.name;
   item.description = els.teacherEditDescription.value.trim();
   item.contact = els.teacherEditContact.value.trim();
+  if (state.teacherFolderView !== "studio") {
+    item.category = els.teacherEditCategory.value.trim();
+    if (state.teacherFolderView === "lesson") item.lessonType = item.category || item.lessonType;
+  }
   if (state.teacherFolderView === "studio") {
     item.directions = els.teacherEditAge.value.trim();
     item.address = els.teacherEditPlace.value.trim();
@@ -4060,6 +4408,18 @@ function openTeacherCreateDialog(forcedType = "") {
   els.teacherCreateName.value = "";
   els.teacherCreateName.placeholder = placeholder;
   els.teacherCreateDescription.value = "";
+  els.teacherCreateCategoryField.hidden = type === "studio";
+  const defaultCategories = {
+    group: "Группа",
+    subgroup: "Подгруппа / партия",
+    lesson: "Видеоурок",
+  };
+  els.teacherCreateCategory.value = defaultCategories[type] || "";
+  els.teacherCreateCategory.placeholder = type === "subgroup"
+    ? "Например: балет, партия, солисты"
+    : type === "group"
+      ? "Например: группа, команда, класс"
+      : "Например: главный урок, разминка";
   els.teacherStudioCreateFields.hidden = type !== "studio";
   els.teacherCreateLogo.value = "";
   els.teacherCreateCover.value = "";
@@ -4080,6 +4440,7 @@ async function submitTeacherCreateDialog(event) {
   const name = els.teacherCreateName.value.trim();
   if (!name) return;
   const description = els.teacherCreateDescription.value.trim();
+  const category = els.teacherCreateCategory.value.trim();
   const id = `${state.teacherCreateType}-${Date.now().toString(36)}`;
   if (state.teacherCreateType === "studio") {
     const [image, cover] = await Promise.all([
@@ -4110,7 +4471,7 @@ async function submitTeacherCreateDialog(event) {
   if (state.teacherCreateType === "group") {
     const studio = activeTeacherStudio();
     if (!studio) return;
-    studio.groups.push({ id, name, description, image: "", age: "", level: "", contact: "", subgroups: [], lessons: [] });
+    studio.groups.push({ id, name, description, category: category || "Группа", image: "", age: "", level: "", contact: "", subgroups: [], lessons: [] });
     state.teacherWorkspace.activeGroupId = id;
     persistTeacherWorkspace();
     closeTeacherCreateDialog();
@@ -4121,7 +4482,7 @@ async function submitTeacherCreateDialog(event) {
     const container = activeTeacherContainer();
     if (!container) return;
     container.subgroups = container.subgroups || [];
-    container.subgroups.push({ id, name, description, image: "", age: "", level: "", contact: "", subgroups: [], lessons: [] });
+    container.subgroups.push({ id, name, description, category: category || "Подгруппа / партия", image: "", age: "", level: "", contact: "", subgroups: [], lessons: [] });
     persistTeacherWorkspace();
     closeTeacherCreateDialog();
     setTeacherFolderView("group");
@@ -4131,7 +4492,7 @@ async function submitTeacherCreateDialog(event) {
     const container = activeTeacherContainer();
     if (!container) return;
     container.lessons = container.lessons || [];
-    container.lessons.push({ id, name, description, image: "", age: "", level: "", contact: "" });
+    container.lessons.push({ id, name, description, category: category || "Видеоурок", lessonType: category || "Видеоурок", image: "", age: "", level: "", contact: "" });
     state.teacherWorkspace.activeLessonId = id;
     persistTeacherWorkspace();
     closeTeacherCreateDialog();
@@ -4189,6 +4550,7 @@ function renderStudentProfile() {
     badge.textContent = state.studentProfile.avatarImage ? "" : (state.studentProfile.firstName || "Т").slice(0, 1).toUpperCase();
     badge.style.backgroundImage = state.studentProfile.avatarImage ? `url("${state.studentProfile.avatarImage}")` : "";
   }
+  updateAccountAvatars();
 }
 
 function submitStudentProfile(event) {
