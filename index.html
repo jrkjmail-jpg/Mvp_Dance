@@ -21,7 +21,7 @@
     <link rel="manifest" href="./manifest.webmanifest" />
     <link rel="icon" href="./assets/app-icon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="./assets/app-icon.svg" />
-    <link rel="stylesheet" href="./styles.css?v=20260628-24" />
+    <link rel="stylesheet" href="./styles.css?v=20260628-25" />
   </head>
   <body>
     <main class="app-shell student-mode">
@@ -503,7 +503,7 @@
           </label>
 
           <div class="video-frame">
-            <video id="studentVideo" playsinline webkit-playsinline muted controls preload="auto"></video>
+            <video id="studentVideo" playsinline webkit-playsinline muted preload="auto"></video>
             <canvas id="studentCanvas"></canvas>
             <div id="studentEmpty" class="empty-state">Камера</div>
           </div>
@@ -523,6 +523,7 @@
               <button id="buildStudentSkeletonButton" type="button">Считать скелет</button>
             </div>
           </div>
+          <button id="studentExamSubmitButton" class="primary student-exam-submit" type="button">Сдать <span aria-hidden="true">→</span></button>
         </article>
       </section>
 
@@ -991,6 +992,6 @@
         });
       }
     </script>
-    <script type="module" src="./app.js?v=20260628-24"></script>
+    <script type="module" src="./app.js?v=20260628-25"></script>
   </body>
 </html>

@@ -1864,6 +1864,10 @@ h2 {
   grid-template-rows: auto auto minmax(240px, 1fr) auto;
 }
 
+.student-exam-submit {
+  display: none;
+}
+
 .panel-head {
   min-height: 72px;
   padding: 14px 16px;
@@ -5492,6 +5496,20 @@ h3,
   display: grid;
 }
 
+.app-shell.student-mode.student-exam-mode .student-exam-submit {
+  display: inline-flex;
+  justify-self: end;
+  align-items: center;
+  justify-content: center;
+  min-height: 56px;
+  margin-top: 14px;
+  padding: 0 32px;
+  border-radius: 22px;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  color: #10120f;
+  box-shadow: 0 14px 34px rgba(200, 255, 72, 0.2);
+}
+
 .app-shell.student-mode:not(.student-onboarding) .control-band {
   margin-top: -2px;
   border-radius: 0 0 34px 34px;
@@ -6348,6 +6366,18 @@ h3,
   box-shadow: none;
 }
 
+.app-shell.student-mode.student-exam-mode .student-studio-panel .video-frame,
+.app-shell.student-mode.student-result-mode .student-studio-panel .video-frame {
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.app-shell.student-mode.student-exam-mode .student-studio-panel .video-marker-bar,
+.app-shell.student-mode.student-result-mode .student-studio-panel .video-marker-bar {
+  position: relative;
+  z-index: 2;
+}
+
 .app-shell.student-mode.student-exam-mode .student-studio-panel .panel-head,
 .app-shell.student-mode.student-result-mode .student-studio-panel .panel-head {
   display: grid;
@@ -6424,6 +6454,14 @@ h3,
   .app-shell.student-mode.student-exam-mode .student-studio-panel .panel-head,
   .app-shell.student-mode.student-result-mode .student-studio-panel .panel-head {
     grid-template-columns: 1fr;
+  }
+
+  .app-shell.student-mode.student-exam-mode .student-exam-submit {
+    width: 100%;
+    min-height: 58px;
+    justify-self: stretch;
+    margin-top: 12px;
+    border-radius: 22px;
   }
 }
 

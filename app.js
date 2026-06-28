@@ -60,6 +60,7 @@ const els = {
   practiceButton: document.querySelector("#practiceButton"),
   danceButton: document.querySelector("#danceButton"),
   studentStepNextButton: document.querySelector("#studentStepNextButton"),
+  studentExamSubmitButton: document.querySelector("#studentExamSubmitButton"),
   studentRetakeStepButton: document.querySelector("#studentRetakeStepButton"),
   speedRange: document.querySelector("#speedRange"),
   speedValue: document.querySelector("#speedValue"),
@@ -721,6 +722,7 @@ els.showMistakesButton.addEventListener("click", toggleMistakes);
 els.practiceButton.addEventListener("click", startPractice);
 els.danceButton.addEventListener("click", toggleDance);
 els.studentStepNextButton?.addEventListener("click", advanceStudentLessonStep);
+els.studentExamSubmitButton?.addEventListener("click", advanceStudentLessonStep);
 els.studentRetakeStepButton?.addEventListener("click", retakeStudentAttempt);
 els.speedRange.addEventListener("input", updateSpeed);
 els.segmentRange.addEventListener("input", updateSegment);
@@ -963,6 +965,8 @@ async function startCamera() {
 
     studentVideo.srcObject = stream;
     studentVideo.muted = true;
+    studentVideo.controls = false;
+    studentVideo.removeAttribute("controls");
     studentVideo.setAttribute("playsinline", "");
     await studentVideo.play();
     state.cameraReady = true;
@@ -1018,7 +1022,8 @@ async function onStudentVideoUpload(event) {
   studentVideo.srcObject = null;
   studentVideo.src = state.studentVideoObjectUrl;
   studentVideo.muted = true;
-  studentVideo.controls = true;
+  studentVideo.controls = false;
+  studentVideo.removeAttribute("controls");
   studentVideo.autoplay = false;
   studentVideo.setAttribute("playsinline", "");
   studentVideo.setAttribute("webkit-playsinline", "");
