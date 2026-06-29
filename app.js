@@ -1,5 +1,13 @@
-const MODEL_URL =
-  "https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_full/float16/latest/pose_landmarker_full.task";
+const POSE_MODEL_SOURCES = [
+  {
+    name: "Heavy",
+    url: "https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_heavy/float16/latest/pose_landmarker_heavy.task",
+  },
+  {
+    name: "Full",
+    url: "https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_full/float16/latest/pose_landmarker_full.task",
+  },
+];
 const TASKS_VISION_SOURCES = [
   {
     module: "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.35",
@@ -459,6 +467,7 @@ const state = {
   studentLessonStep: "practice",
   modelLoading: false,
   modelFailed: false,
+  poseModelName: "",
   modelReadyPromise: null,
   attempts: JSON.parse(localStorage.getItem("danceReplayAttempts") || "[]"),
   scanId: 0,
@@ -477,6 +486,7 @@ window.__danceDebug = {
     hasLiveLandmarker: Boolean(state.liveLandmarker),
     modelLoading: state.modelLoading,
     modelFailed: state.modelFailed,
+    poseModelName: state.poseModelName,
     exam: {
       hasVideo: Boolean(state.exam.objectUrl),
       duration: state.exam.duration,
@@ -832,10 +842,13 @@ async function initPose() {
   state.modelReadyPromise = (async () => {
     try {
       const { PoseLandmarker, fileset } = await loadPoseRuntime();
-      state.teacherLandmarker = await createPoseLandmarker(PoseLandmarker, fileset, "IMAGE");
-      state.liveLandmarker = await createPoseLandmarker(PoseLandmarker, fileset, "VIDEO");
+      const teacher = await createPoseLandmarker(PoseLandmarker, fileset, "IMAGE");
+      const live = await createPoseLandmarker(PoseLandmarker, fileset, "VIDEO", teacher.model);
+      state.teacherLandmarker = teacher.landmarker;
+      state.liveLandmarker = live.landmarker;
+      state.poseModelName = live.model.name;
 
-      els.modelStatus.textContent = "Модель готова";
+      els.modelStatus.textContent = `Модель готова: ${state.poseModelName}`;
       state.modelFailed = false;
       setButtons(true);
       return true;
@@ -873,32 +886,33 @@ async function loadPoseRuntime() {
   throw lastError || new Error("MediaPipe runtime не загрузился");
 }
 
-async function createPoseLandmarker(PoseLandmarker, fileset, runningMode) {
-  const baseOptions = {
-    modelAssetPath: MODEL_URL,
-    delegate: "GPU",
-  };
-  const options = {
-    baseOptions,
-    runningMode,
-    numPoses: 1,
-    minPoseDetectionConfidence: 0.45,
-    minPosePresenceConfidence: 0.45,
-    minTrackingConfidence: 0.45,
-  };
+async function createPoseLandmarker(PoseLandmarker, fileset, runningMode, preferredModel = null) {
+  const models = preferredModel ? [preferredModel, ...POSE_MODEL_SOURCES.filter((model) => model.url !== preferredModel.url)] : POSE_MODEL_SOURCES;
+  let lastError = null;
 
-  try {
-    return await PoseLandmarker.createFromOptions(fileset, options);
-  } catch (error) {
-    console.warn(`MediaPipe ${runningMode} GPU не запустился, пробую CPU`, error);
-    return PoseLandmarker.createFromOptions(fileset, {
-      ...options,
-      baseOptions: {
-        modelAssetPath: MODEL_URL,
-        delegate: "CPU",
-      },
-    });
+  for (const model of models) {
+    for (const delegate of ["GPU", "CPU"]) {
+      try {
+        const landmarker = await PoseLandmarker.createFromOptions(fileset, {
+          baseOptions: {
+            modelAssetPath: model.url,
+            delegate,
+          },
+          runningMode,
+          numPoses: 1,
+          minPoseDetectionConfidence: 0.45,
+          minPosePresenceConfidence: 0.45,
+          minTrackingConfidence: 0.45,
+        });
+        return { landmarker, model, delegate };
+      } catch (error) {
+        lastError = error;
+        console.warn(`MediaPipe ${model.name} ${runningMode} ${delegate} не запустился`, error);
+      }
+    }
   }
+
+  throw lastError || new Error("MediaPipe Pose Landmarker не запустился");
 }
 
 function setButtons(modelReady) {
@@ -1317,14 +1331,17 @@ async function scanTeacherVideo(options = {}) {
     clearCanvas(teacherCtx, teacherCanvas);
     const result = safeDetectPose(state.teacherLandmarker, teacherVideo);
     const landmarks = result.landmarks?.[0];
+    const worldLandmarks = normalizedWorldLandmarksFromResult(result);
     if (landmarks) {
+      const normalized = normalizeLandmarks(landmarks);
       drawPose(teacherCtx, teacherCanvas, landmarks, "#f5c542");
       state.reference.push({
         time,
         displayLandmarks: cloneLandmarks(landmarks),
-        landmarks: normalizeLandmarks(landmarks),
+        landmarks: normalized,
+        worldLandmarks,
         angles: poseAngles(landmarks),
-        signature: movementSignature(normalizeLandmarks(landmarks)),
+        signature: movementSignature(normalized),
       });
     }
     frameIndex += 1;
@@ -1603,12 +1620,13 @@ function processFrame() {
     state.lastVideoTime = studentVideo.currentTime;
     const result = safeDetectPoseForVideo(state.liveLandmarker, studentVideo, performance.now());
     const student = result.landmarks?.[0];
+    const studentWorld = result.worldLandmarks?.[0] || null;
 
     clearCanvas(studentCtx, studentCanvas);
     if (student) {
       drawPose(studentCtx, studentCanvas, student, "#2dd4bf");
       if (state.mode === "dance" && state.reference.length) {
-        recordStudentFrame(student);
+        recordStudentFrame(student, studentWorld);
       }
     }
   }
@@ -1740,6 +1758,7 @@ function lerp(from, to, amount) {
 }
 
 function cloneLandmarks(landmarks) {
+  if (!landmarks) return null;
   return landmarks.map((point) => ({
     x: point.x,
     y: point.y,
@@ -1748,15 +1767,21 @@ function cloneLandmarks(landmarks) {
   }));
 }
 
-function recordStudentFrame(studentLandmarks) {
+function normalizedWorldLandmarksFromResult(result) {
+  return normalizeWorldLandmarks(result.worldLandmarks?.[0] || null);
+}
+
+function recordStudentFrame(studentLandmarks, studentWorldLandmarks = null) {
   const musicTime = teacherVideo.currentTime;
   if (musicTime < state.exam.start || musicTime > state.recordingEnd) return;
   if (state.lastRecordAt >= 0 && musicTime - state.lastRecordAt < 0.08) return;
 
+  const normalized = normalizeLandmarks(studentLandmarks);
   const sample = {
     time: musicTime,
     angles: poseAngles(studentLandmarks),
-    landmarks: normalizeLandmarks(studentLandmarks),
+    landmarks: normalized,
+    worldLandmarks: normalizeWorldLandmarks(studentWorldLandmarks),
   };
   sample.signature = movementSignature(sample.landmarks);
 
@@ -1790,6 +1815,8 @@ function evaluateRecordedAttempt() {
     trajectory: [],
     amplitude: [],
     energy: [],
+    motion: [],
+    world: [],
   };
 
   references.forEach((reference) => {
@@ -1812,18 +1839,59 @@ function evaluateRecordedAttempt() {
     const studentNext = nextStudentSample(student.time);
     const movementType = classifyMovementMoment(reference, referencePrevious, referenceNext);
 
-    const arms = jointCategoryGroupScore(reference.signature, student.signature, ["leftArm", "rightArm"]);
-    const legs = jointCategoryGroupScore(reference.signature, student.signature, ["leftLeg", "rightLeg", "stance"]);
-    const body = jointCategoryGroupScore(reference.signature, student.signature, ["torso", "level"]);
-    const chest = body;
-    const head = 70;
-    const fingers = 70;
-    const position = poseShapeScore(reference.signature, student.signature);
+    const arms = weightedAverage(
+      [
+        jointCategoryGroupScore(reference.signature, student.signature, ["leftArm", "rightArm"]),
+        angleGroupScore(reference.angles.arms, student.angles.arms),
+      ],
+      [0.46, 0.54],
+    );
+    const legs = weightedAverage(
+      [
+        jointCategoryGroupScore(reference.signature, student.signature, ["leftLeg", "rightLeg", "stance"]),
+        angleGroupScore(reference.angles.legs, student.angles.legs),
+      ],
+      [0.5, 0.5],
+    );
+    const body = weightedAverage(
+      [
+        jointCategoryGroupScore(reference.signature, student.signature, ["torso", "level"]),
+        angleGroupScore(reference.angles.body, student.angles.body),
+      ],
+      [0.45, 0.55],
+    );
+    const chest = angleGroupScore(reference.angles.chest, student.angles.chest);
+    const head = angleGroupScore(reference.angles.head, student.angles.head);
+    const fingers = angleGroupScore(reference.angles.fingers, student.angles.fingers);
+    const position = weightedAverage(
+      [
+        landmarkGroupScore(reference.landmarks, student.landmarks),
+        poseShapeScore(reference.signature, student.signature),
+        weightedAverage([arms, legs, body], [0.38, 0.36, 0.26]),
+      ],
+      [0.42, 0.28, 0.3],
+    );
     const timing = timingScore(reference.time, student.time);
     const trajectory = trajectoryScore(referencePrevious, referenceNext, studentPrevious, studentNext);
     const amplitude = amplitudeScore(reference.signature, student.signature);
     const energy = energyScore(referencePrevious, referenceNext, studentPrevious, studentNext);
-    const corrected = reconcileMicroJitterScores({ position, timing, trajectory, amplitude, energy, arms, legs, body });
+    const motion = motionScore(referencePrevious, referenceNext, studentPrevious, studentNext);
+    const world = worldPoseScore(reference.worldLandmarks, student.worldLandmarks);
+    const corrected = reconcileMicroJitterScores({
+      position,
+      timing,
+      trajectory,
+      amplitude,
+      energy,
+      motion,
+      world,
+      arms,
+      legs,
+      body,
+      chest,
+      head,
+      fingers,
+    });
     const total = adaptiveMomentScore(corrected, movementType);
     if (total < 70 && shouldReportMistake(corrected)) {
       mistakes.push({
@@ -1836,19 +1904,22 @@ function evaluateRecordedAttempt() {
     groups.arms.push(corrected.arms);
     groups.legs.push(corrected.legs);
     groups.body.push(corrected.body);
-    groups.chest.push(chest);
-    groups.head.push(head);
-    groups.fingers.push(fingers);
+    groups.chest.push(corrected.chest);
+    groups.head.push(corrected.head);
+    groups.fingers.push(corrected.fingers);
     groups.position.push(corrected.position);
     groups.timing.push(corrected.timing);
     groups.trajectory.push(corrected.trajectory);
     groups.amplitude.push(corrected.amplitude);
     groups.energy.push(corrected.energy);
+    groups.motion.push(corrected.motion);
+    groups.world.push(corrected.world);
     totals.push(total);
   });
 
   const coverage = references.length ? matchedFrames / references.length : 0;
-  const rawTotal = average(totals) * coverage;
+  const motionStats = motionStatsForAttempt(references, state.studentRecording);
+  const rawTotal = average(totals) * Math.pow(coverage, 1.35);
   const quality = {
     arms: average(groups.arms),
     legs: average(groups.legs),
@@ -1858,6 +1929,11 @@ function evaluateRecordedAttempt() {
     amplitude: average(groups.amplitude),
     trajectory: average(groups.trajectory),
     energy: average(groups.energy),
+    motion: weightedAverage([average(groups.motion), motionStats.score], [0.58, 0.42]),
+    world: average(groups.world),
+    movementRatio: motionStats.ratio,
+    referenceMovement: motionStats.referenceMovement,
+    studentMovement: motionStats.studentMovement,
   };
   const total = calibratedMatchTotal(rawTotal, coverage, quality);
   const filteredMistakes = filterReportedMistakes(mistakes, total, coverage);
@@ -1873,6 +1949,11 @@ function evaluateRecordedAttempt() {
     trajectory: quality.trajectory,
     amplitude: quality.amplitude,
     energy: quality.energy,
+    motion: quality.motion,
+    world: quality.world,
+    movementRatio: quality.movementRatio,
+    referenceMovement: quality.referenceMovement,
+    studentMovement: quality.studentMovement,
     total,
     score: Math.round(total * 12),
     coverage: Math.round(coverage * 100),
@@ -1885,37 +1966,51 @@ function evaluateRecordedAttempt() {
 }
 
 function calibratedMatchTotal(total, coverage, quality = {}) {
-  if (coverage < 0.82) return Math.round(total);
-  if (isTeacherLevelMatch(total, coverage, quality)) return 100;
-  if (total >= 88 && coverage >= 0.98) return 100;
-  if (total >= 96 && coverage >= 0.96) return 100;
-  if (total >= 92 && coverage >= 0.9) return 100;
-  if (total >= 90 && coverage >= 0.94) {
-    return Math.min(99, Math.round(96 + (total - 90) * 0.7));
-  }
-  if (total >= 84 && coverage >= 0.9) {
-    return Math.round(total + 5);
-  }
-  return Math.round(total);
+  const poseCore = weightedAverage(
+    [
+      quality.position || 0,
+      quality.arms || 0,
+      quality.legs || 0,
+      quality.body || 0,
+      quality.amplitude || 0,
+      quality.motion || 0,
+      quality.world || 0,
+    ],
+    [0.25, 0.19, 0.17, 0.11, 0.1, 0.11, 0.07],
+  );
+  const weakMetric = Math.min(
+    quality.arms || 0,
+    quality.legs || 0,
+    quality.body || 0,
+    quality.position || 0,
+    quality.timing || 0,
+    quality.amplitude || 0,
+    quality.motion || 0,
+    quality.world || 0,
+  );
+  const movementRatio = Number.isFinite(quality.movementRatio) ? quality.movementRatio : 1;
+  const hasMovingReference = (quality.referenceMovement || 0) > 0.16;
+  const caps = [
+    coverage < 0.55 ? 35 : 100,
+    coverage < 0.72 ? 55 : 100,
+    coverage < 0.86 ? 72 : 100,
+    hasMovingReference && movementRatio < 0.18 ? 22 : 100,
+    hasMovingReference && movementRatio < 0.32 ? 38 : 100,
+    hasMovingReference && movementRatio < 0.52 ? 58 : 100,
+    weakMetric < 38 ? 58 : 100,
+    weakMetric < 52 ? 76 : 100,
+    poseCore < 70 ? 84 : 100,
+  ];
+  return Math.round(Math.min(total, ...caps));
 }
 
 function calibratedMetricScore(total, coverage) {
-  if (coverage < 0.82) return Math.round(total);
-  if (total >= 88 && coverage >= 0.9) return 100;
-  return Math.round(total);
-}
-
-function isTeacherLevelMatch(total, coverage, quality) {
-  const poseCore = weightedAverage(
-    [quality.position || 0, quality.arms || 0, quality.legs || 0, quality.body || 0, quality.amplitude || 0],
-    [0.34, 0.2, 0.18, 0.16, 0.12],
-  );
-  return coverage >= 0.9 && poseCore >= 82 && (quality.timing || 0) >= 82 && total >= 82;
+  return Math.round(total * Math.min(1, Math.max(0.35, coverage)));
 }
 
 function filterReportedMistakes(mistakes, total, coverage) {
-  if (total >= 92 && coverage >= 0.96) return [];
-  const severeThreshold = 50;
+  if (total >= 94 && coverage >= 0.96) return [];
+  const severeThreshold = total >= 75 ? 58 : 68;
   return mistakes
     .filter((item) => item.score < severeThreshold)
     .sort((a, b) => a.score - b.score)
@@ -1925,25 +2020,18 @@ function filterReportedMistakes(mistakes, total, coverage) {
 
 function reconcileMicroJitterScores(scores) {
   const shape = weightedAverage([scores.position, scores.arms, scores.legs, scores.body, scores.amplitude], [0.34, 0.2, 0.18, 0.16, 0.12]);
-  if (shape >= 72) {
+  if (shape >= 86 && scores.timing >= 82) {
     return {
       ...scores,
-      trajectory: Math.max(scores.trajectory, 92),
-      energy: Math.max(scores.energy, 90),
-    };
-  }
-  if (shape >= 62 && scores.trajectory < 70) {
-    return {
-      ...scores,
-      trajectory: Math.max(scores.trajectory, 84),
-      energy: Math.max(scores.energy, 80),
+      trajectory: Math.max(scores.trajectory, 82),
+      energy: Math.max(scores.energy, 78),
     };
   }
   return scores;
 }
 
 function shouldReportMistake(scores) {
-  return grossMistakeScore(scores) < 50;
+  return grossMistakeScore(scores) < 68;
 }
 
 function weakestMomentLabel(scores) {
@@ -1955,6 +2043,8 @@ function weakestMomentLabel(scores) {
     trajectory: "траектория движения другая",
     amplitude: "амплитуда отличается",
     energy: "скорость/энергия движения другая",
+    motion: "слишком мало движения",
+    world: "3D-форма тела отличается",
     position: "форма позы отличается",
   };
   const [key] =
@@ -1964,13 +2054,25 @@ function weakestMomentLabel(scores) {
       body: scores.body,
       timing: scores.timing,
       amplitude: scores.amplitude,
+      motion: scores.motion,
+      world: scores.world,
       position: scores.position,
     }).sort((a, b) => a[1] - b[1])[0] || ["position"];
   return labels[key] || labels.position;
 }
 
 function grossMistakeScore(scores) {
-  return Math.min(scores.position, scores.arms, scores.legs, scores.body, scores.timing, scores.amplitude);
+  return Math.min(
+    scores.position,
+    scores.arms,
+    scores.legs,
+    scores.body,
+    scores.timing,
+    scores.amplitude,
+    scores.trajectory,
+    scores.motion,
+    scores.world,
+  );
 }
 
 function nearestStudentSample(time) {
@@ -2097,11 +2199,11 @@ function poseShapeScore(reference, student) {
 
 function categoryOrNumberScore(reference, student) {
   if (typeof reference === "number" && typeof student === "number") {
-    return numericSimilarity(reference, student, 0.06, 22);
+    return numericSimilarity(reference, student, 0.035, 42);
   }
   if (reference === student) return 100;
-  if (String(reference).split("_")[0] === String(student).split("_")[0]) return 92;
-  return 68;
+  if (String(reference).split("_")[0] === String(student).split("_")[0]) return 72;
+  return 34;
 }
 
 function classifyMovementMoment(current, previous, next) {
@@ -2116,41 +2218,47 @@ function classifyMovementMoment(current, previous, next) {
 function adaptiveMomentScore(scores, movementType) {
   const weights =
     movementType === "accent"
-      ? { position: 0.54, timing: 0.24, trajectory: 0.04, amplitude: 0.12, energy: 0.06 }
+      ? { position: 0.35, timing: 0.2, trajectory: 0.1, amplitude: 0.09, energy: 0.07, motion: 0.12, world: 0.07 }
       : movementType === "transition"
-        ? { position: 0.44, timing: 0.2, trajectory: 0.08, amplitude: 0.18, energy: 0.1 }
-        : { position: 0.58, timing: 0.22, trajectory: 0.02, amplitude: 0.14, energy: 0.04 };
+        ? { position: 0.32, timing: 0.17, trajectory: 0.12, amplitude: 0.13, energy: 0.08, motion: 0.12, world: 0.06 }
+        : { position: 0.49, timing: 0.19, trajectory: 0.04, amplitude: 0.11, energy: 0.03, motion: 0.07, world: 0.07 };
 
   const base =
     scores.position * weights.position +
     scores.timing * weights.timing +
     scores.trajectory * weights.trajectory +
     scores.amplitude * weights.amplitude +
-    scores.energy * weights.energy;
-  const limbGuard = Math.min(scores.arms, scores.legs, scores.body);
-  const guardedBase = limbGuard < 45 ? base * 0.78 + limbGuard * 0.22 : base * 0.94 + limbGuard * 0.06;
+    scores.energy * weights.energy +
+    scores.motion * weights.motion +
+    scores.world * weights.world;
+  const limbGuard = Math.min(scores.arms, scores.legs, scores.body, scores.motion, scores.world);
+  const detailGuard = Math.min(scores.chest ?? 100, scores.head ?? 100, scores.fingers ?? 100);
+  const guardedBase =
+    limbGuard < 45
+      ? base * 0.68 + limbGuard * 0.32
+      : base * 0.86 + limbGuard * 0.1 + Math.min(100, detailGuard) * 0.04;
   return Math.round(guardedBase);
 }
 
 function trajectoryScore(referencePrevious, referenceNext, studentPrevious, studentNext) {
   const referenceVector = movementVector(referencePrevious, referenceNext);
   const studentVector = movementVector(studentPrevious, studentNext);
-  if (!referenceVector && !studentVector) return 96;
-  if (!referenceVector || !studentVector) return 72;
+  if (!referenceVector && !studentVector) return 88;
+  if (!referenceVector || !studentVector) return 48;
   const referenceDistance = vectorDistance(referenceVector);
   const studentDistance = vectorDistance(studentVector);
-  if (referenceDistance < 0.035 && studentDistance < 0.035) return 96;
-  if (referenceDistance < 0.035 || studentDistance < 0.035) return 82;
+  if (referenceDistance < 0.035 && studentDistance < 0.035) return 88;
+  if (referenceDistance < 0.035 || studentDistance < 0.035) return 42;
   return directionSimilarity(referenceVector, studentVector);
 }
 
 function amplitudeScore(reference, student) {
   return weightedAverage(
     [
-      numericSimilarity(reference.armSpread, student.armSpread, 0.08, 16),
-      numericSimilarity(reference.reach, student.reach, 0.08, 18),
-      numericSimilarity(reference.stance, student.stance, 0.08, 18),
-      numericSimilarity(reference.level, student.level, 0.07, 20),
+      numericSimilarity(reference.armSpread, student.armSpread, 0.045, 34),
+      numericSimilarity(reference.reach, student.reach, 0.045, 36),
+      numericSimilarity(reference.stance, student.stance, 0.045, 36),
+      numericSimilarity(reference.level, student.level, 0.04, 38),
     ],
     [0.3, 0.26, 0.24, 0.2],
   );
@@ -2159,11 +2267,89 @@ function amplitudeScore(reference, student) {
 function energyScore(referencePrevious, referenceNext, studentPrevious, studentNext) {
   const referenceVector = movementVector(referencePrevious, referenceNext);
   const studentVector = movementVector(studentPrevious, studentNext);
-  if (!referenceVector && !studentVector) return 96;
-  if (!referenceVector || !studentVector) return 74;
+  if (!referenceVector && !studentVector) return 88;
+  if (!referenceVector || !studentVector) return 44;
   const referenceVelocity = vectorVelocity(referenceVector);
   const studentVelocity = vectorVelocity(studentVector);
-  return numericSimilarity(referenceVelocity, studentVelocity, 0.08, 14);
+  return numericSimilarity(referenceVelocity, studentVelocity, 0.05, 24);
+}
+
+function worldPoseScore(referenceWorldLandmarks, studentWorldLandmarks) {
+  if (!referenceWorldLandmarks?.length || !studentWorldLandmarks?.length) return 78;
+  const worldPoints = [11, 12, 13, 14, 15, 16, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32];
+  const scores = worldPoints
+    .map((index) => {
+      const reference = referenceWorldLandmarks[index];
+      const student = studentWorldLandmarks[index];
+      if (!reference || !student || reference.visibility < 0.25 || student.visibility < 0.25) return null;
+      const distance3d = Math.hypot(reference.x - student.x, reference.y - student.y, reference.z - student.z);
+      return Math.max(0, 100 - distance3d * 42);
+    })
+    .filter((score) => score !== null);
+
+  return scores.length ? average(scores) : 78;
+}
+
+function motionScore(referencePrevious, referenceNext, studentPrevious, studentNext) {
+  const referenceVector = movementVector(referencePrevious, referenceNext);
+  const studentVector = movementVector(studentPrevious, studentNext);
+  if (!referenceVector && !studentVector) return 92;
+  if (!referenceVector) return 78;
+  const referenceDistance = vectorDistance(referenceVector);
+  const studentDistance = studentVector ? vectorDistance(studentVector) : 0;
+  if (referenceDistance < 0.035) return studentDistance < 0.06 ? 92 : 72;
+  const ratio = studentDistance / Math.max(referenceDistance, 0.001);
+  const ratioScore =
+    ratio < 0.18
+      ? 8
+      : ratio < 0.32
+        ? 26
+        : ratio < 0.52
+          ? 48
+          : ratio > 1.85
+            ? 58
+            : numericSimilarity(ratio, 1, 0.22, 82);
+  const directionScore = studentVector ? directionSimilarity(referenceVector, studentVector) : 0;
+  return weightedAverage([ratioScore, directionScore], [0.72, 0.28]);
+}
+
+function motionStatsForAttempt(referenceSamples, studentSamples) {
+  const referenceMovement = totalMovement(referenceSamples);
+  const studentMovement = totalMovement(studentSamples);
+  if (referenceMovement < 0.16) {
+    return {
+      score: studentMovement < 0.2 ? 92 : 72,
+      ratio: 1,
+      referenceMovement,
+      studentMovement,
+    };
+  }
+  const ratio = studentMovement / Math.max(referenceMovement, 0.001);
+  const score =
+    ratio < 0.18
+      ? 8
+      : ratio < 0.32
+        ? 24
+        : ratio < 0.52
+          ? 46
+          : ratio > 1.9
+            ? 56
+            : numericSimilarity(ratio, 1, 0.2, 78);
+  return {
+    score,
+    ratio,
+    referenceMovement,
+    studentMovement,
+  };
+}
+
+function totalMovement(samples) {
+  let total = 0;
+  for (let index = 1; index < samples.length; index += 1) {
+    const vector = movementVector(samples[index - 1], samples[index]);
+    if (vector) total += vectorDistance(vector);
+  }
+  return total;
 }
 
 function movementVelocity(previous, next) {
@@ -2291,6 +2477,32 @@ function normalizeLandmarks(landmarks) {
     y: (point.y - center.y) / scale,
     z: ((point.z || 0) - center.z) / scale,
     visibility: point.visibility || 0,
+  }));
+}
+
+function normalizeWorldLandmarks(landmarks) {
+  if (!landmarks?.length) return null;
+  const leftHip = landmarks[23];
+  const rightHip = landmarks[24];
+  const leftShoulder = landmarks[11];
+  const rightShoulder = landmarks[12];
+  if (!leftHip || !rightHip || !leftShoulder || !rightShoulder) return null;
+
+  const center = {
+    x: (leftHip.x + rightHip.x) / 2,
+    y: (leftHip.y + rightHip.y) / 2,
+    z: ((leftHip.z || 0) + (rightHip.z || 0)) / 2,
+  };
+  const shoulderSpan = distance(leftShoulder, rightShoulder);
+  const torsoSpan =
+    (distance(leftShoulder, leftHip) + distance(rightShoulder, rightHip) + distance(leftShoulder, rightHip)) / 3;
+  const scale = Math.max(0.001, shoulderSpan * 0.45 + torsoSpan * 0.55);
+
+  return landmarks.map((point) => ({
+    x: (point.x - center.x) / scale,
+    y: (point.y - center.y) / scale,
+    z: ((point.z || 0) - center.z) / scale,
+    visibility: point.visibility ?? 1,
   }));
 }
 
@@ -2426,8 +2638,8 @@ function updateMeters(scores) {
   els.fingersMeter.value = scores.energy ?? scores.fingers;
   els.positionMeter.value = scores.trajectory ?? scores.position;
   els.timeMeter.value = scores.timing;
-  els.matchValue.textContent = renderStars(matchToStars(scores.total));
-  els.matchLabel.textContent = scores.total >= 85 ? "супер" : scores.total >= 70 ? "хорошо" : scores.total >= 50 ? "почти" : "еще раз";
+  els.matchValue.textContent = `${scores.total}%`;
+  els.matchLabel.textContent = `${renderStars(matchToStars(scores.total))} · ${scores.total >= 92 ? "точно" : scores.total >= 78 ? "хорошо" : scores.total >= 62 ? "средне" : "тренировать"}`;
   els.matchArc.style.strokeDashoffset = String(314 - (314 * scores.total) / 100);
 }
 
@@ -2440,6 +2652,11 @@ function emptyScores() {
     head: 0,
     fingers: 0,
     position: 0,
+    trajectory: 0,
+    amplitude: 0,
+    energy: 0,
+    motion: 0,
+    world: 0,
     timing: 0,
     total: 0,
     score: 0,
@@ -2451,11 +2668,11 @@ function updateScore(value) {
 }
 
 function matchToStars(match) {
-  if (match >= 90) return 5;
-  if (match >= 78) return 4;
-  if (match >= 62) return 3;
-  if (match >= 42) return 2;
-  if (match >= 20) return 1;
+  if (match >= 94) return 5;
+  if (match >= 84) return 4;
+  if (match >= 70) return 3;
+  if (match >= 52) return 2;
+  if (match >= 32) return 1;
   return 0;
 }
 
@@ -3171,12 +3388,35 @@ function showResultOverlay(attempt) {
 
   els.resultStars.textContent = renderStars(stars);
   els.resultTitle.textContent = stars >= 5 ? "Идеальная сдача" : stars >= 3 ? "Уровень пройден" : "Еще немного тренировки";
-  const coverageText = Number.isFinite(attempt.scores?.coverage) ? ` · кадры ${attempt.scores.coverage}%` : "";
-  els.resultDetails.textContent = `${attempt.match}% совпадения · ${stars} из 5 звезд${coverageText} · ${tip}`;
+  els.resultDetails.textContent = resultDetailsText(attempt, stars, tip);
   els.resultLevelBadge.textContent = `★${info.current.level}`;
   els.resultLevelName.textContent = info.current.name;
   renderMistakes(attempt.scores?.mistakes || []);
   els.resultOverlay.hidden = false;
+}
+
+function resultDetailsText(attempt, stars, tip) {
+  const scores = attempt.scores || {};
+  const coverageText = Number.isFinite(scores.coverage) ? `кадры ${scores.coverage}%` : "кадры -";
+  const parts = [
+    `${attempt.match}% совпадения`,
+    `${stars} из 5 звезд`,
+    coverageText,
+    `руки ${roundScore(scores.arms)}%`,
+    `ноги ${roundScore(scores.legs)}%`,
+    `корпус ${roundScore(scores.body)}%`,
+    `амплитуда ${roundScore(scores.amplitude)}%`,
+    `траектория ${roundScore(scores.trajectory)}%`,
+    `движение ${roundScore(scores.motion)}%`,
+    `3D ${roundScore(scores.world)}%`,
+    `ритм ${roundScore(scores.timing)}%`,
+    tip,
+  ];
+  return parts.join(" · ");
+}
+
+function roundScore(value) {
+  return Number.isFinite(value) ? Math.round(value) : 0;
 }
 
 function retakeStudentAttempt() {
@@ -5197,6 +5437,7 @@ async function buildStudentSkeleton() {
       clearCanvas(studentCtx, studentCanvas);
       const result = safeDetectPose(state.teacherLandmarker, studentVideo);
       const landmarks = result.landmarks?.[0];
+      const worldLandmarks = normalizedWorldLandmarksFromResult(result);
       if (landmarks) {
         drawPose(studentCtx, studentCanvas, landmarks, "#2dd4bf");
         const normalized = normalizeLandmarks(landmarks);
@@ -5206,6 +5447,7 @@ async function buildStudentSkeleton() {
           displayLandmarks: cloneLandmarks(landmarks),
           angles: poseAngles(landmarks),
           landmarks: normalized,
+          worldLandmarks,
           signature: movementSignature(normalized),
         };
         state.studentSkeleton.push(sample);
