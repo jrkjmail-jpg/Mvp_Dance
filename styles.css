@@ -9152,6 +9152,215 @@ h3,
   gap: 16px;
 }
 
+/* Interface correction pass: profile layout, brand, studio header and invite button */
+.level-card.score-pill {
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-areas:
+    "avatar main"
+    "level level"
+    "progress progress"
+    "motivation motivation"
+    "next stars";
+  align-items: center;
+  row-gap: 12px;
+  column-gap: 16px;
+}
+
+.level-card .profile-badge {
+  grid-area: avatar;
+}
+
+.level-card .level-profile-main {
+  grid-area: main;
+}
+
+.level-card .level-badge {
+  grid-area: level;
+  position: static !important;
+  justify-self: end;
+  align-self: end;
+  display: block;
+  margin: 0 !important;
+  transform: none !important;
+  white-space: nowrap;
+}
+
+.level-card .level-progress {
+  grid-area: progress;
+  grid-column: auto !important;
+  margin: 0 !important;
+}
+
+.level-card .level-motivation {
+  grid-area: motivation;
+  grid-column: auto !important;
+}
+
+.level-card #levelNextValue {
+  grid-area: next;
+  grid-column: auto !important;
+}
+
+.level-card .level-total-stars {
+  grid-area: stars;
+  grid-column: auto !important;
+}
+
+.brand-lockup {
+  min-width: max-content;
+  flex-shrink: 0;
+}
+
+.brand-lockup > div {
+  min-width: max-content;
+}
+
+.brand-lockup h1 {
+  display: inline-block;
+  flex: 0 0 auto;
+  white-space: nowrap;
+  word-break: keep-all;
+  overflow-wrap: normal;
+  text-wrap: nowrap;
+}
+
+.studio-channel-copy h2,
+.studio-channel-copy h3 {
+  margin: 5px 0 10px;
+  font-family: var(--font-ui);
+  font-size: clamp(2rem, 5vw, 3.45rem);
+  font-weight: var(--weight-display);
+  line-height: 1;
+  letter-spacing: var(--tracking-tight);
+}
+
+.studio-channel-cover,
+.dancer-channel-cover,
+.student-studio-cover {
+  border-radius: clamp(30px, 4vw, 44px);
+  overflow: hidden !important;
+  isolation: isolate;
+}
+
+.studio-channel-cover-image,
+.studio-channel-cover-shade,
+.student-studio-cover img,
+.student-studio-cover > span,
+.dancer-cover-glow {
+  border-radius: inherit;
+}
+
+.teacher-space-panel .studio-channel-cover {
+  overflow: visible !important;
+}
+
+.teacher-space-panel .studio-channel-logo {
+  width: clamp(148px, 11vw, 176px);
+  height: clamp(148px, 11vw, 176px);
+  left: clamp(24px, 3vw, 42px);
+  bottom: clamp(-58px, -3.2vw, -46px);
+  border-width: 7px;
+  z-index: 70 !important;
+}
+
+.teacher-space-panel .studio-channel-copy {
+  padding-top: clamp(58px, 5vw, 74px);
+}
+
+.studio-invite-button,
+.teacher-space-panel .studio-invite-button {
+  background: rgba(28, 32, 35, 0.96) !important;
+  color: #fffaf2 !important;
+  border: 1.5px solid rgba(200, 255, 72, 0.9) !important;
+  box-shadow: none !important;
+  filter: none !important;
+}
+
+.studio-invite-button::before,
+.studio-invite-button::after {
+  display: none !important;
+  content: none !important;
+}
+
+.studio-invite-button span {
+  width: 28px;
+  height: 28px;
+  min-width: 28px;
+  display: grid;
+  place-items: center;
+  line-height: 1;
+  padding: 0;
+  border-radius: 50%;
+  background: rgba(200, 255, 72, 0.16) !important;
+  color: #fffaf2 !important;
+  box-shadow: none !important;
+}
+
+@media (max-width: 720px) {
+  .topbar {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .brand-lockup {
+    min-width: 0;
+    width: fit-content;
+    max-width: 100%;
+    gap: 12px;
+  }
+
+  .brand-lockup > div {
+    min-width: max-content;
+  }
+
+  .brand-lockup h1,
+  .topbar .brand-lockup h1 {
+    font-size: clamp(2.05rem, 9.8vw, 3rem) !important;
+    line-height: 0.86;
+    letter-spacing: -0.09em;
+    transform: scaleX(1.08);
+    transform-origin: left center;
+  }
+
+  .brand-lockup h1::after {
+    right: -0.58em;
+    bottom: 0.04em;
+  }
+
+  .level-card.score-pill {
+    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-areas:
+      "avatar main"
+      "level level"
+      "progress progress"
+      "motivation motivation"
+      "next stars";
+    row-gap: 14px;
+  }
+
+  .level-card .level-badge {
+    justify-self: start;
+    font-size: clamp(2.9rem, 17vw, 5rem);
+    line-height: 0.86;
+  }
+
+  .level-card .level-progress {
+    height: 8px;
+  }
+
+  .studio-channel-copy h2,
+  .studio-channel-copy h3 {
+    font-size: clamp(2.05rem, 12vw, 3.35rem);
+    line-height: 0.95;
+  }
+
+  .teacher-space-panel .studio-channel-logo {
+    width: 132px;
+    height: 132px;
+    bottom: -48px;
+    left: 20px;
+  }
+}
+
 .teacher-student-profile-hero {
   display: grid;
   grid-template-columns: auto 1fr auto;
