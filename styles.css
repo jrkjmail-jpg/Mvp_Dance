@@ -9298,12 +9298,12 @@ h3,
 
 @media (min-width: 721px) {
   .level-card.score-pill {
-    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-columns: auto max-content minmax(0, 1fr) auto;
     grid-template-areas:
-      "avatar main level"
-      "progress progress progress"
-      "motivation motivation motivation"
-      "next next stars";
+      "avatar main . level"
+      "progress progress progress progress"
+      "motivation motivation motivation motivation"
+      "next next next stars";
     align-items: center;
     gap: 14px 24px;
   }
@@ -9312,6 +9312,7 @@ h3,
     justify-self: start;
     align-self: center;
     text-align: left;
+    max-width: min(46vw, 720px);
   }
 
   .level-card .level-badge {
