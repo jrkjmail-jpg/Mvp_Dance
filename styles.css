@@ -9296,6 +9296,44 @@ h3,
   box-shadow: none !important;
 }
 
+@media (min-width: 721px) {
+  .level-card.score-pill {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-areas:
+      "avatar main level"
+      "progress progress progress"
+      "motivation motivation motivation"
+      "next next stars";
+    align-items: center;
+    gap: 14px 24px;
+  }
+
+  .level-card .level-profile-main {
+    justify-self: start;
+    align-self: center;
+    text-align: left;
+  }
+
+  .level-card .level-badge {
+    justify-self: end;
+    align-self: center;
+  }
+
+  .level-card .level-progress {
+    align-self: end;
+  }
+
+  .level-card .level-motivation,
+  .level-card #levelNextValue {
+    justify-self: start;
+    text-align: left;
+  }
+
+  .level-card .level-total-stars {
+    justify-self: end;
+  }
+}
+
 @media (max-width: 720px) {
   .topbar {
     grid-template-columns: minmax(0, 1fr) auto;
