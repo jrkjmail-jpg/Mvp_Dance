@@ -10058,3 +10058,43 @@ h3,
     font-size: clamp(1.28rem, 6vw, 1.85rem);
   }
 }
+
+/* Account drawer compact sizing */
+.icon-account-switch {
+  padding: 5px;
+}
+
+.icon-account-switch:hover::before,
+.icon-account-switch:focus-within::before {
+  inset: 0 0 -118px 0;
+}
+
+.account-drawer {
+  gap: 7px;
+  padding: 10px 0 7px;
+}
+
+.icon-account-switch .account-nav-button {
+  width: 46px;
+  min-width: 46px;
+  min-height: 46px;
+}
+
+.icon-account-switch .account-nav-button.active {
+  width: 48px;
+  min-width: 48px;
+  min-height: 48px;
+}
+
+.account-drawer .account-nav-button,
+.settings-toggle {
+  width: 44px;
+  min-width: 44px;
+  min-height: 44px;
+}
+
+.account-drawer .account-nav-button.active {
+  width: 46px;
+  min-width: 46px;
+  min-height: 46px;
+}
