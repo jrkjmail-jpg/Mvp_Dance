@@ -9914,18 +9914,20 @@ h3,
     overflow: visible;
     text-overflow: clip;
     flex: 0 0 auto;
-    font-size: clamp(1.85rem, 8.6vw, 2.55rem) !important;
-    line-height: 0.86;
-    letter-spacing: -0.09em;
-    transform: scaleX(1.08);
+    font-size: clamp(2.45rem, 10.8vw, 2.85rem) !important;
+    line-height: 0.84;
+    letter-spacing: -0.095em;
+    transform: scaleX(1.06);
     transform-origin: left center;
   }
 
   .topbar .brand-lockup h1::after {
     top: 50%;
     bottom: auto;
-    right: -0.58em;
-    transform: translateY(-50%) scaleX(0.93);
+    right: -0.55em;
+    width: 0.3em;
+    height: 0.3em;
+    transform: translateY(-50%);
   }
 
   .icon-account-switch {
