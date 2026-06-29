@@ -1,9 +1,9 @@
-const CACHE_NAME = "tantsuy-mvp-20260629-11";
+const CACHE_NAME = "tantsuy-mvp-20260629-12";
 const APP_SHELL = [
   "./",
-  "./index.html?v=20260629-11",
-  "./styles.css?v=20260629-11",
-  "./app.js?v=20260629-11",
+  "./index.html?v=20260629-12",
+  "./styles.css?v=20260629-12",
+  "./app.js?v=20260629-12",
   "./manifest.webmanifest",
   "./assets/app-icon.svg",
   "./assets/dance-lesson-thumb.png"
@@ -35,7 +35,7 @@ self.addEventListener("fetch", (event) => {
           caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
           return response;
         })
-        .catch(() => caches.match(request).then((cached) => cached || caches.match("./index.html?v=20260629-11")))
+        .catch(() => caches.match(request).then((cached) => cached || caches.match("./index.html?v=20260629-12")))
     );
     return;
   }

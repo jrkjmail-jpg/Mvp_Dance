@@ -10080,6 +10080,20 @@ h3,
   color: rgba(255, 250, 242, 0.52);
 }
 
+.dancer-profile-page .dancer-channel,
+.dancer-profile-page .dancer-channel-cover,
+.dancer-profile-page .dancer-channel-copy {
+  overflow: visible !important;
+}
+
+.dancer-profile-page .dancer-channel-cover {
+  z-index: 2;
+}
+
+.dancer-profile-page .dancer-avatar-large {
+  z-index: 20;
+}
+
 @media (max-width: 720px) {
   .completed-lessons-panel {
     border-radius: 28px;
