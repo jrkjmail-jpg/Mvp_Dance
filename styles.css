@@ -9152,60 +9152,7 @@ h3,
   gap: 16px;
 }
 
-/* Interface correction pass: profile layout, brand, studio header and invite button */
-.level-card.score-pill {
-  grid-template-columns: auto minmax(0, 1fr);
-  grid-template-areas:
-    "avatar main"
-    "level level"
-    "progress progress"
-    "motivation motivation"
-    "next stars";
-  align-items: center;
-  row-gap: 12px;
-  column-gap: 16px;
-}
-
-.level-card .profile-badge {
-  grid-area: avatar;
-}
-
-.level-card .level-profile-main {
-  grid-area: main;
-}
-
-.level-card .level-badge {
-  grid-area: level;
-  position: static !important;
-  justify-self: end;
-  align-self: end;
-  display: block;
-  margin: 0 !important;
-  transform: none !important;
-  white-space: nowrap;
-}
-
-.level-card .level-progress {
-  grid-area: progress;
-  grid-column: auto !important;
-  margin: 0 !important;
-}
-
-.level-card .level-motivation {
-  grid-area: motivation;
-  grid-column: auto !important;
-}
-
-.level-card #levelNextValue {
-  grid-area: next;
-  grid-column: auto !important;
-}
-
-.level-card .level-total-stars {
-  grid-area: stars;
-  grid-column: auto !important;
-}
-
+/* Interface correction pass: brand, studio header and invite button */
 .brand-lockup {
   min-width: max-content;
   flex-shrink: 0;
@@ -9296,45 +9243,6 @@ h3,
   box-shadow: none !important;
 }
 
-@media (min-width: 721px) {
-  .level-card.score-pill {
-    grid-template-columns: auto max-content minmax(0, 1fr) auto;
-    grid-template-areas:
-      "avatar main . level"
-      "progress progress progress progress"
-      "motivation motivation motivation motivation"
-      "next next next stars";
-    align-items: center;
-    gap: 14px 24px;
-  }
-
-  .level-card .level-profile-main {
-    justify-self: start;
-    align-self: center;
-    text-align: left;
-    max-width: min(46vw, 720px);
-  }
-
-  .level-card .level-badge {
-    justify-self: end;
-    align-self: center;
-  }
-
-  .level-card .level-progress {
-    align-self: end;
-  }
-
-  .level-card .level-motivation,
-  .level-card #levelNextValue {
-    justify-self: start;
-    text-align: left;
-  }
-
-  .level-card .level-total-stars {
-    justify-self: end;
-  }
-}
-
 @media (max-width: 720px) {
   .topbar {
     grid-template-columns: minmax(0, 1fr) auto;
@@ -9376,14 +9284,47 @@ h3,
     row-gap: 14px;
   }
 
+  .level-card .profile-badge {
+    grid-area: avatar;
+  }
+
+  .level-card .level-profile-main {
+    grid-area: main;
+  }
+
   .level-card .level-badge {
+    grid-area: level;
+    position: static !important;
     justify-self: start;
+    align-self: end;
+    display: block;
+    margin: 0 !important;
+    transform: none !important;
+    white-space: nowrap;
     font-size: clamp(2.9rem, 17vw, 5rem);
     line-height: 0.86;
   }
 
   .level-card .level-progress {
+    grid-area: progress;
+    grid-column: auto !important;
+    margin: 0 !important;
     height: 8px;
+  }
+
+  .level-card .level-motivation {
+    grid-area: motivation;
+    grid-column: auto !important;
+  }
+
+  .level-card #levelNextValue {
+    grid-area: next;
+    grid-column: auto !important;
+  }
+
+  .level-card .level-total-stars {
+    grid-area: stars;
+    grid-column: auto !important;
   }
 
   .studio-channel-copy h2,
