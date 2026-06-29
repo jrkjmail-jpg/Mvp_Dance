@@ -9887,3 +9887,118 @@ h3,
     min-height: 58px;
   }
 }
+
+/* Mobile-only header and student level card corrections */
+@media (max-width: 720px) {
+  .topbar .brand-lockup {
+    min-width: 0;
+    width: auto;
+    max-width: calc(100vw - 116px);
+    flex-shrink: 1;
+    align-items: center;
+    overflow: visible;
+  }
+
+  .topbar .brand-lockup > div {
+    min-width: 0;
+    width: max-content;
+    max-width: 100%;
+    flex: 0 0 auto;
+  }
+
+  .topbar .brand-lockup h1 {
+    display: inline-block;
+    width: max-content;
+    max-width: none;
+    white-space: nowrap;
+    overflow: visible;
+    text-overflow: clip;
+    flex: 0 0 auto;
+    font-size: clamp(1.85rem, 8.6vw, 2.55rem) !important;
+    line-height: 0.86;
+    letter-spacing: -0.09em;
+    transform: scaleX(1.08);
+    transform-origin: left center;
+  }
+
+  .topbar .brand-lockup h1::after {
+    top: 50%;
+    bottom: auto;
+    right: -0.58em;
+    transform: translateY(-50%) scaleX(0.93);
+  }
+
+  .icon-account-switch {
+    padding: 5px;
+    align-self: center;
+  }
+
+  .icon-account-switch .account-main,
+  .icon-account-switch .account-main.active {
+    width: 42px;
+    min-width: 42px;
+    min-height: 42px;
+  }
+
+  .icon-account-switch .account-main .account-icon {
+    width: 21px;
+    height: 21px;
+  }
+
+  #levelCardButton.level-card {
+    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-areas:
+      "avatar main"
+      "level level"
+      "progress progress"
+      "motivation motivation"
+      "next stars";
+    align-items: center;
+    row-gap: 14px;
+    column-gap: 14px;
+  }
+
+  #levelCardButton .profile-badge {
+    grid-area: avatar;
+  }
+
+  #levelCardButton .level-profile-main {
+    grid-area: main;
+    min-width: 0;
+  }
+
+  #levelCardButton .level-badge {
+    grid-area: level;
+    position: static !important;
+    display: block;
+    justify-self: start;
+    align-self: end;
+    margin: 0 !important;
+    transform: none !important;
+    white-space: nowrap;
+    line-height: 0.9;
+  }
+
+  #levelCardButton .level-progress {
+    grid-area: progress;
+    grid-column: auto !important;
+    width: 100%;
+    margin: 0 !important;
+    align-self: start;
+  }
+
+  #levelCardButton .level-motivation {
+    grid-area: motivation;
+    grid-column: auto !important;
+  }
+
+  #levelCardButton #levelNextValue {
+    grid-area: next;
+    grid-column: auto !important;
+  }
+
+  #levelCardButton .level-total-stars {
+    grid-area: stars;
+    grid-column: auto !important;
+  }
+}
