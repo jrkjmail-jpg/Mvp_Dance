@@ -10002,3 +10002,101 @@ h3,
     grid-column: auto !important;
   }
 }
+
+/* Completed lessons empty state */
+.completed-lessons-grid:has(.completed-lessons-empty) {
+  grid-template-columns: 1fr;
+}
+
+.completed-lessons-empty {
+  width: min(100%, 640px);
+  min-height: clamp(250px, 26vw, 340px);
+  margin: 0;
+  justify-self: start;
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 18px;
+  overflow: hidden;
+  border: 1px solid rgba(16, 18, 15, 0.08);
+  border-radius: clamp(28px, 3vw, 42px);
+  padding: clamp(34px, 5vw, 58px);
+  background:
+    radial-gradient(circle at 50% 18%, rgba(200, 255, 72, 0.26), transparent 12rem),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.92), rgba(255, 250, 242, 0.58));
+  color: rgba(16, 18, 15, 0.62);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.58),
+    0 20px 54px rgba(16, 18, 15, 0.08);
+  text-align: center;
+  font-size: clamp(1.25rem, 2.1vw, 1.75rem);
+  font-weight: 950;
+  line-height: 1.08;
+  letter-spacing: -0.035em;
+}
+
+.completed-lessons-empty::before {
+  content: "✓";
+  width: clamp(78px, 8vw, 112px);
+  height: clamp(78px, 8vw, 112px);
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background:
+    radial-gradient(circle at 32% 24%, rgba(255, 255, 255, 0.26), transparent 2.2rem),
+    linear-gradient(135deg, var(--accent), var(--accent-2));
+  color: #10120f;
+  box-shadow:
+    inset 0 0 0 8px rgba(16, 18, 15, 0.08),
+    0 18px 46px rgba(200, 255, 72, 0.22);
+  font-size: clamp(2rem, 4vw, 3.2rem);
+  line-height: 1;
+}
+
+.completed-lessons-empty::after {
+  content: "После первой сдачи здесь появятся карточки уроков, звёзды и история прогресса.";
+  width: min(100%, 34ch);
+  color: rgba(16, 18, 15, 0.42);
+  font-size: clamp(0.92rem, 1.3vw, 1.05rem);
+  font-weight: 850;
+  line-height: 1.28;
+  letter-spacing: 0;
+}
+
+:root[data-theme="dark"] .completed-lessons-empty {
+  border-color: rgba(255, 255, 255, 0.1);
+  background:
+    radial-gradient(circle at 50% 18%, rgba(200, 255, 72, 0.14), transparent 12rem),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.08), rgba(16, 18, 15, 0.68));
+  color: rgba(255, 250, 242, 0.78);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.05),
+    0 20px 54px rgba(0, 0, 0, 0.18);
+}
+
+:root[data-theme="dark"] .completed-lessons-empty::after {
+  color: rgba(255, 250, 242, 0.52);
+}
+
+@media (max-width: 720px) {
+  .completed-lessons-panel {
+    border-radius: 28px;
+  }
+
+  .completed-lessons-head {
+    display: grid;
+    gap: 6px;
+    align-items: start;
+  }
+
+  .completed-lessons-empty {
+    width: 100%;
+    min-height: 280px;
+    justify-self: stretch;
+    border-radius: 30px;
+    padding: 32px 24px;
+    font-size: clamp(1.28rem, 6vw, 1.85rem);
+  }
+}
