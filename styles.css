@@ -9273,60 +9273,6 @@ h3,
     bottom: 0.04em;
   }
 
-  .level-card.score-pill {
-    grid-template-columns: auto minmax(0, 1fr);
-    grid-template-areas:
-      "avatar main"
-      "level level"
-      "progress progress"
-      "motivation motivation"
-      "next stars";
-    row-gap: 14px;
-  }
-
-  .level-card .profile-badge {
-    grid-area: avatar;
-  }
-
-  .level-card .level-profile-main {
-    grid-area: main;
-  }
-
-  .level-card .level-badge {
-    grid-area: level;
-    position: static !important;
-    justify-self: start;
-    align-self: end;
-    display: block;
-    margin: 0 !important;
-    transform: none !important;
-    white-space: nowrap;
-    font-size: clamp(2.9rem, 17vw, 5rem);
-    line-height: 0.86;
-  }
-
-  .level-card .level-progress {
-    grid-area: progress;
-    grid-column: auto !important;
-    margin: 0 !important;
-    height: 8px;
-  }
-
-  .level-card .level-motivation {
-    grid-area: motivation;
-    grid-column: auto !important;
-  }
-
-  .level-card #levelNextValue {
-    grid-area: next;
-    grid-column: auto !important;
-  }
-
-  .level-card .level-total-stars {
-    grid-area: stars;
-    grid-column: auto !important;
-  }
-
   .studio-channel-copy h2,
   .studio-channel-copy h3 {
     font-size: clamp(2.05rem, 12vw, 3.35rem);
