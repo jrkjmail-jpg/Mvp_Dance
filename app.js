@@ -1,9 +1,5 @@
-const POSE_MODEL_SOURCES = [
-  {
-    name: "Full",
-    url: "https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_full/float16/latest/pose_landmarker_full.task",
-  },
-];
+const MODEL_URL =
+  "https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_full/float16/latest/pose_landmarker_full.task";
 const TASKS_VISION_SOURCES = [
   {
     module: "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.35",
@@ -20,7 +16,6 @@ const teacherCanvas = document.querySelector("#teacherCanvas");
 const studentCanvas = document.querySelector("#studentCanvas");
 const teacherCtx = teacherCanvas.getContext("2d");
 const studentCtx = studentCanvas.getContext("2d");
-const supportsVideoFrameCallback = "requestVideoFrameCallback" in HTMLVideoElement.prototype;
 
 const els = {
   appShell: document.querySelector(".app-shell"),
@@ -785,9 +780,8 @@ teacherVideo.addEventListener("pause", () => {
   renderTeacherPoseFrame();
 });
 teacherVideo.addEventListener("ended", updateTeacherPlayButton);
-if (supportsVideoFrameCallback) {
+if ("requestVideoFrameCallback" in HTMLVideoElement.prototype) {
   teacherVideo.requestVideoFrameCallback(onTeacherVideoFrame);
-  studentVideo.requestVideoFrameCallback(onStudentVideoFrame);
 }
 teacherVideo.addEventListener("loadedmetadata", () => {
   els.teacherEmpty.hidden = true;
@@ -839,13 +833,10 @@ async function initPose() {
   state.modelReadyPromise = (async () => {
     try {
       const { PoseLandmarker, fileset } = await loadPoseRuntime();
-      const teacher = await createPoseLandmarker(PoseLandmarker, fileset, "IMAGE");
-      const live = await createPoseLandmarker(PoseLandmarker, fileset, "IMAGE", teacher.model);
-      state.teacherLandmarker = teacher.landmarker;
-      state.liveLandmarker = live.landmarker;
-      state.poseModelName = live.model.name;
+      state.teacherLandmarker = await createPoseLandmarker(PoseLandmarker, fileset, "IMAGE");
+      state.liveLandmarker = await createPoseLandmarker(PoseLandmarker, fileset, "VIDEO");
 
-      els.modelStatus.textContent = `Модель готова: ${state.poseModelName}`;
+      els.modelStatus.textContent = "Модель готова";
       state.modelFailed = false;
       setButtons(true);
       return true;
@@ -883,33 +874,32 @@ async function loadPoseRuntime() {
   throw lastError || new Error("MediaPipe runtime не загрузился");
 }
 
-async function createPoseLandmarker(PoseLandmarker, fileset, runningMode, preferredModel = null) {
-  const models = preferredModel ? [preferredModel, ...POSE_MODEL_SOURCES.filter((model) => model.url !== preferredModel.url)] : POSE_MODEL_SOURCES;
-  let lastError = null;
+async function createPoseLandmarker(PoseLandmarker, fileset, runningMode) {
+  const baseOptions = {
+    modelAssetPath: MODEL_URL,
+    delegate: "GPU",
+  };
+  const options = {
+    baseOptions,
+    runningMode,
+    numPoses: 1,
+    minPoseDetectionConfidence: 0.45,
+    minPosePresenceConfidence: 0.45,
+    minTrackingConfidence: 0.45,
+  };
 
-  for (const model of models) {
-    for (const delegate of ["GPU", "CPU"]) {
-      try {
-        const landmarker = await PoseLandmarker.createFromOptions(fileset, {
-          baseOptions: {
-            modelAssetPath: model.url,
-            delegate,
-          },
-          runningMode,
-          numPoses: 1,
-          minPoseDetectionConfidence: 0.45,
-          minPosePresenceConfidence: 0.45,
-          minTrackingConfidence: 0.45,
-        });
-        return { landmarker, model, delegate };
-      } catch (error) {
-        lastError = error;
-        console.warn(`MediaPipe ${model.name} ${runningMode} ${delegate} не запустился`, error);
-      }
-    }
+  try {
+    return await PoseLandmarker.createFromOptions(fileset, options);
+  } catch (error) {
+    console.warn(`MediaPipe ${runningMode} GPU не запустился, пробую CPU`, error);
+    return PoseLandmarker.createFromOptions(fileset, {
+      ...options,
+      baseOptions: {
+        modelAssetPath: MODEL_URL,
+        delegate: "CPU",
+      },
+    });
   }
-
-  throw lastError || new Error("MediaPipe Pose Landmarker не запустился");
 }
 
 function setButtons(modelReady) {
@@ -1610,11 +1600,22 @@ function loop() {
 }
 
 function processFrame() {
-  if (!supportsVideoFrameCallback) {
-    analyzeStudentPoseFrame(studentVideo.currentTime);
+  const canAnalyzeStudent = (state.cameraReady || state.studentVideoObjectUrl) && state.liveLandmarker;
+  if (canAnalyzeStudent && studentVideo.currentTime !== state.lastVideoTime) {
+    state.lastVideoTime = studentVideo.currentTime;
+    const result = safeDetectPoseForVideo(state.liveLandmarker, studentVideo, performance.now());
+    const student = result.landmarks?.[0];
+
+    clearCanvas(studentCtx, studentCanvas);
+    if (student) {
+      drawPose(studentCtx, studentCanvas, student, "#2dd4bf");
+      if (state.mode === "dance" && state.reference.length) {
+        recordStudentFrame(student);
+      }
+    }
   }
 
-  if (!supportsVideoFrameCallback && teacherVideo.src && !teacherVideo.paused) {
+  if (teacherVideo.src && !teacherVideo.paused) {
     renderTeacherPoseFrame();
   }
 
@@ -1666,27 +1667,6 @@ function processFrame() {
   }
 }
 
-function canAnalyzeStudentPose() {
-  return (state.cameraReady || state.studentVideoObjectUrl) && state.liveLandmarker;
-}
-
-function analyzeStudentPoseFrame(frameTime = studentVideo.currentTime) {
-  if (!canAnalyzeStudentPose()) return;
-  if (Number.isFinite(frameTime) && frameTime === state.lastVideoTime) return;
-
-  state.lastVideoTime = Number.isFinite(frameTime) ? frameTime : studentVideo.currentTime;
-  const result = safeDetectPose(state.liveLandmarker, studentVideo);
-  const student = result.landmarks?.[0];
-
-  clearCanvas(studentCtx, studentCanvas);
-  if (student) {
-    drawPose(studentCtx, studentCanvas, student, "#2dd4bf");
-    if (state.mode === "dance" && state.reference.length) {
-      recordStudentFrame(student);
-    }
-  }
-}
-
 function onTeacherVideoFrame(_now, metadata) {
   if (
     teacherVideo.src &&
@@ -1698,13 +1678,6 @@ function onTeacherVideoFrame(_now, metadata) {
     renderTeacherPoseFrame(metadata.mediaTime);
   }
   teacherVideo.requestVideoFrameCallback(onTeacherVideoFrame);
-}
-
-function onStudentVideoFrame(_now, metadata) {
-  if (!studentVideo.paused || state.mode === "dance") {
-    analyzeStudentPoseFrame(metadata?.mediaTime ?? studentVideo.currentTime);
-  }
-  studentVideo.requestVideoFrameCallback(onStudentVideoFrame);
 }
 
 function nearestReference(time) {
@@ -5330,7 +5303,7 @@ function renderStudentPoseFrame() {
   if (!studentVideo.src || !state.liveLandmarker || !studentVideo.videoWidth) return;
   resizeCanvasToVideo(studentCanvas, studentVideo);
   clearCanvas(studentCtx, studentCanvas);
-  const result = safeDetectPose(state.liveLandmarker, studentVideo);
+  const result = safeDetectPoseForVideo(state.liveLandmarker, studentVideo, performance.now());
   const student = result.landmarks?.[0];
   if (student) {
     drawPose(studentCtx, studentCanvas, student, "#2dd4bf");
@@ -5345,6 +5318,18 @@ function safeDetectPose(landmarker, video) {
     return landmarker.detect(video);
   } catch (error) {
     console.warn("Кадр не считался", error);
+    return { landmarks: [] };
+  }
+}
+
+function safeDetectPoseForVideo(landmarker, video, timestamp) {
+  try {
+    if (!landmarker || !video.videoWidth || !video.videoHeight || video.readyState < HTMLMediaElement.HAVE_CURRENT_DATA) {
+      return { landmarks: [] };
+    }
+    return landmarker.detectForVideo(video, timestamp);
+  } catch (error) {
+    console.warn("Live-кадр не считался", error);
     return { landmarks: [] };
   }
 }
