@@ -4314,10 +4314,11 @@ function folderButton(type, item) {
   }[type];
   const number = ["group", "subgroup"].includes(type) ? String(item.name || "").match(/\d+/)?.[0] : "";
   const groupMark = ["group", "subgroup"].includes(type) ? (number || item.name || "") : "";
+  const groupMarkStyle = groupMark ? folderMarkStyle(groupMark) : "";
   const icon = item.image
     ? `<img src="${escapeHtml(item.image)}" alt="" />`
     : groupMark
-      ? `<b aria-hidden="true">${escapeHtml(groupMark)}</b>`
+      ? `<b class="folder-mark" style="${groupMarkStyle}" aria-hidden="true">${escapeHtml(groupMark)}</b>`
       : `<span aria-hidden="true">${type === "lesson" ? (item.published ? "▶" : "□") : type === "subgroup" ? "◌" : "▣"}</span>`;
   const dataset = type === "studio" ? "studio" : type === "group" ? "group" : type === "lesson" ? "lesson" : "subgroup";
   const note = itemSummary(type, item);
@@ -4338,6 +4339,18 @@ function folderButton(type, item) {
       <span class="folder-card-arrow" aria-hidden="true">›</span>
     </button>
   `;
+}
+
+function folderMarkStyle(value) {
+  const text = String(value || "").trim();
+  const length = Math.max(1, Array.from(text).length);
+  const isMostlyDigits = /^[\d\s.,/-]+$/.test(text);
+  const size = isMostlyDigits
+    ? Math.max(4.4, Math.min(9.8, 10.2 - Math.max(0, length - 1) * 1.05))
+    : Math.max(1.85, Math.min(5.9, 7.4 - Math.max(0, length - 3) * 0.34));
+  const spacing = length > 8 ? "-0.055em" : length > 4 ? "-0.085em" : "-0.12em";
+  const lines = length > 7 ? 2 : 1;
+  return `--folder-mark-size:${size.toFixed(2)}rem;--folder-mark-spacing:${spacing};--folder-mark-lines:${lines};`;
 }
 
 function lessonFolderCard(item) {

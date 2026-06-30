@@ -10100,3 +10100,77 @@ h3,
   min-width: 46px;
   min-height: 46px;
 }
+
+/* Mobile header and round folder card finishing pass */
+@media (max-width: 720px) {
+  .topbar .brand-lockup {
+    gap: 0 !important;
+    max-width: calc(100vw - 108px);
+  }
+
+  .topbar .brand-mark {
+    display: none !important;
+  }
+
+  .topbar .brand-lockup > div {
+    min-width: max-content !important;
+    width: max-content !important;
+  }
+
+  .topbar .brand-lockup h1 {
+    font-family: "Arial Black", "Arial Rounded MT Bold", Impact, Inter, sans-serif !important;
+    font-size: clamp(2.35rem, 12vw, 3.25rem) !important;
+    font-weight: 1000 !important;
+    line-height: 0.86 !important;
+    letter-spacing: -0.09em !important;
+    transform: scaleX(1.08) !important;
+    transform-origin: left center !important;
+    white-space: nowrap !important;
+    overflow: visible !important;
+  }
+
+  .topbar .brand-lockup h1::after {
+    top: 50% !important;
+    right: -0.58em !important;
+    bottom: auto !important;
+    width: 0.32em !important;
+    height: 0.32em !important;
+    transform: translateY(-50%) scaleX(0.93) !important;
+  }
+}
+
+.teacher-space-panel #teacherGroupList .folder-card-group .folder-icon .folder-mark,
+.teacher-space-panel #teacherLessonList .folder-card-subgroup .folder-icon .folder-mark,
+.student-access-grid .folder-card-group .folder-icon .folder-mark,
+.student-access-grid .folder-card-subgroup .folder-icon .folder-mark {
+  width: min(86%, 250px);
+  max-width: min(86%, 250px);
+  min-width: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: var(--folder-mark-lines, 1);
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: clip;
+  overflow-wrap: anywhere;
+  white-space: normal;
+  color: #fffaf2;
+  text-align: center;
+  font-size: clamp(1.8rem, 10vw, var(--folder-mark-size, 8rem));
+  font-weight: 1000;
+  line-height: 0.84;
+  letter-spacing: var(--folder-mark-spacing, -0.11em);
+}
+
+.teacher-space-panel #teacherGroupList .folder-card-group .folder-card-type,
+.teacher-space-panel #teacherLessonList .folder-card-subgroup .folder-card-type,
+.student-access-grid .folder-card-group .folder-card-type,
+.student-access-grid .folder-card-subgroup .folder-card-type {
+  max-width: min(82%, 260px);
+}
+
+.teacher-space-panel #teacherGroupList .folder-card-group .folder-card-note,
+.teacher-space-panel #teacherLessonList .folder-card-subgroup .folder-card-note,
+.student-access-grid .folder-card-group .folder-card-note,
+.student-access-grid .folder-card-subgroup .folder-card-note {
+  max-width: min(82%, 260px);
+}
