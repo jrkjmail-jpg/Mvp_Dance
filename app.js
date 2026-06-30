@@ -3,10 +3,6 @@ const POSE_MODEL_SOURCES = [
     name: "Full",
     url: "https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_full/float16/latest/pose_landmarker_full.task",
   },
-  {
-    name: "Heavy",
-    url: "https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_heavy/float16/latest/pose_landmarker_heavy.task",
-  },
 ];
 const TASKS_VISION_SOURCES = [
   {
@@ -24,6 +20,7 @@ const teacherCanvas = document.querySelector("#teacherCanvas");
 const studentCanvas = document.querySelector("#studentCanvas");
 const teacherCtx = teacherCanvas.getContext("2d");
 const studentCtx = studentCanvas.getContext("2d");
+const supportsVideoFrameCallback = "requestVideoFrameCallback" in HTMLVideoElement.prototype;
 
 const els = {
   appShell: document.querySelector(".app-shell"),
@@ -788,8 +785,9 @@ teacherVideo.addEventListener("pause", () => {
   renderTeacherPoseFrame();
 });
 teacherVideo.addEventListener("ended", updateTeacherPlayButton);
-if ("requestVideoFrameCallback" in HTMLVideoElement.prototype) {
+if (supportsVideoFrameCallback) {
   teacherVideo.requestVideoFrameCallback(onTeacherVideoFrame);
+  studentVideo.requestVideoFrameCallback(onStudentVideoFrame);
 }
 teacherVideo.addEventListener("loadedmetadata", () => {
   els.teacherEmpty.hidden = true;
@@ -1612,22 +1610,11 @@ function loop() {
 }
 
 function processFrame() {
-  const canAnalyzeStudent = (state.cameraReady || state.studentVideoObjectUrl) && state.liveLandmarker;
-  if (canAnalyzeStudent && studentVideo.currentTime !== state.lastVideoTime) {
-    state.lastVideoTime = studentVideo.currentTime;
-    const result = safeDetectPoseForVideo(state.liveLandmarker, studentVideo, performance.now());
-    const student = result.landmarks?.[0];
-
-    clearCanvas(studentCtx, studentCanvas);
-    if (student) {
-      drawPose(studentCtx, studentCanvas, student, "#2dd4bf");
-      if (state.mode === "dance" && state.reference.length) {
-        recordStudentFrame(student);
-      }
-    }
+  if (!supportsVideoFrameCallback) {
+    analyzeStudentPoseFrame(performance.now(), studentVideo.currentTime);
   }
 
-  if (teacherVideo.src && !teacherVideo.paused) {
+  if (!supportsVideoFrameCallback && teacherVideo.src && !teacherVideo.paused) {
     renderTeacherPoseFrame();
   }
 
@@ -1679,6 +1666,27 @@ function processFrame() {
   }
 }
 
+function canAnalyzeStudentPose() {
+  return (state.cameraReady || state.studentVideoObjectUrl) && state.liveLandmarker;
+}
+
+function analyzeStudentPoseFrame(timestamp = performance.now(), frameTime = studentVideo.currentTime) {
+  if (!canAnalyzeStudentPose()) return;
+  if (Number.isFinite(frameTime) && frameTime === state.lastVideoTime) return;
+
+  state.lastVideoTime = Number.isFinite(frameTime) ? frameTime : studentVideo.currentTime;
+  const result = safeDetectPoseForVideo(state.liveLandmarker, studentVideo, timestamp);
+  const student = result.landmarks?.[0];
+
+  clearCanvas(studentCtx, studentCanvas);
+  if (student) {
+    drawPose(studentCtx, studentCanvas, student, "#2dd4bf");
+    if (state.mode === "dance" && state.reference.length) {
+      recordStudentFrame(student);
+    }
+  }
+}
+
 function onTeacherVideoFrame(_now, metadata) {
   if (
     teacherVideo.src &&
@@ -1690,6 +1698,13 @@ function onTeacherVideoFrame(_now, metadata) {
     renderTeacherPoseFrame(metadata.mediaTime);
   }
   teacherVideo.requestVideoFrameCallback(onTeacherVideoFrame);
+}
+
+function onStudentVideoFrame(now, metadata) {
+  if (!studentVideo.paused || state.mode === "dance") {
+    analyzeStudentPoseFrame(now, metadata?.mediaTime ?? studentVideo.currentTime);
+  }
+  studentVideo.requestVideoFrameCallback(onStudentVideoFrame);
 }
 
 function nearestReference(time) {
