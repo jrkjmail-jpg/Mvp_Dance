@@ -840,7 +840,7 @@ async function initPose() {
     try {
       const { PoseLandmarker, fileset } = await loadPoseRuntime();
       const teacher = await createPoseLandmarker(PoseLandmarker, fileset, "IMAGE");
-      const live = await createPoseLandmarker(PoseLandmarker, fileset, "VIDEO", teacher.model);
+      const live = await createPoseLandmarker(PoseLandmarker, fileset, "IMAGE", teacher.model);
       state.teacherLandmarker = teacher.landmarker;
       state.liveLandmarker = live.landmarker;
       state.poseModelName = live.model.name;
@@ -1611,7 +1611,7 @@ function loop() {
 
 function processFrame() {
   if (!supportsVideoFrameCallback) {
-    analyzeStudentPoseFrame(performance.now(), studentVideo.currentTime);
+    analyzeStudentPoseFrame(studentVideo.currentTime);
   }
 
   if (!supportsVideoFrameCallback && teacherVideo.src && !teacherVideo.paused) {
@@ -1670,12 +1670,12 @@ function canAnalyzeStudentPose() {
   return (state.cameraReady || state.studentVideoObjectUrl) && state.liveLandmarker;
 }
 
-function analyzeStudentPoseFrame(timestamp = performance.now(), frameTime = studentVideo.currentTime) {
+function analyzeStudentPoseFrame(frameTime = studentVideo.currentTime) {
   if (!canAnalyzeStudentPose()) return;
   if (Number.isFinite(frameTime) && frameTime === state.lastVideoTime) return;
 
   state.lastVideoTime = Number.isFinite(frameTime) ? frameTime : studentVideo.currentTime;
-  const result = safeDetectPoseForVideo(state.liveLandmarker, studentVideo, timestamp);
+  const result = safeDetectPose(state.liveLandmarker, studentVideo);
   const student = result.landmarks?.[0];
 
   clearCanvas(studentCtx, studentCanvas);
@@ -1700,9 +1700,9 @@ function onTeacherVideoFrame(_now, metadata) {
   teacherVideo.requestVideoFrameCallback(onTeacherVideoFrame);
 }
 
-function onStudentVideoFrame(now, metadata) {
+function onStudentVideoFrame(_now, metadata) {
   if (!studentVideo.paused || state.mode === "dance") {
-    analyzeStudentPoseFrame(now, metadata?.mediaTime ?? studentVideo.currentTime);
+    analyzeStudentPoseFrame(metadata?.mediaTime ?? studentVideo.currentTime);
   }
   studentVideo.requestVideoFrameCallback(onStudentVideoFrame);
 }
@@ -5330,7 +5330,7 @@ function renderStudentPoseFrame() {
   if (!studentVideo.src || !state.liveLandmarker || !studentVideo.videoWidth) return;
   resizeCanvasToVideo(studentCanvas, studentVideo);
   clearCanvas(studentCtx, studentCanvas);
-  const result = safeDetectPoseForVideo(state.liveLandmarker, studentVideo, performance.now());
+  const result = safeDetectPose(state.liveLandmarker, studentVideo);
   const student = result.landmarks?.[0];
   if (student) {
     drawPose(studentCtx, studentCanvas, student, "#2dd4bf");
@@ -5345,18 +5345,6 @@ function safeDetectPose(landmarker, video) {
     return landmarker.detect(video);
   } catch (error) {
     console.warn("Кадр не считался", error);
-    return { landmarks: [] };
-  }
-}
-
-function safeDetectPoseForVideo(landmarker, video, timestamp) {
-  try {
-    if (!landmarker || !video.videoWidth || !video.videoHeight || video.readyState < HTMLMediaElement.HAVE_CURRENT_DATA) {
-      return { landmarks: [] };
-    }
-    return landmarker.detectForVideo(video, timestamp);
-  } catch (error) {
-    console.warn("Live-кадр не считался", error);
     return { landmarks: [] };
   }
 }
