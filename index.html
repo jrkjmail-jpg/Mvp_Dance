@@ -21,7 +21,7 @@
     <link rel="manifest" href="./manifest.webmanifest" />
     <link rel="icon" href="./assets/app-icon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="./assets/app-icon.svg" />
-    <link rel="stylesheet" href="./styles.css?v=20260630-1" />
+    <link rel="stylesheet" href="./styles.css?v=20260630-2" />
   </head>
   <body>
     <main class="app-shell student-mode">
@@ -419,6 +419,7 @@
             </label>
             <video id="teacherVideo" playsinline preload="metadata"></video>
             <canvas id="teacherCanvas"></canvas>
+            <div id="teacherModelBadge" class="pose-status-badge" aria-live="polite">Модель: загрузка</div>
             <div id="teacherEmpty" class="empty-state">Видео танца</div>
             <div class="teacher-frame-note">
               <strong>Отметьте начало и конец</strong>
@@ -514,6 +515,7 @@
           <div class="video-frame">
             <video id="studentVideo" playsinline webkit-playsinline muted preload="auto"></video>
             <canvas id="studentCanvas"></canvas>
+            <div id="studentModelBadge" class="pose-status-badge student" aria-live="polite">Модель: загрузка</div>
             <div id="studentEmpty" class="empty-state">Камера</div>
           </div>
           <div class="video-marker-bar student-marker-bar">
@@ -1034,6 +1036,6 @@
         });
       }
     </script>
-    <script type="module" src="./app.js?v=20260630-1"></script>
+    <script type="module" src="./app.js?v=20260630-2"></script>
   </body>
 </html>

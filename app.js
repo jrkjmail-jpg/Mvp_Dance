@@ -18,6 +18,9 @@ const TASKS_VISION_SOURCES = [
     wasm: "https://unpkg.com/@mediapipe/tasks-vision@0.10.35/wasm",
   },
 ];
+const LANDMARK_SMOOTHING_ALPHA = 0.58;
+const LANDMARK_FAST_ALPHA = 0.82;
+const LANDMARK_FAST_DISTANCE = 0.055;
 
 const teacherVideo = document.querySelector("#teacherVideo");
 const studentVideo = document.querySelector("#studentVideo");
@@ -87,6 +90,8 @@ const els = {
   mirrorToggle: document.querySelector("#mirrorToggle"),
   modelStatus: document.querySelector("#modelStatus"),
   scanStatus: document.querySelector("#scanStatus"),
+  teacherModelBadge: document.querySelector("#teacherModelBadge"),
+  studentModelBadge: document.querySelector("#studentModelBadge"),
   teacherEmpty: document.querySelector("#teacherEmpty"),
   teacherScanOverlay: document.querySelector("#teacherScanOverlay"),
   scanProgressValue: document.querySelector("#scanProgressValue"),
@@ -468,6 +473,14 @@ const state = {
   modelLoading: false,
   modelFailed: false,
   poseModelName: "",
+  teacherWorldReady: false,
+  studentWorldReady: false,
+  smoothing: {
+    teacherLandmarks: null,
+    teacherWorldLandmarks: null,
+    studentLandmarks: null,
+    studentWorldLandmarks: null,
+  },
   modelReadyPromise: null,
   attempts: JSON.parse(localStorage.getItem("danceReplayAttempts") || "[]"),
   scanId: 0,
@@ -487,6 +500,8 @@ window.__danceDebug = {
     modelLoading: state.modelLoading,
     modelFailed: state.modelFailed,
     poseModelName: state.poseModelName,
+    teacherWorldReady: state.teacherWorldReady,
+    studentWorldReady: state.studentWorldReady,
     exam: {
       hasVideo: Boolean(state.exam.objectUrl),
       duration: state.exam.duration,
@@ -522,6 +537,7 @@ renderStudentProfile();
 renderTeacherStudentProgress();
 setTeacherFolderView(state.teacherWorkspace.studios.length ? "studio" : "root");
 switchView("student");
+updatePoseBadges();
 if (!isUiTestMode) initPose();
 
 els.learningUpload.addEventListener("click", resetFileInputBeforePick);
@@ -838,6 +854,7 @@ async function initPose() {
   state.modelLoading = true;
   state.modelFailed = false;
   els.modelStatus.textContent = "Модель загружается";
+  updatePoseBadges();
 
   state.modelReadyPromise = (async () => {
     try {
@@ -850,11 +867,13 @@ async function initPose() {
 
       els.modelStatus.textContent = `Модель готова: ${state.poseModelName}`;
       state.modelFailed = false;
+      updatePoseBadges();
       setButtons(true);
       return true;
     } catch (error) {
       els.modelStatus.textContent = "Модель не загрузилась";
       state.modelFailed = true;
+      updatePoseBadges();
       if (state.exam.objectUrl && state.pendingExamScan) {
         setUploadStatus("exam", "Модель трекинга не загрузилась", "error");
         showScanOverlay("Модель трекинга не загрузилась", 0);
@@ -913,6 +932,32 @@ async function createPoseLandmarker(PoseLandmarker, fileset, runningMode, prefer
   }
 
   throw lastError || new Error("MediaPipe Pose Landmarker не запустился");
+}
+
+function updatePoseBadges() {
+  const model = state.poseModelName || (state.modelFailed ? "ошибка" : state.modelLoading ? "загрузка" : "ожидание");
+  updatePoseBadge(els.teacherModelBadge, {
+    model,
+    worldReady: state.teacherWorldReady,
+    isFallback: state.poseModelName === "Full",
+    isMissing: state.modelFailed,
+  });
+  updatePoseBadge(els.studentModelBadge, {
+    model,
+    worldReady: state.studentWorldReady,
+    isFallback: state.poseModelName === "Full",
+    isMissing: state.modelFailed,
+  });
+}
+
+function updatePoseBadge(element, status) {
+  if (!element) return;
+  const world = status.worldReady ? "3D on" : "3D wait";
+  const smoothing = "smooth on";
+  element.textContent = `Модель: ${status.model} · ${world} · ${smoothing}`;
+  element.classList.toggle("is-ready", Boolean(state.poseModelName) && !status.isMissing);
+  element.classList.toggle("is-fallback", Boolean(status.isFallback));
+  element.classList.toggle("is-missing", Boolean(status.isMissing));
 }
 
 function setButtons(modelReady) {
@@ -1302,6 +1347,9 @@ async function scanTeacherVideo(options = {}) {
 
   const scanId = ++state.scanId;
   state.reference = [];
+  state.teacherWorldReady = false;
+  resetPoseSmoothing("teacher");
+  updatePoseBadges();
   state.mode = "scan";
   await switchTeacherVideo("exam");
   els.teacherSkeletonToggle.checked = true;
@@ -1333,16 +1381,19 @@ async function scanTeacherVideo(options = {}) {
     const landmarks = result.landmarks?.[0];
     const worldLandmarks = normalizedWorldLandmarksFromResult(result);
     if (landmarks) {
-      const normalized = normalizeLandmarks(landmarks);
-      drawPose(teacherCtx, teacherCanvas, landmarks, "#f5c542");
+      if (worldLandmarks) state.teacherWorldReady = true;
+      const smoothed = smoothPoseSample("teacher", landmarks, worldLandmarks);
+      const normalized = normalizeLandmarks(smoothed.landmarks);
+      drawPose(teacherCtx, teacherCanvas, smoothed.landmarks, "#f5c542");
       state.reference.push({
         time,
-        displayLandmarks: cloneLandmarks(landmarks),
+        displayLandmarks: cloneLandmarks(smoothed.landmarks),
         landmarks: normalized,
-        worldLandmarks,
-        angles: poseAngles(landmarks),
+        worldLandmarks: smoothed.worldLandmarks,
+        angles: poseAngles(smoothed.landmarks),
         signature: movementSignature(normalized),
       });
+      updatePoseBadges();
     }
     frameIndex += 1;
     const progress = Math.round(((time - start) / Math.max(end - start, 1)) * 100);
@@ -1430,7 +1481,9 @@ function loadStoredReference() {
     const saved = JSON.parse(raw);
     if (!Array.isArray(saved.frames) || !saved.frames.length) return false;
     state.reference = saved.frames;
+    state.teacherWorldReady = state.reference.some((frame) => frame.worldLandmarks?.length);
     state.pendingExamScan = false;
+    updatePoseBadges();
     return true;
   } catch (error) {
     console.warn(error);
@@ -1490,6 +1543,9 @@ async function toggleDance() {
   state.bestMatch = 0;
   state.currentMatch = 0;
   state.studentRecording = [];
+  state.studentWorldReady = false;
+  resetPoseSmoothing("student");
+  updatePoseBadges();
   state.lastRecordAt = -1;
   state.startedAt = performance.now();
   teacherVideo.playbackRate = 1;
@@ -1538,7 +1594,7 @@ function finishAttempt() {
 }
 
 function finalizeAttemptResult(result, seconds) {
-  const stars = Math.max(1, matchToStars(result.total));
+  const stars = matchToStars(result.total);
   const lesson = activeTeacherLesson() || {};
   const attempt = {
     score: result.score,
@@ -1624,10 +1680,14 @@ function processFrame() {
 
     clearCanvas(studentCtx, studentCanvas);
     if (student) {
-      drawPose(studentCtx, studentCanvas, student, "#2dd4bf");
+      const normalizedWorld = normalizeWorldLandmarks(studentWorld);
+      if (normalizedWorld) state.studentWorldReady = true;
+      const smoothed = smoothPoseSample("student", student, normalizedWorld);
+      drawPose(studentCtx, studentCanvas, smoothed.landmarks, "#2dd4bf");
       if (state.mode === "dance" && state.reference.length) {
-        recordStudentFrame(student, studentWorld);
+        recordStudentFrame(smoothed.landmarks, smoothed.worldLandmarks);
       }
+      updatePoseBadges();
     }
   }
 
@@ -1767,6 +1827,49 @@ function cloneLandmarks(landmarks) {
   }));
 }
 
+function smoothLandmarks(previous, current, options = {}) {
+  if (!current?.length) return null;
+  if (!previous?.length || previous.length !== current.length) return cloneLandmarks(current);
+
+  return current.map((point, index) => {
+    const old = previous[index];
+    if (!old) return { ...point };
+    const distance = Math.hypot(point.x - old.x, point.y - old.y, (point.z || 0) - (old.z || 0));
+    const alpha = distance > (options.fastDistance ?? LANDMARK_FAST_DISTANCE)
+      ? LANDMARK_FAST_ALPHA
+      : options.alpha ?? LANDMARK_SMOOTHING_ALPHA;
+    return {
+      x: lerp(old.x, point.x, alpha),
+      y: lerp(old.y, point.y, alpha),
+      z: lerp(old.z || 0, point.z || 0, alpha),
+      visibility: lerp(old.visibility ?? 1, point.visibility ?? 1, 0.72),
+    };
+  });
+}
+
+function smoothPoseSample(kind, landmarks, worldLandmarks = null) {
+  const landmarkKey = `${kind}Landmarks`;
+  const worldKey = `${kind}WorldLandmarks`;
+  const smoothedLandmarks = smoothLandmarks(state.smoothing[landmarkKey], landmarks);
+  const smoothedWorld = worldLandmarks
+    ? smoothLandmarks(state.smoothing[worldKey], worldLandmarks, { alpha: 0.64, fastDistance: 0.08 })
+    : null;
+  state.smoothing[landmarkKey] = cloneLandmarks(smoothedLandmarks);
+  state.smoothing[worldKey] = cloneLandmarks(smoothedWorld);
+  return { landmarks: smoothedLandmarks, worldLandmarks: smoothedWorld };
+}
+
+function resetPoseSmoothing(kind = "all") {
+  if (kind === "all" || kind === "teacher") {
+    state.smoothing.teacherLandmarks = null;
+    state.smoothing.teacherWorldLandmarks = null;
+  }
+  if (kind === "all" || kind === "student") {
+    state.smoothing.studentLandmarks = null;
+    state.smoothing.studentWorldLandmarks = null;
+  }
+}
+
 function normalizedWorldLandmarksFromResult(result) {
   return normalizeWorldLandmarks(result.worldLandmarks?.[0] || null);
 }
@@ -1781,7 +1884,7 @@ function recordStudentFrame(studentLandmarks, studentWorldLandmarks = null) {
     time: musicTime,
     angles: poseAngles(studentLandmarks),
     landmarks: normalized,
-    worldLandmarks: normalizeWorldLandmarks(studentWorldLandmarks),
+    worldLandmarks: cloneLandmarks(studentWorldLandmarks),
   };
   sample.signature = movementSignature(sample.landmarks);
 
@@ -1818,6 +1921,7 @@ function evaluateRecordedAttempt() {
     motion: [],
     world: [],
   };
+  let worldMatchedFrames = 0;
 
   references.forEach((reference) => {
     const student = nearestStudentSample(reference.time);
@@ -1876,7 +1980,9 @@ function evaluateRecordedAttempt() {
     const amplitude = amplitudeScore(reference.signature, student.signature);
     const energy = energyScore(referencePrevious, referenceNext, studentPrevious, studentNext);
     const motion = motionScore(referencePrevious, referenceNext, studentPrevious, studentNext);
-    const world = worldPoseScore(reference.worldLandmarks, student.worldLandmarks);
+    const hasWorld = hasComparableWorldLandmarks(reference.worldLandmarks, student.worldLandmarks);
+    const world = hasWorld ? worldPoseScore(reference.worldLandmarks, student.worldLandmarks) : 88;
+    if (hasWorld) worldMatchedFrames += 1;
     const corrected = reconcileMicroJitterScores({
       position,
       timing,
@@ -1931,6 +2037,8 @@ function evaluateRecordedAttempt() {
     energy: average(groups.energy),
     motion: weightedAverage([average(groups.motion), motionStats.score], [0.58, 0.42]),
     world: average(groups.world),
+    worldAvailable: worldMatchedFrames > 0,
+    worldCoverage: references.length ? worldMatchedFrames / references.length : 0,
     movementRatio: motionStats.ratio,
     referenceMovement: motionStats.referenceMovement,
     studentMovement: motionStats.studentMovement,
@@ -1951,6 +2059,8 @@ function evaluateRecordedAttempt() {
     energy: quality.energy,
     motion: quality.motion,
     world: quality.world,
+    worldAvailable: quality.worldAvailable,
+    worldCoverage: Math.round((quality.worldCoverage || 0) * 100),
     movementRatio: quality.movementRatio,
     referenceMovement: quality.referenceMovement,
     studentMovement: quality.studentMovement,
@@ -1966,6 +2076,7 @@ function evaluateRecordedAttempt() {
 }
 
 function calibratedMatchTotal(total, coverage, quality = {}) {
+  const worldScore = quality.worldAvailable ? quality.world || 0 : 88;
   const poseCore = weightedAverage(
     [
       quality.position || 0,
@@ -1974,7 +2085,7 @@ function calibratedMatchTotal(total, coverage, quality = {}) {
       quality.body || 0,
       quality.amplitude || 0,
       quality.motion || 0,
-      quality.world || 0,
+      worldScore,
     ],
     [0.25, 0.19, 0.17, 0.11, 0.1, 0.11, 0.07],
   );
@@ -1986,7 +2097,7 @@ function calibratedMatchTotal(total, coverage, quality = {}) {
     quality.timing || 0,
     quality.amplitude || 0,
     quality.motion || 0,
-    quality.world || 0,
+    worldScore,
   );
   const movementRatio = Number.isFinite(quality.movementRatio) ? quality.movementRatio : 1;
   const hasMovingReference = (quality.referenceMovement || 0) > 0.16;
@@ -2275,7 +2386,7 @@ function energyScore(referencePrevious, referenceNext, studentPrevious, studentN
 }
 
 function worldPoseScore(referenceWorldLandmarks, studentWorldLandmarks) {
-  if (!referenceWorldLandmarks?.length || !studentWorldLandmarks?.length) return 78;
+  if (!referenceWorldLandmarks?.length || !studentWorldLandmarks?.length) return 88;
   const worldPoints = [11, 12, 13, 14, 15, 16, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32];
   const scores = worldPoints
     .map((index) => {
@@ -2287,7 +2398,18 @@ function worldPoseScore(referenceWorldLandmarks, studentWorldLandmarks) {
     })
     .filter((score) => score !== null);
 
-  return scores.length ? average(scores) : 78;
+  return scores.length ? average(scores) : 88;
+}
+
+function hasComparableWorldLandmarks(referenceWorldLandmarks, studentWorldLandmarks) {
+  if (!referenceWorldLandmarks?.length || !studentWorldLandmarks?.length) return false;
+  const worldPoints = [11, 12, 13, 14, 15, 16, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32];
+  const comparable = worldPoints.filter((index) => {
+    const reference = referenceWorldLandmarks[index];
+    const student = studentWorldLandmarks[index];
+    return reference && student && reference.visibility >= 0.25 && student.visibility >= 0.25;
+  });
+  return comparable.length >= 8;
 }
 
 function motionScore(referencePrevious, referenceNext, studentPrevious, studentNext) {
@@ -3408,7 +3530,7 @@ function resultDetailsText(attempt, stars, tip) {
     `амплитуда ${roundScore(scores.amplitude)}%`,
     `траектория ${roundScore(scores.trajectory)}%`,
     `движение ${roundScore(scores.motion)}%`,
-    `3D ${roundScore(scores.world)}%`,
+    scores.worldAvailable ? `3D ${roundScore(scores.world)}%` : "3D нет данных",
     `ритм ${roundScore(scores.timing)}%`,
     tip,
   ];
@@ -5406,6 +5528,9 @@ async function buildStudentSkeleton() {
   const scanId = ++state.studentScanId;
   state.studentSkeleton = [];
   state.studentRecording = [];
+  state.studentWorldReady = false;
+  resetPoseSmoothing("student");
+  updatePoseBadges();
   els.buildStudentSkeletonButton.disabled = true;
   els.studentPlayButton.disabled = true;
   els.markStudentStartButton.disabled = true;
@@ -5439,18 +5564,21 @@ async function buildStudentSkeleton() {
       const landmarks = result.landmarks?.[0];
       const worldLandmarks = normalizedWorldLandmarksFromResult(result);
       if (landmarks) {
-        drawPose(studentCtx, studentCanvas, landmarks, "#2dd4bf");
-        const normalized = normalizeLandmarks(landmarks);
+        if (worldLandmarks) state.studentWorldReady = true;
+        const smoothed = smoothPoseSample("student", landmarks, worldLandmarks);
+        drawPose(studentCtx, studentCanvas, smoothed.landmarks, "#2dd4bf");
+        const normalized = normalizeLandmarks(smoothed.landmarks);
         const sample = {
           time: teacherStart + (rawTime - start),
           rawTime,
-          displayLandmarks: cloneLandmarks(landmarks),
-          angles: poseAngles(landmarks),
+          displayLandmarks: cloneLandmarks(smoothed.landmarks),
+          angles: poseAngles(smoothed.landmarks),
           landmarks: normalized,
-          worldLandmarks,
+          worldLandmarks: smoothed.worldLandmarks,
           signature: movementSignature(normalized),
         };
         state.studentSkeleton.push(sample);
+        updatePoseBadges();
       }
       frameIndex += 1;
       const progress = Math.round(((rawTime - start) / Math.max(end - start, 1)) * 100);
