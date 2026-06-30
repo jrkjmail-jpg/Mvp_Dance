@@ -1,11 +1,11 @@
 const POSE_MODEL_SOURCES = [
   {
-    name: "Heavy",
-    url: "https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_heavy/float16/latest/pose_landmarker_heavy.task",
-  },
-  {
     name: "Full",
     url: "https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_full/float16/latest/pose_landmarker_full.task",
+  },
+  {
+    name: "Heavy",
+    url: "https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_heavy/float16/latest/pose_landmarker_heavy.task",
   },
 ];
 const TASKS_VISION_SOURCES = [
@@ -90,8 +90,6 @@ const els = {
   mirrorToggle: document.querySelector("#mirrorToggle"),
   modelStatus: document.querySelector("#modelStatus"),
   scanStatus: document.querySelector("#scanStatus"),
-  teacherModelBadge: document.querySelector("#teacherModelBadge"),
-  studentModelBadge: document.querySelector("#studentModelBadge"),
   teacherEmpty: document.querySelector("#teacherEmpty"),
   teacherScanOverlay: document.querySelector("#teacherScanOverlay"),
   scanProgressValue: document.querySelector("#scanProgressValue"),
@@ -473,13 +471,9 @@ const state = {
   modelLoading: false,
   modelFailed: false,
   poseModelName: "",
-  teacherWorldReady: false,
-  studentWorldReady: false,
   smoothing: {
     teacherLandmarks: null,
-    teacherWorldLandmarks: null,
     studentLandmarks: null,
-    studentWorldLandmarks: null,
   },
   modelReadyPromise: null,
   attempts: JSON.parse(localStorage.getItem("danceReplayAttempts") || "[]"),
@@ -500,8 +494,6 @@ window.__danceDebug = {
     modelLoading: state.modelLoading,
     modelFailed: state.modelFailed,
     poseModelName: state.poseModelName,
-    teacherWorldReady: state.teacherWorldReady,
-    studentWorldReady: state.studentWorldReady,
     exam: {
       hasVideo: Boolean(state.exam.objectUrl),
       duration: state.exam.duration,
@@ -537,7 +529,6 @@ renderStudentProfile();
 renderTeacherStudentProgress();
 setTeacherFolderView(state.teacherWorkspace.studios.length ? "studio" : "root");
 switchView("student");
-updatePoseBadges();
 if (!isUiTestMode) initPose();
 
 els.learningUpload.addEventListener("click", resetFileInputBeforePick);
@@ -854,7 +845,6 @@ async function initPose() {
   state.modelLoading = true;
   state.modelFailed = false;
   els.modelStatus.textContent = "Модель загружается";
-  updatePoseBadges();
 
   state.modelReadyPromise = (async () => {
     try {
@@ -867,13 +857,11 @@ async function initPose() {
 
       els.modelStatus.textContent = `Модель готова: ${state.poseModelName}`;
       state.modelFailed = false;
-      updatePoseBadges();
       setButtons(true);
       return true;
     } catch (error) {
       els.modelStatus.textContent = "Модель не загрузилась";
       state.modelFailed = true;
-      updatePoseBadges();
       if (state.exam.objectUrl && state.pendingExamScan) {
         setUploadStatus("exam", "Модель трекинга не загрузилась", "error");
         showScanOverlay("Модель трекинга не загрузилась", 0);
@@ -932,32 +920,6 @@ async function createPoseLandmarker(PoseLandmarker, fileset, runningMode, prefer
   }
 
   throw lastError || new Error("MediaPipe Pose Landmarker не запустился");
-}
-
-function updatePoseBadges() {
-  const model = state.poseModelName || (state.modelFailed ? "ошибка" : state.modelLoading ? "загрузка" : "ожидание");
-  updatePoseBadge(els.teacherModelBadge, {
-    model,
-    worldReady: state.teacherWorldReady,
-    isFallback: state.poseModelName === "Full",
-    isMissing: state.modelFailed,
-  });
-  updatePoseBadge(els.studentModelBadge, {
-    model,
-    worldReady: state.studentWorldReady,
-    isFallback: state.poseModelName === "Full",
-    isMissing: state.modelFailed,
-  });
-}
-
-function updatePoseBadge(element, status) {
-  if (!element) return;
-  const world = status.worldReady ? "3D on" : "3D wait";
-  const smoothing = "smooth on";
-  element.textContent = `Модель: ${status.model} · ${world} · ${smoothing}`;
-  element.classList.toggle("is-ready", Boolean(state.poseModelName) && !status.isMissing);
-  element.classList.toggle("is-fallback", Boolean(status.isFallback));
-  element.classList.toggle("is-missing", Boolean(status.isMissing));
 }
 
 function setButtons(modelReady) {
@@ -1347,9 +1309,7 @@ async function scanTeacherVideo(options = {}) {
 
   const scanId = ++state.scanId;
   state.reference = [];
-  state.teacherWorldReady = false;
   resetPoseSmoothing("teacher");
-  updatePoseBadges();
   state.mode = "scan";
   await switchTeacherVideo("exam");
   els.teacherSkeletonToggle.checked = true;
@@ -1379,21 +1339,17 @@ async function scanTeacherVideo(options = {}) {
     clearCanvas(teacherCtx, teacherCanvas);
     const result = safeDetectPose(state.teacherLandmarker, teacherVideo);
     const landmarks = result.landmarks?.[0];
-    const worldLandmarks = normalizedWorldLandmarksFromResult(result);
     if (landmarks) {
-      if (worldLandmarks) state.teacherWorldReady = true;
-      const smoothed = smoothPoseSample("teacher", landmarks, worldLandmarks);
+      const smoothed = smoothPoseSample("teacher", landmarks);
       const normalized = normalizeLandmarks(smoothed.landmarks);
       drawPose(teacherCtx, teacherCanvas, smoothed.landmarks, "#f5c542");
       state.reference.push({
         time,
         displayLandmarks: cloneLandmarks(smoothed.landmarks),
         landmarks: normalized,
-        worldLandmarks: smoothed.worldLandmarks,
         angles: poseAngles(smoothed.landmarks),
         signature: movementSignature(normalized),
       });
-      updatePoseBadges();
     }
     frameIndex += 1;
     const progress = Math.round(((time - start) / Math.max(end - start, 1)) * 100);
@@ -1481,9 +1437,7 @@ function loadStoredReference() {
     const saved = JSON.parse(raw);
     if (!Array.isArray(saved.frames) || !saved.frames.length) return false;
     state.reference = saved.frames;
-    state.teacherWorldReady = state.reference.some((frame) => frame.worldLandmarks?.length);
     state.pendingExamScan = false;
-    updatePoseBadges();
     return true;
   } catch (error) {
     console.warn(error);
@@ -1543,9 +1497,7 @@ async function toggleDance() {
   state.bestMatch = 0;
   state.currentMatch = 0;
   state.studentRecording = [];
-  state.studentWorldReady = false;
   resetPoseSmoothing("student");
-  updatePoseBadges();
   state.lastRecordAt = -1;
   state.startedAt = performance.now();
   teacherVideo.playbackRate = 1;
@@ -1594,7 +1546,7 @@ function finishAttempt() {
 }
 
 function finalizeAttemptResult(result, seconds) {
-  const stars = matchToStars(result.total);
+  const stars = Math.max(1, matchToStars(result.total));
   const lesson = activeTeacherLesson() || {};
   const attempt = {
     score: result.score,
@@ -1676,18 +1628,14 @@ function processFrame() {
     state.lastVideoTime = studentVideo.currentTime;
     const result = safeDetectPoseForVideo(state.liveLandmarker, studentVideo, performance.now());
     const student = result.landmarks?.[0];
-    const studentWorld = result.worldLandmarks?.[0] || null;
 
     clearCanvas(studentCtx, studentCanvas);
     if (student) {
-      const normalizedWorld = normalizeWorldLandmarks(studentWorld);
-      if (normalizedWorld) state.studentWorldReady = true;
-      const smoothed = smoothPoseSample("student", student, normalizedWorld);
+      const smoothed = smoothPoseSample("student", student);
       drawPose(studentCtx, studentCanvas, smoothed.landmarks, "#2dd4bf");
       if (state.mode === "dance" && state.reference.length) {
-        recordStudentFrame(smoothed.landmarks, smoothed.worldLandmarks);
+        recordStudentFrame(smoothed.landmarks);
       }
-      updatePoseBadges();
     }
   }
 
@@ -1847,34 +1795,23 @@ function smoothLandmarks(previous, current, options = {}) {
   });
 }
 
-function smoothPoseSample(kind, landmarks, worldLandmarks = null) {
+function smoothPoseSample(kind, landmarks) {
   const landmarkKey = `${kind}Landmarks`;
-  const worldKey = `${kind}WorldLandmarks`;
   const smoothedLandmarks = smoothLandmarks(state.smoothing[landmarkKey], landmarks);
-  const smoothedWorld = worldLandmarks
-    ? smoothLandmarks(state.smoothing[worldKey], worldLandmarks, { alpha: 0.64, fastDistance: 0.08 })
-    : null;
   state.smoothing[landmarkKey] = cloneLandmarks(smoothedLandmarks);
-  state.smoothing[worldKey] = cloneLandmarks(smoothedWorld);
-  return { landmarks: smoothedLandmarks, worldLandmarks: smoothedWorld };
+  return { landmarks: smoothedLandmarks };
 }
 
 function resetPoseSmoothing(kind = "all") {
   if (kind === "all" || kind === "teacher") {
     state.smoothing.teacherLandmarks = null;
-    state.smoothing.teacherWorldLandmarks = null;
   }
   if (kind === "all" || kind === "student") {
     state.smoothing.studentLandmarks = null;
-    state.smoothing.studentWorldLandmarks = null;
   }
 }
 
-function normalizedWorldLandmarksFromResult(result) {
-  return normalizeWorldLandmarks(result.worldLandmarks?.[0] || null);
-}
-
-function recordStudentFrame(studentLandmarks, studentWorldLandmarks = null) {
+function recordStudentFrame(studentLandmarks) {
   const musicTime = teacherVideo.currentTime;
   if (musicTime < state.exam.start || musicTime > state.recordingEnd) return;
   if (state.lastRecordAt >= 0 && musicTime - state.lastRecordAt < 0.08) return;
@@ -1884,7 +1821,6 @@ function recordStudentFrame(studentLandmarks, studentWorldLandmarks = null) {
     time: musicTime,
     angles: poseAngles(studentLandmarks),
     landmarks: normalized,
-    worldLandmarks: cloneLandmarks(studentWorldLandmarks),
   };
   sample.signature = movementSignature(sample.landmarks);
 
@@ -1919,9 +1855,7 @@ function evaluateRecordedAttempt() {
     amplitude: [],
     energy: [],
     motion: [],
-    world: [],
   };
-  let worldMatchedFrames = 0;
 
   references.forEach((reference) => {
     const student = nearestStudentSample(reference.time);
@@ -1980,9 +1914,6 @@ function evaluateRecordedAttempt() {
     const amplitude = amplitudeScore(reference.signature, student.signature);
     const energy = energyScore(referencePrevious, referenceNext, studentPrevious, studentNext);
     const motion = motionScore(referencePrevious, referenceNext, studentPrevious, studentNext);
-    const hasWorld = hasComparableWorldLandmarks(reference.worldLandmarks, student.worldLandmarks);
-    const world = hasWorld ? worldPoseScore(reference.worldLandmarks, student.worldLandmarks) : 88;
-    if (hasWorld) worldMatchedFrames += 1;
     const corrected = reconcileMicroJitterScores({
       position,
       timing,
@@ -1990,7 +1921,6 @@ function evaluateRecordedAttempt() {
       amplitude,
       energy,
       motion,
-      world,
       arms,
       legs,
       body,
@@ -2019,7 +1949,6 @@ function evaluateRecordedAttempt() {
     groups.amplitude.push(corrected.amplitude);
     groups.energy.push(corrected.energy);
     groups.motion.push(corrected.motion);
-    groups.world.push(corrected.world);
     totals.push(total);
   });
 
@@ -2036,9 +1965,6 @@ function evaluateRecordedAttempt() {
     trajectory: average(groups.trajectory),
     energy: average(groups.energy),
     motion: weightedAverage([average(groups.motion), motionStats.score], [0.58, 0.42]),
-    world: average(groups.world),
-    worldAvailable: worldMatchedFrames > 0,
-    worldCoverage: references.length ? worldMatchedFrames / references.length : 0,
     movementRatio: motionStats.ratio,
     referenceMovement: motionStats.referenceMovement,
     studentMovement: motionStats.studentMovement,
@@ -2058,9 +1984,6 @@ function evaluateRecordedAttempt() {
     amplitude: quality.amplitude,
     energy: quality.energy,
     motion: quality.motion,
-    world: quality.world,
-    worldAvailable: quality.worldAvailable,
-    worldCoverage: Math.round((quality.worldCoverage || 0) * 100),
     movementRatio: quality.movementRatio,
     referenceMovement: quality.referenceMovement,
     studentMovement: quality.studentMovement,
@@ -2076,7 +1999,6 @@ function evaluateRecordedAttempt() {
 }
 
 function calibratedMatchTotal(total, coverage, quality = {}) {
-  const worldScore = quality.worldAvailable ? quality.world || 0 : 88;
   const poseCore = weightedAverage(
     [
       quality.position || 0,
@@ -2085,9 +2007,8 @@ function calibratedMatchTotal(total, coverage, quality = {}) {
       quality.body || 0,
       quality.amplitude || 0,
       quality.motion || 0,
-      worldScore,
     ],
-    [0.25, 0.19, 0.17, 0.11, 0.1, 0.11, 0.07],
+    [0.28, 0.21, 0.19, 0.12, 0.1, 0.1],
   );
   const weakMetric = Math.min(
     quality.arms || 0,
@@ -2097,7 +2018,6 @@ function calibratedMatchTotal(total, coverage, quality = {}) {
     quality.timing || 0,
     quality.amplitude || 0,
     quality.motion || 0,
-    worldScore,
   );
   const movementRatio = Number.isFinite(quality.movementRatio) ? quality.movementRatio : 1;
   const hasMovingReference = (quality.referenceMovement || 0) > 0.16;
@@ -2155,7 +2075,6 @@ function weakestMomentLabel(scores) {
     amplitude: "амплитуда отличается",
     energy: "скорость/энергия движения другая",
     motion: "слишком мало движения",
-    world: "3D-форма тела отличается",
     position: "форма позы отличается",
   };
   const [key] =
@@ -2166,7 +2085,6 @@ function weakestMomentLabel(scores) {
       timing: scores.timing,
       amplitude: scores.amplitude,
       motion: scores.motion,
-      world: scores.world,
       position: scores.position,
     }).sort((a, b) => a[1] - b[1])[0] || ["position"];
   return labels[key] || labels.position;
@@ -2182,7 +2100,6 @@ function grossMistakeScore(scores) {
     scores.amplitude,
     scores.trajectory,
     scores.motion,
-    scores.world,
   );
 }
 
@@ -2329,10 +2246,10 @@ function classifyMovementMoment(current, previous, next) {
 function adaptiveMomentScore(scores, movementType) {
   const weights =
     movementType === "accent"
-      ? { position: 0.35, timing: 0.2, trajectory: 0.1, amplitude: 0.09, energy: 0.07, motion: 0.12, world: 0.07 }
+      ? { position: 0.38, timing: 0.21, trajectory: 0.11, amplitude: 0.1, energy: 0.07, motion: 0.13 }
       : movementType === "transition"
-        ? { position: 0.32, timing: 0.17, trajectory: 0.12, amplitude: 0.13, energy: 0.08, motion: 0.12, world: 0.06 }
-        : { position: 0.49, timing: 0.19, trajectory: 0.04, amplitude: 0.11, energy: 0.03, motion: 0.07, world: 0.07 };
+        ? { position: 0.34, timing: 0.18, trajectory: 0.13, amplitude: 0.14, energy: 0.08, motion: 0.13 }
+        : { position: 0.52, timing: 0.2, trajectory: 0.04, amplitude: 0.12, energy: 0.04, motion: 0.08 };
 
   const base =
     scores.position * weights.position +
@@ -2340,9 +2257,8 @@ function adaptiveMomentScore(scores, movementType) {
     scores.trajectory * weights.trajectory +
     scores.amplitude * weights.amplitude +
     scores.energy * weights.energy +
-    scores.motion * weights.motion +
-    scores.world * weights.world;
-  const limbGuard = Math.min(scores.arms, scores.legs, scores.body, scores.motion, scores.world);
+    scores.motion * weights.motion;
+  const limbGuard = Math.min(scores.arms, scores.legs, scores.body, scores.motion);
   const detailGuard = Math.min(scores.chest ?? 100, scores.head ?? 100, scores.fingers ?? 100);
   const guardedBase =
     limbGuard < 45
@@ -2383,33 +2299,6 @@ function energyScore(referencePrevious, referenceNext, studentPrevious, studentN
   const referenceVelocity = vectorVelocity(referenceVector);
   const studentVelocity = vectorVelocity(studentVector);
   return numericSimilarity(referenceVelocity, studentVelocity, 0.05, 24);
-}
-
-function worldPoseScore(referenceWorldLandmarks, studentWorldLandmarks) {
-  if (!referenceWorldLandmarks?.length || !studentWorldLandmarks?.length) return 88;
-  const worldPoints = [11, 12, 13, 14, 15, 16, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32];
-  const scores = worldPoints
-    .map((index) => {
-      const reference = referenceWorldLandmarks[index];
-      const student = studentWorldLandmarks[index];
-      if (!reference || !student || reference.visibility < 0.25 || student.visibility < 0.25) return null;
-      const distance3d = Math.hypot(reference.x - student.x, reference.y - student.y, reference.z - student.z);
-      return Math.max(0, 100 - distance3d * 42);
-    })
-    .filter((score) => score !== null);
-
-  return scores.length ? average(scores) : 88;
-}
-
-function hasComparableWorldLandmarks(referenceWorldLandmarks, studentWorldLandmarks) {
-  if (!referenceWorldLandmarks?.length || !studentWorldLandmarks?.length) return false;
-  const worldPoints = [11, 12, 13, 14, 15, 16, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32];
-  const comparable = worldPoints.filter((index) => {
-    const reference = referenceWorldLandmarks[index];
-    const student = studentWorldLandmarks[index];
-    return reference && student && reference.visibility >= 0.25 && student.visibility >= 0.25;
-  });
-  return comparable.length >= 8;
 }
 
 function motionScore(referencePrevious, referenceNext, studentPrevious, studentNext) {
@@ -2778,7 +2667,6 @@ function emptyScores() {
     amplitude: 0,
     energy: 0,
     motion: 0,
-    world: 0,
     timing: 0,
     total: 0,
     score: 0,
@@ -3530,7 +3418,6 @@ function resultDetailsText(attempt, stars, tip) {
     `амплитуда ${roundScore(scores.amplitude)}%`,
     `траектория ${roundScore(scores.trajectory)}%`,
     `движение ${roundScore(scores.motion)}%`,
-    scores.worldAvailable ? `3D ${roundScore(scores.world)}%` : "3D нет данных",
     `ритм ${roundScore(scores.timing)}%`,
     tip,
   ];
@@ -5528,9 +5415,7 @@ async function buildStudentSkeleton() {
   const scanId = ++state.studentScanId;
   state.studentSkeleton = [];
   state.studentRecording = [];
-  state.studentWorldReady = false;
   resetPoseSmoothing("student");
-  updatePoseBadges();
   els.buildStudentSkeletonButton.disabled = true;
   els.studentPlayButton.disabled = true;
   els.markStudentStartButton.disabled = true;
@@ -5562,10 +5447,8 @@ async function buildStudentSkeleton() {
       clearCanvas(studentCtx, studentCanvas);
       const result = safeDetectPose(state.teacherLandmarker, studentVideo);
       const landmarks = result.landmarks?.[0];
-      const worldLandmarks = normalizedWorldLandmarksFromResult(result);
       if (landmarks) {
-        if (worldLandmarks) state.studentWorldReady = true;
-        const smoothed = smoothPoseSample("student", landmarks, worldLandmarks);
+        const smoothed = smoothPoseSample("student", landmarks);
         drawPose(studentCtx, studentCanvas, smoothed.landmarks, "#2dd4bf");
         const normalized = normalizeLandmarks(smoothed.landmarks);
         const sample = {
@@ -5574,11 +5457,9 @@ async function buildStudentSkeleton() {
           displayLandmarks: cloneLandmarks(smoothed.landmarks),
           angles: poseAngles(smoothed.landmarks),
           landmarks: normalized,
-          worldLandmarks: smoothed.worldLandmarks,
           signature: movementSignature(normalized),
         };
         state.studentSkeleton.push(sample);
-        updatePoseBadges();
       }
       frameIndex += 1;
       const progress = Math.round(((rawTime - start) / Math.max(end - start, 1)) * 100);
