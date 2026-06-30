@@ -18,10 +18,6 @@ const TASKS_VISION_SOURCES = [
     wasm: "https://unpkg.com/@mediapipe/tasks-vision@0.10.35/wasm",
   },
 ];
-const LANDMARK_SMOOTHING_ALPHA = 0.58;
-const LANDMARK_FAST_ALPHA = 0.82;
-const LANDMARK_FAST_DISTANCE = 0.055;
-
 const teacherVideo = document.querySelector("#teacherVideo");
 const studentVideo = document.querySelector("#studentVideo");
 const teacherCanvas = document.querySelector("#teacherCanvas");
@@ -471,10 +467,6 @@ const state = {
   modelLoading: false,
   modelFailed: false,
   poseModelName: "",
-  smoothing: {
-    teacherLandmarks: null,
-    studentLandmarks: null,
-  },
   modelReadyPromise: null,
   attempts: JSON.parse(localStorage.getItem("danceReplayAttempts") || "[]"),
   scanId: 0,
@@ -1309,7 +1301,6 @@ async function scanTeacherVideo(options = {}) {
 
   const scanId = ++state.scanId;
   state.reference = [];
-  resetPoseSmoothing("teacher");
   state.mode = "scan";
   await switchTeacherVideo("exam");
   els.teacherSkeletonToggle.checked = true;
@@ -1340,14 +1331,13 @@ async function scanTeacherVideo(options = {}) {
     const result = safeDetectPose(state.teacherLandmarker, teacherVideo);
     const landmarks = result.landmarks?.[0];
     if (landmarks) {
-      const smoothed = smoothPoseSample("teacher", landmarks);
-      const normalized = normalizeLandmarks(smoothed.landmarks);
-      drawPose(teacherCtx, teacherCanvas, smoothed.landmarks, "#f5c542");
+      const normalized = normalizeLandmarks(landmarks);
+      drawPose(teacherCtx, teacherCanvas, landmarks, "#f5c542");
       state.reference.push({
         time,
-        displayLandmarks: cloneLandmarks(smoothed.landmarks),
+        displayLandmarks: cloneLandmarks(landmarks),
         landmarks: normalized,
-        angles: poseAngles(smoothed.landmarks),
+        angles: poseAngles(landmarks),
         signature: movementSignature(normalized),
       });
     }
@@ -1497,7 +1487,6 @@ async function toggleDance() {
   state.bestMatch = 0;
   state.currentMatch = 0;
   state.studentRecording = [];
-  resetPoseSmoothing("student");
   state.lastRecordAt = -1;
   state.startedAt = performance.now();
   teacherVideo.playbackRate = 1;
@@ -1631,10 +1620,9 @@ function processFrame() {
 
     clearCanvas(studentCtx, studentCanvas);
     if (student) {
-      const smoothed = smoothPoseSample("student", student);
-      drawPose(studentCtx, studentCanvas, smoothed.landmarks, "#2dd4bf");
+      drawPose(studentCtx, studentCanvas, student, "#2dd4bf");
       if (state.mode === "dance" && state.reference.length) {
-        recordStudentFrame(smoothed.landmarks);
+        recordStudentFrame(student);
       }
     }
   }
@@ -1773,42 +1761,6 @@ function cloneLandmarks(landmarks) {
     z: point.z || 0,
     visibility: point.visibility ?? 1,
   }));
-}
-
-function smoothLandmarks(previous, current, options = {}) {
-  if (!current?.length) return null;
-  if (!previous?.length || previous.length !== current.length) return cloneLandmarks(current);
-
-  return current.map((point, index) => {
-    const old = previous[index];
-    if (!old) return { ...point };
-    const distance = Math.hypot(point.x - old.x, point.y - old.y, (point.z || 0) - (old.z || 0));
-    const alpha = distance > (options.fastDistance ?? LANDMARK_FAST_DISTANCE)
-      ? LANDMARK_FAST_ALPHA
-      : options.alpha ?? LANDMARK_SMOOTHING_ALPHA;
-    return {
-      x: lerp(old.x, point.x, alpha),
-      y: lerp(old.y, point.y, alpha),
-      z: lerp(old.z || 0, point.z || 0, alpha),
-      visibility: lerp(old.visibility ?? 1, point.visibility ?? 1, 0.72),
-    };
-  });
-}
-
-function smoothPoseSample(kind, landmarks) {
-  const landmarkKey = `${kind}Landmarks`;
-  const smoothedLandmarks = smoothLandmarks(state.smoothing[landmarkKey], landmarks);
-  state.smoothing[landmarkKey] = cloneLandmarks(smoothedLandmarks);
-  return { landmarks: smoothedLandmarks };
-}
-
-function resetPoseSmoothing(kind = "all") {
-  if (kind === "all" || kind === "teacher") {
-    state.smoothing.teacherLandmarks = null;
-  }
-  if (kind === "all" || kind === "student") {
-    state.smoothing.studentLandmarks = null;
-  }
 }
 
 function recordStudentFrame(studentLandmarks) {
@@ -5415,7 +5367,6 @@ async function buildStudentSkeleton() {
   const scanId = ++state.studentScanId;
   state.studentSkeleton = [];
   state.studentRecording = [];
-  resetPoseSmoothing("student");
   els.buildStudentSkeletonButton.disabled = true;
   els.studentPlayButton.disabled = true;
   els.markStudentStartButton.disabled = true;
@@ -5448,14 +5399,13 @@ async function buildStudentSkeleton() {
       const result = safeDetectPose(state.teacherLandmarker, studentVideo);
       const landmarks = result.landmarks?.[0];
       if (landmarks) {
-        const smoothed = smoothPoseSample("student", landmarks);
-        drawPose(studentCtx, studentCanvas, smoothed.landmarks, "#2dd4bf");
-        const normalized = normalizeLandmarks(smoothed.landmarks);
+        drawPose(studentCtx, studentCanvas, landmarks, "#2dd4bf");
+        const normalized = normalizeLandmarks(landmarks);
         const sample = {
           time: teacherStart + (rawTime - start),
           rawTime,
-          displayLandmarks: cloneLandmarks(smoothed.landmarks),
-          angles: poseAngles(smoothed.landmarks),
+          displayLandmarks: cloneLandmarks(landmarks),
+          angles: poseAngles(landmarks),
           landmarks: normalized,
           signature: movementSignature(normalized),
         };
