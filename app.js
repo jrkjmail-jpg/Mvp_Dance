@@ -305,6 +305,7 @@ const DANCE_STYLES = [
 
 const savedTeacherWorkspace = readStoredJson("danceReplayTeacherWorkspace", null);
 const savedStudentProfile = readStoredJson("danceReplayStudentProfile", null);
+const savedFavoriteLessons = readStoredJson("danceReplayFavoriteLessons", []);
 const savedTheme = readStoredTheme();
 
 const ANGLES = {
@@ -438,6 +439,8 @@ const state = {
   teacherStudentGroupId: "",
   studentStudioGroupOpen: false,
   studentStudioSubgroupIds: [],
+  completedLessonsTab: "history",
+  favoriteLessonIds: Array.isArray(savedFavoriteLessons) ? savedFavoriteLessons : [],
   teacherWorkspace: savedTeacherWorkspace || {
     studios: [],
     activeStudioId: "",
@@ -559,6 +562,7 @@ els.studentEditOverlay?.addEventListener("click", (event) => {
 });
 els.studentProfileForm.addEventListener("submit", submitStudentProfile);
 els.teacherBrowser.addEventListener("click", (event) => {
+  if (handleLessonLikeEvent(event)) return;
   const deleteButton = event.target.closest("[data-delete-folder-type]");
   if (deleteButton) {
     event.preventDefault();
@@ -622,6 +626,7 @@ els.teacherBrowser.addEventListener("click", (event) => {
 });
 els.teacherBrowser.addEventListener("keydown", (event) => {
   if (event.key !== "Enter" && event.key !== " ") return;
+  if (handleLessonLikeEvent(event)) return;
   const createButton = event.target.closest("[data-create-type]");
   if (!createButton) return;
   event.preventDefault();
@@ -728,6 +733,18 @@ els.levelHistoryOverlay.addEventListener("click", (event) => {
   if (event.target === els.levelHistoryOverlay) closeLevelHistory();
 });
 els.studentProfileDetails.addEventListener("click", (event) => {
+  if (handleLessonLikeEvent(event)) return;
+  const lessonButton = event.target.closest("[data-student-access-lesson-id]");
+  if (lessonButton) {
+    openStudentAccessibleLesson(lessonButton.dataset.studentAccessLessonId || "");
+    return;
+  }
+  const completedTab = event.target.closest("[data-completed-tab]");
+  if (completedTab) {
+    state.completedLessonsTab = completedTab.dataset.completedTab === "favorites" ? "favorites" : "history";
+    renderDancerProfileDetails();
+    return;
+  }
   if (event.target.closest(".dancer-cover-edit")) {
     els.studentProfileCoverInput.value = "";
     els.studentProfileCoverInput.click();
@@ -743,6 +760,7 @@ els.studentProfileDetails.addEventListener("click", (event) => {
 els.studentProfileCoverInput?.addEventListener("change", (event) => updateStudentProfileImage(event, "coverImage"));
 els.studentProfileAvatarInput?.addEventListener("change", (event) => updateStudentProfileImage(event, "avatarImage"));
 els.studentStudioProfilePage?.addEventListener("click", (event) => {
+  if (handleLessonLikeEvent(event)) return;
   const lessonButton = event.target.closest("[data-student-access-lesson-id]");
   if (lessonButton) {
     openStudentAccessibleLesson(lessonButton.dataset.studentAccessLessonId || "");
@@ -2981,7 +2999,9 @@ function renderDancerProfileDetails() {
 }
 
 function renderDancerCompletedLessons() {
-  const attempts = state.attempts.slice(0, 6);
+  const tab = state.completedLessonsTab === "favorites" ? "favorites" : "history";
+  const favoriteCards = tab === "favorites" ? renderFavoriteLessonCards() : "";
+  const attempts = tab === "history" ? state.attempts.slice(0, 6) : [];
   const activeLesson = activeTeacherLesson() || {};
   const cards = attempts.map((attempt, index) => {
     const stars = Number.isFinite(attempt.stars) ? attempt.stars : matchToStars(attempt.match || 0);
@@ -3002,17 +3022,81 @@ function renderDancerCompletedLessons() {
       </article>
     `;
   }).join("");
+  const emptyTitle = tab === "favorites" ? "Здесь появятся любимые уроки" : "Скоро здесь будут просмотренные уроки";
+  const emptyText = tab === "favorites"
+    ? "Ставьте лайк на уроках — они соберутся здесь."
+    : "После просмотров и сдач здесь появится ваша история занятий.";
   return `
     <section class="completed-lessons-panel" aria-label="Пройденные уроки">
       <div class="completed-lessons-head">
-        <p class="eyebrow">История</p>
-        <h3>Пройденные уроки</h3>
+        <div>
+          <p class="eyebrow">История</p>
+          <h3>${tab === "favorites" ? "Любимые уроки" : "Пройденные уроки"}</h3>
+        </div>
+        <div class="completed-lessons-tabs" role="tablist" aria-label="Раздел уроков">
+          <button class="${tab === "history" ? "active" : ""}" type="button" data-completed-tab="history" role="tab" aria-selected="${tab === "history"}">История просмотров</button>
+          <button class="${tab === "favorites" ? "active" : ""}" type="button" data-completed-tab="favorites" role="tab" aria-selected="${tab === "favorites"}">Любимые</button>
+        </div>
       </div>
       <div class="completed-lessons-grid">
-        ${cards || `<div class="completed-lessons-empty">Здесь появятся уроки после первой сдачи.</div>`}
+        ${cards || favoriteCards || studentEmptyLessonCard(emptyTitle, emptyText)}
       </div>
     </section>
   `;
+}
+
+function renderFavoriteLessonCards() {
+  const favoriteIds = new Set(state.favoriteLessonIds || []);
+  if (!favoriteIds.size) return "";
+  return collectAllTeacherLessons()
+    .filter((lesson) => favoriteIds.has(lesson.id))
+    .map((lesson) => studentAccessibleLessonCard(lesson))
+    .join("");
+}
+
+function collectAllTeacherLessons() {
+  const lessons = [];
+  const walk = (items = []) => {
+    items.forEach((group) => {
+      lessons.push(...(group.lessons || []));
+      walk(group.subgroups || []);
+    });
+  };
+  (state.teacherWorkspace.studios || []).forEach((studio) => walk(studio.groups || []));
+  return lessons;
+}
+
+function isLessonFavorite(lessonId = "") {
+  return Boolean(lessonId && (state.favoriteLessonIds || []).includes(lessonId));
+}
+
+function toggleLessonFavorite(lessonId = "") {
+  if (!lessonId) return;
+  const favorites = new Set(state.favoriteLessonIds || []);
+  if (favorites.has(lessonId)) favorites.delete(lessonId);
+  else favorites.add(lessonId);
+  state.favoriteLessonIds = Array.from(favorites);
+  persistFavoriteLessons();
+  renderTeacherWorkspace();
+  renderDancerProfileDetails();
+  if (!els.studentStudioProfilePage?.hidden) renderStudentStudioProfile();
+}
+
+function persistFavoriteLessons() {
+  try {
+    localStorage.setItem("danceReplayFavoriteLessons", JSON.stringify(state.favoriteLessonIds || []));
+  } catch (error) {
+    console.warn("Не удалось сохранить любимые уроки", error);
+  }
+}
+
+function handleLessonLikeEvent(event) {
+  const likeButton = event.target.closest("[data-lesson-like-id]");
+  if (!likeButton) return false;
+  event.preventDefault();
+  event.stopPropagation();
+  toggleLessonFavorite(likeButton.dataset.lessonLikeId || "");
+  return true;
 }
 
 async function updateStudentProfileImage(event, field) {
@@ -4359,9 +4443,13 @@ function lessonFolderCard(item) {
   const meta = lessonDurationLabel(item);
   const typeLabel = item.lessonType || item.category || "Видеоурок";
   const statusLabel = item.published ? "опубликован" : "новое";
+  const favorite = isLessonFavorite(item.id);
   return `
     <button class="folder-card folder-card-lesson lesson-showcase-card${item.published ? " is-published" : ""}" type="button" data-lesson-id="${escapeHtml(item.id)}">
       ${deleteFolderControl("lesson", item)}
+      <span class="lesson-like${favorite ? " is-liked" : ""}" role="button" tabindex="0" data-lesson-like-id="${escapeHtml(item.id)}" aria-label="${favorite ? "Убрать из любимых" : "Добавить в любимые"}">
+        ♥
+      </span>
       <span class="lesson-showcase-preview">
         <img src="${escapeHtml(image)}" alt="" />
         <span class="lesson-showcase-play" aria-hidden="true">▶</span>

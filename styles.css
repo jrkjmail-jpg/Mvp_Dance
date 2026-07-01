@@ -5198,6 +5198,39 @@ h3,
   text-align: left;
 }
 
+.lesson-like {
+  position: absolute;
+  z-index: 9;
+  top: 14px;
+  left: 14px;
+  width: 40px;
+  height: 40px;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: rgba(16, 18, 15, 0.62);
+  color: rgba(255, 250, 242, 0.86);
+  font-size: 1.22rem;
+  font-weight: 1000;
+  line-height: 1;
+  box-shadow: 0 12px 34px rgba(0, 0, 0, 0.22);
+  transition: transform 160ms ease, background 160ms ease, color 160ms ease, border-color 160ms ease;
+}
+
+.lesson-like:hover,
+.lesson-like:focus-visible {
+  transform: translateY(-1px) scale(1.04);
+  border-color: rgba(255, 255, 255, 0.58);
+  outline: none;
+}
+
+.lesson-like.is-liked {
+  background: #ff684d;
+  border-color: rgba(255, 255, 255, 0.55);
+  color: #10120f;
+}
+
 .lesson-showcase-card:hover {
   background:
     radial-gradient(circle at 86% 14%, rgba(200, 255, 72, 0.12), transparent 10rem),
@@ -6872,10 +6905,60 @@ h3,
   letter-spacing: -0.05em;
 }
 
+.completed-lessons-tabs {
+  padding: 5px;
+  border-radius: 999px;
+  display: inline-flex;
+  gap: 4px;
+  background: rgba(16, 18, 15, 0.06);
+  box-shadow: inset 0 0 0 1px rgba(16, 18, 15, 0.06);
+}
+
+.completed-lessons-tabs button {
+  min-height: 42px;
+  border: 0;
+  border-radius: 999px;
+  padding: 0 16px;
+  background: transparent;
+  color: rgba(16, 18, 15, 0.56);
+  font: inherit;
+  font-size: 0.88rem;
+  font-weight: 950;
+  cursor: pointer;
+}
+
+.completed-lessons-tabs button.active {
+  background: #10120f;
+  color: #fffaf2;
+  box-shadow: 0 12px 30px rgba(16, 18, 15, 0.12);
+}
+
+:root[data-theme="dark"] .completed-lessons-tabs {
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+}
+
+:root[data-theme="dark"] .completed-lessons-tabs button {
+  color: rgba(255, 250, 242, 0.62);
+}
+
+:root[data-theme="dark"] .completed-lessons-tabs button.active {
+  background: #fffaf2;
+  color: #10120f;
+}
+
 .completed-lessons-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   gap: 14px;
+}
+
+.completed-lessons-grid:has(.student-empty-lesson-card) {
+  grid-template-columns: 1fr;
+}
+
+.completed-lessons-grid > .student-empty-lesson-card {
+  justify-self: start;
 }
 
 .completed-lesson-card {
@@ -9689,7 +9772,7 @@ h3,
   border-radius: 50%;
   display: grid;
   place-items: center;
-  color: #c8ff48;
+  color: #ff684d;
   background: #10120f;
   font-size: 4rem;
   font-weight: 1000;
@@ -9722,8 +9805,9 @@ h3,
 }
 
 :root[data-theme="dark"] .student-empty-lesson-card .student-empty-lesson-icon {
-  color: #10120f;
-  background: #c8ff48;
+  color: #ff684d;
+  background: #10120f;
+  box-shadow: inset 0 0 0 1px rgba(255, 250, 242, 0.08);
 }
 
 :root[data-theme="dark"] .student-empty-lesson-card small {
@@ -10047,8 +10131,20 @@ h3,
 
   .completed-lessons-head {
     display: grid;
-    gap: 6px;
+    gap: 12px;
     align-items: start;
+  }
+
+  .completed-lessons-tabs {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .completed-lessons-tabs button {
+    min-height: 40px;
+    padding: 0 10px;
+    font-size: 0.78rem;
   }
 
   .completed-lessons-empty {
@@ -10058,6 +10154,11 @@ h3,
     border-radius: 30px;
     padding: 32px 24px;
     font-size: clamp(1.28rem, 6vw, 1.85rem);
+  }
+
+  .completed-lessons-grid > .student-empty-lesson-card {
+    justify-self: stretch;
+    width: 100%;
   }
 }
 
