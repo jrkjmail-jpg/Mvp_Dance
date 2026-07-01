@@ -10379,7 +10379,7 @@ h3,
   text-wrap: nowrap !important;
   text-overflow: clip !important;
   overflow: visible !important;
-  transform: scaleX(1.08) !important;
+  transform: scaleX(1.14) scaleY(0.94) !important;
   transform-origin: left center !important;
 }
 
@@ -10422,10 +10422,10 @@ h3,
     display: flex !important;
     align-items: center !important;
     justify-content: space-between !important;
-    height: 94px !important;
-    min-height: 94px !important;
-    max-height: 94px !important;
-    padding: 12px 16px 12px 22px !important;
+    height: 78px !important;
+    min-height: 78px !important;
+    max-height: 78px !important;
+    padding: 8px 14px 8px 22px !important;
     gap: 12px !important;
     box-sizing: border-box !important;
   }
@@ -10437,7 +10437,8 @@ h3,
   }
 
   .topbar .brand-lockup h1 {
-    font-size: clamp(2.45rem, 4.6vw, 3.25rem) !important;
+    font-size: clamp(2.2rem, 3.65vw, 2.85rem) !important;
+    transform: scaleX(1.16) scaleY(0.92) !important;
   }
 
   .topbar .brand-lockup .eyebrow {
@@ -10446,8 +10447,34 @@ h3,
 
   .topbar .icon-account-switch {
     align-self: center !important;
+    display: grid !important;
+    place-items: center !important;
+    width: 52px !important;
+    min-width: 52px !important;
+    height: 52px !important;
+    min-height: 52px !important;
     margin-top: 0 !important;
     margin-bottom: 0 !important;
+    margin-left: auto !important;
+    padding: 4px !important;
+    transform: none !important;
+  }
+
+  .topbar .icon-account-switch::before {
+    inset: 0 !important;
+  }
+
+  .topbar .icon-account-switch:hover::before,
+  .topbar .icon-account-switch:focus-within::before {
+    inset: 0 0 -108px 0 !important;
+  }
+
+  .topbar .icon-account-switch .account-main,
+  .topbar .icon-account-switch .account-main.active {
+    width: 44px !important;
+    min-width: 44px !important;
+    min-height: 44px !important;
+    height: 44px !important;
   }
 }
 
@@ -10469,5 +10496,6 @@ h3,
 
   .topbar .brand-lockup h1 {
     font-size: clamp(2.35rem, 11.2vw, 3.15rem) !important;
+    transform: scaleX(1.14) scaleY(0.94) !important;
   }
 }
