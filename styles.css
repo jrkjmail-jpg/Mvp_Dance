@@ -10422,26 +10422,40 @@ h3,
     display: flex !important;
     align-items: center !important;
     justify-content: space-between !important;
-    min-height: 72px !important;
-    padding: 9px 12px 9px 16px !important;
+    height: 94px !important;
+    min-height: 94px !important;
+    max-height: 94px !important;
+    padding: 12px 16px 12px 22px !important;
+    gap: 12px !important;
+    box-sizing: border-box !important;
   }
 
   .topbar .brand-lockup {
     max-width: calc(100% - 72px) !important;
+    align-items: center !important;
+    align-self: center !important;
   }
 
   .topbar .brand-lockup h1 {
-    font-size: clamp(2.25rem, 5.2vw, 3.2rem) !important;
+    font-size: clamp(2.45rem, 4.6vw, 3.25rem) !important;
   }
 
   .topbar .brand-lockup .eyebrow {
     font-size: clamp(0.46rem, 1.1vw, 0.56rem) !important;
   }
+
+  .topbar .icon-account-switch {
+    align-self: center !important;
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+  }
 }
 
 @media (max-width: 720px) {
   .topbar {
-    min-height: 68px !important;
+    height: 76px !important;
+    min-height: 76px !important;
+    max-height: 76px !important;
     padding: 8px 10px 8px 16px !important;
   }
 
@@ -10454,6 +10468,6 @@ h3,
   }
 
   .topbar .brand-lockup h1 {
-    font-size: clamp(2.55rem, 12.6vw, 3.55rem) !important;
+    font-size: clamp(2.35rem, 11.2vw, 3.15rem) !important;
   }
 }
