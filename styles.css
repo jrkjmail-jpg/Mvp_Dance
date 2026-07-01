@@ -10174,3 +10174,49 @@ h3,
 .student-access-grid .folder-card-subgroup .folder-card-note {
   max-width: min(82%, 260px);
 }
+
+/* Dancer profile: make studio membership visible as an important context */
+.dancer-studio-label {
+  width: fit-content;
+  max-width: min(100%, 680px);
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 18px 10px 14px;
+  border: 1px solid rgba(200, 255, 72, 0.42);
+  border-radius: 999px;
+  background:
+    radial-gradient(circle at 18% 50%, rgba(200, 255, 72, 0.2), transparent 4.8rem),
+    rgba(255, 255, 255, 0.34);
+  color: #11130f !important;
+  box-shadow: 0 14px 34px rgba(200, 255, 72, 0.08);
+  font-size: clamp(1.55rem, 2.7vw, 2.45rem) !important;
+  font-weight: 1000 !important;
+  letter-spacing: 0.055em;
+}
+
+.dancer-studio-label::before {
+  content: "";
+  width: 0.42em;
+  height: 0.42em;
+  min-width: 0.42em;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 0 8px rgba(200, 255, 72, 0.14);
+}
+
+:root[data-theme="dark"] .dancer-studio-label {
+  border-color: rgba(200, 255, 72, 0.5);
+  background:
+    radial-gradient(circle at 18% 50%, rgba(200, 255, 72, 0.16), transparent 4.8rem),
+    rgba(255, 255, 255, 0.06);
+  color: rgba(255, 250, 242, 0.94) !important;
+}
+
+@media (max-width: 720px) {
+  .dancer-studio-label {
+    max-width: 100%;
+    padding: 8px 14px 8px 12px;
+    font-size: clamp(1.25rem, 7vw, 2rem) !important;
+  }
+}
