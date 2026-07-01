@@ -10321,3 +10321,139 @@ h3,
     font-size: clamp(1.25rem, 7vw, 2rem) !important;
   }
 }
+
+/* Final header lockup: brand wordmark must not distort, and avatar mark is removed everywhere */
+.topbar {
+  flex-wrap: nowrap !important;
+  overflow: visible !important;
+}
+
+.topbar .brand-mark {
+  display: none !important;
+}
+
+.topbar .brand-lockup {
+  flex: 1 1 auto !important;
+  min-width: 0 !important;
+  max-width: calc(100% - 76px) !important;
+  gap: 0 !important;
+  overflow: visible !important;
+}
+
+.topbar .brand-lockup > div {
+  flex: 0 0 auto !important;
+  width: max-content !important;
+  min-width: max-content !important;
+  max-width: none !important;
+  display: grid !important;
+  gap: 3px !important;
+  overflow: visible !important;
+}
+
+.topbar .brand-lockup .eyebrow {
+  font-size: clamp(0.48rem, 0.72vw, 0.58rem) !important;
+  line-height: 1 !important;
+  letter-spacing: 0.18em !important;
+  color: #38775f !important;
+  opacity: 0.9 !important;
+  transform: translateX(0.08em) !important;
+}
+
+.topbar .brand-lockup h1 {
+  position: relative !important;
+  display: block !important;
+  width: max-content !important;
+  min-width: max-content !important;
+  max-width: none !important;
+  flex: 0 0 auto !important;
+  font-family: "Arial Black", "Arial Rounded MT Bold", Impact, Inter, sans-serif !important;
+  font-weight: 1000 !important;
+  font-stretch: normal !important;
+  font-size: clamp(2.05rem, 3.05vw, 2.95rem) !important;
+  line-height: 0.86 !important;
+  letter-spacing: -0.09em !important;
+  color: var(--text) !important;
+  white-space: nowrap !important;
+  word-break: keep-all !important;
+  overflow-wrap: normal !important;
+  text-wrap: nowrap !important;
+  text-overflow: clip !important;
+  overflow: visible !important;
+  transform: scaleX(1.08) !important;
+  transform-origin: left center !important;
+}
+
+.topbar .brand-lockup h1::after {
+  top: 50% !important;
+  right: -0.58em !important;
+  bottom: auto !important;
+  width: 0.32em !important;
+  height: 0.32em !important;
+  background: #ff684d !important;
+  transform: translateY(-50%) scaleX(0.93) !important;
+}
+
+.topbar .icon-account-switch {
+  order: 3 !important;
+  flex: 0 0 auto !important;
+  margin-left: auto !important;
+  align-self: center !important;
+  justify-self: end !important;
+  position: relative !important;
+  z-index: 80 !important;
+}
+
+.topbar .account-drawer {
+  left: 50% !important;
+  right: auto !important;
+  width: calc(100% - 10px) !important;
+  min-width: 0 !important;
+  transform: translate(-50%, -14px) scale(0.94) !important;
+  transform-origin: top center !important;
+}
+
+.topbar .account-menu:hover .account-drawer,
+.topbar .account-menu:focus-within .account-drawer {
+  transform: translate(-50%, 0) scale(1) !important;
+}
+
+@media (max-width: 1024px) {
+  .topbar {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    min-height: 72px !important;
+    padding: 9px 12px 9px 16px !important;
+  }
+
+  .topbar .brand-lockup {
+    max-width: calc(100% - 72px) !important;
+  }
+
+  .topbar .brand-lockup h1 {
+    font-size: clamp(2.25rem, 5.2vw, 3.2rem) !important;
+  }
+
+  .topbar .brand-lockup .eyebrow {
+    font-size: clamp(0.46rem, 1.1vw, 0.56rem) !important;
+  }
+}
+
+@media (max-width: 720px) {
+  .topbar {
+    min-height: 68px !important;
+    padding: 8px 10px 8px 16px !important;
+  }
+
+  .topbar .brand-lockup {
+    max-width: calc(100vw - 112px) !important;
+  }
+
+  .topbar .brand-lockup .eyebrow {
+    display: none !important;
+  }
+
+  .topbar .brand-lockup h1 {
+    font-size: clamp(2.55rem, 12.6vw, 3.55rem) !important;
+  }
+}
