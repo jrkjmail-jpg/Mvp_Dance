@@ -227,8 +227,10 @@ const els = {
   teacherCreateCategoryField: document.querySelector("#teacherCreateCategoryField"),
   teacherCreateCategory: document.querySelector("#teacherCreateCategory"),
   teacherStudioCreateFields: document.querySelector("#teacherStudioCreateFields"),
+  teacherLessonCreateFields: document.querySelector("#teacherLessonCreateFields"),
   teacherCreateLogo: document.querySelector("#teacherCreateLogo"),
   teacherCreateCover: document.querySelector("#teacherCreateCover"),
+  teacherCreateLessonCover: document.querySelector("#teacherCreateLessonCover"),
   teacherCreateAddress: document.querySelector("#teacherCreateAddress"),
   teacherCreateDirections: document.querySelector("#teacherCreateDirections"),
   teacherCreateLink: document.querySelector("#teacherCreateLink"),
@@ -383,7 +385,7 @@ const LEVELS = [
 const POSITION_POINTS = [0, 11, 12, 13, 14, 15, 16, 23, 24, 25, 26, 27, 28, 31, 32];
 const HIDDEN_FACE_POINTS = new Set([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
 const HIDDEN_HAND_POINTS = new Set([17, 18, 19, 20, 21, 22]);
-const REFERENCE_SCAN_FPS = 30;
+const REFERENCE_SCAN_FPS = 60;
 const DEFAULT_STUDIO_ACHIEVEMENTS = [
   { icon: "🏆", title: "Фестивали", note: "Участники и призёры" },
   { icon: "🎓", title: "Дипломы", note: "Лауреаты конкурсов" },
@@ -800,6 +802,7 @@ teacherVideo.addEventListener("pause", () => {
 teacherVideo.addEventListener("ended", updateTeacherPlayButton);
 if ("requestVideoFrameCallback" in HTMLVideoElement.prototype) {
   teacherVideo.requestVideoFrameCallback(onTeacherVideoFrame);
+  studentVideo.requestVideoFrameCallback(onStudentVideoFrame);
 }
 teacherVideo.addEventListener("loadedmetadata", () => {
   els.teacherEmpty.hidden = true;
@@ -988,6 +991,7 @@ async function onTeacherUpload(event, type) {
   clip.duration = teacherVideo.duration || 0;
   normalizeClipRange(clip);
   await showClipStartFrame(clip);
+  await ensureActiveLessonThumbnailFromVideo(clip.objectUrl, clip.duration);
   document.querySelector(".stage-grid")?.scrollIntoView({ behavior: "smooth", block: "start" });
   updateExamControls();
   updatePipeline(type === "exam" ? "scan" : "upload");
@@ -1494,6 +1498,7 @@ async function toggleDance() {
   state.currentMatch = 0;
   state.studentRecording = [];
   state.lastRecordAt = -1;
+  state.lastVideoTime = -1;
   state.startedAt = performance.now();
   teacherVideo.playbackRate = 1;
   state.recordingEnd = examEnd();
@@ -1618,19 +1623,8 @@ function loop() {
 }
 
 function processFrame() {
-  const canAnalyzeStudent = (state.cameraReady || state.studentVideoObjectUrl) && state.liveLandmarker;
-  if (canAnalyzeStudent && studentVideo.currentTime !== state.lastVideoTime) {
-    state.lastVideoTime = studentVideo.currentTime;
-    const result = safeDetectPoseForVideo(state.liveLandmarker, studentVideo, performance.now());
-    const student = result.landmarks?.[0];
-
-    clearCanvas(studentCtx, studentCanvas);
-    if (student) {
-      drawPose(studentCtx, studentCanvas, student, "#2dd4bf");
-      if (state.mode === "dance" && state.reference.length) {
-        recordStudentFrame(student);
-      }
-    }
+  if (!("requestVideoFrameCallback" in HTMLVideoElement.prototype)) {
+    analyzeStudentPoseFrame(studentVideo.currentTime);
   }
 
   if (teacherVideo.src && !teacherVideo.paused) {
@@ -1696,6 +1690,32 @@ function onTeacherVideoFrame(_now, metadata) {
     renderTeacherPoseFrame(metadata.mediaTime);
   }
   teacherVideo.requestVideoFrameCallback(onTeacherVideoFrame);
+}
+
+function onStudentVideoFrame(_now, metadata) {
+  if (!studentVideo.paused || state.cameraReady) {
+    analyzeStudentPoseFrame(metadata?.mediaTime ?? studentVideo.currentTime);
+  }
+  studentVideo.requestVideoFrameCallback(onStudentVideoFrame);
+}
+
+function analyzeStudentPoseFrame(frameTime = studentVideo.currentTime, options = {}) {
+  const canAnalyzeStudent = (state.cameraReady || state.studentVideoObjectUrl) && state.liveLandmarker;
+  if (!canAnalyzeStudent || !studentVideo.videoWidth) return;
+  const mediaTime = Number.isFinite(frameTime) ? frameTime : studentVideo.currentTime;
+  if (!options.force && Math.abs(mediaTime - state.lastVideoTime) < 0.0005) return;
+  state.lastVideoTime = mediaTime;
+
+  resizeCanvasToVideo(studentCanvas, studentVideo);
+  clearCanvas(studentCtx, studentCanvas);
+  const result = safeDetectPoseForVideo(state.liveLandmarker, studentVideo, performance.now());
+  const student = result.landmarks?.[0];
+  if (student) {
+    drawPose(studentCtx, studentCanvas, student, "#2dd4bf");
+    if (state.mode === "dance" && state.reference.length) {
+      recordStudentFrame(student);
+    }
+  }
 }
 
 function nearestReference(time) {
@@ -1772,7 +1792,7 @@ function cloneLandmarks(landmarks) {
 function recordStudentFrame(studentLandmarks) {
   const musicTime = teacherVideo.currentTime;
   if (musicTime < state.exam.start || musicTime > state.recordingEnd) return;
-  if (state.lastRecordAt >= 0 && musicTime - state.lastRecordAt < 0.08) return;
+  if (state.lastRecordAt >= 0 && musicTime - state.lastRecordAt < 0.005) return;
 
   const normalized = normalizeLandmarks(studentLandmarks);
   const sample = {
@@ -4929,8 +4949,14 @@ function openTeacherCreateDialog(forcedType = "") {
       ? "Например: группа, команда, класс"
       : "Например: главный урок, разминка";
   els.teacherStudioCreateFields.hidden = type !== "studio";
+  if (els.teacherLessonCreateFields) {
+    els.teacherLessonCreateFields.hidden = type !== "lesson";
+  }
   els.teacherCreateLogo.value = "";
   els.teacherCreateCover.value = "";
+  if (els.teacherCreateLessonCover) {
+    els.teacherCreateLessonCover.value = "";
+  }
   els.teacherCreateAddress.value = "";
   els.teacherCreateDirections.value = "";
   els.teacherCreateLink.value = "";
@@ -4999,8 +5025,20 @@ async function submitTeacherCreateDialog(event) {
   if (state.teacherCreateType === "lesson") {
     const container = activeTeacherContainer();
     if (!container) return;
+    const image = await optimizeCoverImage(els.teacherCreateLessonCover?.files?.[0]);
     container.lessons = container.lessons || [];
-    container.lessons.push({ id, name, description, category: category || "Видеоурок", lessonType: category || "Видеоурок", image: "", age: "", level: "", contact: "" });
+    container.lessons.push({
+      id,
+      name,
+      description,
+      category: category || "Видеоурок",
+      lessonType: category || "Видеоурок",
+      image,
+      coverSource: image ? "manual" : "",
+      age: "",
+      level: "",
+      contact: "",
+    });
     state.teacherWorkspace.activeLessonId = id;
     persistTeacherWorkspace();
     closeTeacherCreateDialog();
@@ -5162,6 +5200,107 @@ async function optimizeCoverImage(file) {
   } finally {
     URL.revokeObjectURL(source);
   }
+}
+
+async function ensureActiveLessonThumbnailFromVideo(source, duration = 0) {
+  const lesson = activeTeacherLesson();
+  if (!lesson || lesson.image || !source) return;
+  try {
+    const image = await captureVideoThumbnail(source, duration);
+    if (!image || lesson.image) return;
+    lesson.image = image;
+    lesson.coverSource = "auto-video";
+    persistTeacherWorkspace();
+  } catch (error) {
+    console.warn("Не удалось взять кадр видео для обложки урока", error);
+  }
+}
+
+async function captureVideoThumbnail(source, duration = 0) {
+  const video = document.createElement("video");
+  video.muted = true;
+  video.playsInline = true;
+  video.preload = "auto";
+  video.setAttribute("playsinline", "");
+  video.setAttribute("webkit-playsinline", "");
+  video.src = source;
+
+  await waitForDetachedVideoMetadata(video);
+  const safeDuration = Number.isFinite(video.duration) && video.duration > 0
+    ? video.duration
+    : Number(duration) || 0;
+  const seekTime = safeDuration > 0.4
+    ? Math.min(safeDuration - 0.12, Math.max(0.12, safeDuration * (0.22 + Math.random() * 0.46)))
+    : 0;
+
+  if (seekTime > 0) {
+    await seekDetachedVideo(video, seekTime);
+  }
+  await waitForDetachedVideoFrame(video);
+
+  const sourceWidth = video.videoWidth || 1280;
+  const sourceHeight = video.videoHeight || 720;
+  if (!sourceWidth || !sourceHeight) return "";
+
+  const width = 960;
+  const height = 540;
+  const canvas = document.createElement("canvas");
+  canvas.width = width;
+  canvas.height = height;
+  const context = canvas.getContext("2d");
+  if (!context) return "";
+
+  const sourceRatio = sourceWidth / sourceHeight;
+  const targetRatio = width / height;
+  let sx = 0;
+  let sy = 0;
+  let sw = sourceWidth;
+  let sh = sourceHeight;
+  if (sourceRatio > targetRatio) {
+    sw = sourceHeight * targetRatio;
+    sx = (sourceWidth - sw) / 2;
+  } else {
+    sh = sourceWidth / targetRatio;
+    sy = (sourceHeight - sh) / 2;
+  }
+
+  context.drawImage(video, sx, sy, sw, sh, 0, 0, width, height);
+  video.removeAttribute("src");
+  video.load();
+  return canvas.toDataURL("image/jpeg", 0.78);
+}
+
+function waitForDetachedVideoMetadata(video) {
+  return new Promise((resolve, reject) => {
+    if (video.readyState >= 1 && Number.isFinite(video.duration)) {
+      resolve();
+      return;
+    }
+    video.addEventListener("loadedmetadata", resolve, { once: true });
+    video.addEventListener("error", reject, { once: true });
+    video.load();
+  });
+}
+
+function seekDetachedVideo(video, time) {
+  return new Promise((resolve) => {
+    if (Math.abs((video.currentTime || 0) - time) < 0.03) {
+      resolve();
+      return;
+    }
+    video.addEventListener("seeked", resolve, { once: true });
+    video.currentTime = time;
+  });
+}
+
+function waitForDetachedVideoFrame(video) {
+  return new Promise((resolve) => {
+    if (video.readyState >= 2) {
+      requestAnimationFrame(() => resolve());
+      return;
+    }
+    video.addEventListener("loadeddata", () => requestAnimationFrame(() => resolve()), { once: true });
+  });
 }
 
 async function optimizeAvatarImage(file) {
@@ -5401,14 +5540,7 @@ function renderTeacherPoseFrame(frameTime = teacherVideo.currentTime) {
 }
 
 function renderStudentPoseFrame() {
-  if (!studentVideo.src || !state.liveLandmarker || !studentVideo.videoWidth) return;
-  resizeCanvasToVideo(studentCanvas, studentVideo);
-  clearCanvas(studentCtx, studentCanvas);
-  const result = safeDetectPoseForVideo(state.liveLandmarker, studentVideo, performance.now());
-  const student = result.landmarks?.[0];
-  if (student) {
-    drawPose(studentCtx, studentCanvas, student, "#2dd4bf");
-  }
+  analyzeStudentPoseFrame(studentVideo.currentTime, { force: true });
 }
 
 function safeDetectPose(landmarker, video) {
