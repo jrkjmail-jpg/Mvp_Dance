@@ -10499,3 +10499,71 @@ h3,
     transform: scaleX(1.14) scaleY(0.94) !important;
   }
 }
+
+/* Header brand composition: keep the wordmark left-aligned, vertically centered and intact */
+.topbar .brand-lockup {
+  height: 100% !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+}
+
+.topbar .brand-lockup > div {
+  align-self: center !important;
+  display: grid !important;
+  grid-template-rows: auto auto !important;
+  align-content: center !important;
+  justify-items: start !important;
+  gap: clamp(2px, 0.35vw, 5px) !important;
+  transform: translateY(1px) !important;
+}
+
+.topbar .brand-lockup .eyebrow {
+  display: block !important;
+  max-width: 100% !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: clip !important;
+  font-size: clamp(0.54rem, 0.8vw, 0.72rem) !important;
+  line-height: 1 !important;
+  letter-spacing: clamp(0.12em, 0.45vw, 0.24em) !important;
+  transform: translateX(0.14em) !important;
+}
+
+.topbar .brand-lockup h1 {
+  margin: 0 !important;
+  line-height: 0.86 !important;
+}
+
+@media (max-width: 1024px) {
+  .topbar .brand-lockup > div {
+    gap: 3px !important;
+    transform: translateY(0) !important;
+  }
+
+  .topbar .brand-lockup .eyebrow {
+    display: block !important;
+    font-size: clamp(0.48rem, 1.15vw, 0.62rem) !important;
+    letter-spacing: clamp(0.12em, 0.55vw, 0.2em) !important;
+  }
+}
+
+@media (max-width: 720px) {
+  .topbar .brand-lockup {
+    max-width: calc(100vw - 92px) !important;
+  }
+
+  .topbar .brand-lockup > div {
+    gap: 2px !important;
+  }
+
+  .topbar .brand-lockup .eyebrow {
+    display: block !important;
+    font-size: clamp(0.42rem, 2vw, 0.58rem) !important;
+    letter-spacing: 0.14em !important;
+  }
+
+  .topbar .brand-lockup h1 {
+    font-size: clamp(2.15rem, 10.8vw, 3rem) !important;
+  }
+}
