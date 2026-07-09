@@ -21,7 +21,7 @@
     <link rel="manifest" href="./manifest.webmanifest" />
     <link rel="icon" href="./assets/app-icon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="./assets/app-icon.svg" />
-    <link rel="stylesheet" href="./styles.css?v=20260709-1" />
+    <link rel="stylesheet" href="./styles.css?v=20260709-11" />
   </head>
   <body>
     <main class="app-shell student-mode">
@@ -52,7 +52,9 @@
       <section class="student-dashboard" data-panel="student">
         <article id="studentOnboarding" class="panel onboarding-panel">
           <div class="onboarding-invite">
-            <div class="invite-logo" aria-hidden="true">Т</div>
+            <div id="studentInviteLogo" class="invite-logo" aria-hidden="true">
+              <span>Т</span>
+            </div>
             <div>
               <p class="eyebrow">Ваше приглашение</p>
               <h2 id="studentInviteStudioName">Танцевальная студия</h2>
@@ -1039,6 +1041,6 @@
         });
       }
     </script>
-    <script type="module" src="./app.js?v=20260709-1"></script>
+    <script type="module" src="./app.js?v=20260709-11"></script>
   </body>
 </html>

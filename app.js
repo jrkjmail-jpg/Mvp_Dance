@@ -99,6 +99,7 @@ const els = {
   studentAge: document.querySelector("#studentAge"),
   studentConsent: document.querySelector("#studentConsent"),
   studentStyleOptions: document.querySelector("#studentStyleOptions"),
+  studentInviteLogo: document.querySelector("#studentInviteLogo"),
   studentInviteStudioName: document.querySelector("#studentInviteStudioName"),
   studentStudioName: document.querySelector("#studentStudioName"),
   studentProfileName: document.querySelector("#studentProfileName"),
@@ -4079,6 +4080,7 @@ async function updateTeacherStudioInlineImage(event, field) {
   studio[field] = imageData;
   persistTeacherWorkspace();
   renderStudioChannel(studio);
+  renderStudentProfile();
   updateAccountAvatars();
   if (!els.studentStudioProfilePage.hidden) {
     renderStudentStudioProfile();
@@ -4900,6 +4902,9 @@ async function submitTeacherEditDialog(event) {
     item.cover = coverData;
   }
   persistTeacherWorkspace();
+  if (state.teacherFolderView === "studio") {
+    renderStudentProfile();
+  }
   closeTeacherEditDialog();
   setTeacherFolderView(state.teacherFolderView);
 }
@@ -5079,6 +5084,15 @@ function renderStudentProfile() {
   const studio = activeTeacherStudio();
   const studioName = state.studentProfile?.studioName || studio?.name || "Танцевальная студия";
   els.studentInviteStudioName.textContent = studioName;
+  if (els.studentInviteLogo) {
+    const inviteLogoText = els.studentInviteLogo.querySelector("span");
+    const inviteAvatar = studio?.image || "";
+    els.studentInviteLogo.classList.toggle("has-image", Boolean(inviteAvatar));
+    els.studentInviteLogo.style.backgroundImage = inviteAvatar ? `url("${inviteAvatar}")` : "";
+    if (inviteLogoText) {
+      inviteLogoText.textContent = inviteAvatar ? "" : (studioName || "Т").slice(0, 1).toUpperCase();
+    }
+  }
   const hasProfile = Boolean(state.studentProfile);
   els.appShell.classList.toggle("student-onboarding", !hasProfile);
   els.studentOnboarding.hidden = hasProfile;

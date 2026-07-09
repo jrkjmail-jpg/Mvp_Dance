@@ -423,8 +423,19 @@ h2 {
   place-items: center;
   color: var(--ink);
   background: var(--accent-2);
+  background-position: center;
+  background-size: cover;
   font-size: 1.65rem;
   font-weight: 1000;
+  overflow: hidden;
+}
+
+.invite-logo.has-image {
+  background-color: #fffaf2;
+}
+
+.invite-logo.has-image span {
+  display: none;
 }
 
 .profile-form {
@@ -3214,8 +3225,11 @@ h3,
 .onboarding-invite .invite-logo {
   width: 82px;
   height: 82px;
-  border-radius: 24px;
+  border-radius: 50%;
   background: var(--accent);
+  background-position: center;
+  background-size: cover;
+  overflow: hidden;
 }
 
 .onboarding-invite .eyebrow {
@@ -10384,7 +10398,7 @@ h3,
 }
 
 .topbar .brand-lockup h1::after {
-  top: 50% !important;
+  top: 70% !important;
   right: -0.58em !important;
   bottom: auto !important;
   width: 0.32em !important;
@@ -10517,21 +10531,24 @@ h3,
   justify-content: flex-start !important;
   justify-items: start !important;
   gap: 0 !important;
+  overflow: visible !important;
   transform: none !important;
 }
 
 .topbar .brand-lockup .eyebrow {
-  display: block !important;
+  display: none !important;
   position: absolute !important;
-  left: 0.2em !important;
-  top: calc(50% - clamp(2.05rem, 3.22vw, 3.05rem)) !important;
-  max-width: 100% !important;
+  left: 0.12em !important;
+  top: calc(50% - clamp(1.92rem, 2.9vw, 2.72rem)) !important;
+  width: max-content !important;
+  min-width: max-content !important;
+  max-width: none !important;
   white-space: nowrap !important;
-  overflow: hidden !important;
+  overflow: visible !important;
   text-overflow: clip !important;
-  font-size: clamp(0.54rem, 0.8vw, 0.72rem) !important;
+  font-size: clamp(0.5rem, 0.74vw, 0.66rem) !important;
   line-height: 1 !important;
-  letter-spacing: clamp(0.12em, 0.45vw, 0.24em) !important;
+  letter-spacing: clamp(0.13em, 0.32vw, 0.2em) !important;
   transform: none !important;
 }
 
@@ -10539,6 +10556,19 @@ h3,
   margin: 0 !important;
   line-height: 0.86 !important;
   align-self: center !important;
+  translate: clamp(10px, 1.05vw, 18px) -3px !important;
+}
+
+.topbar .brand-lockup h1::after {
+  top: 70% !important;
+  width: 0.35em !important;
+  height: 0.35em !important;
+  min-width: 0.35em !important;
+  min-height: 0.35em !important;
+  aspect-ratio: 1 / 1 !important;
+  border-radius: 50% !important;
+  transform: translate(0, -50%) scaleX(0.88) scaleY(1.06) !important;
+  transform-origin: center !important;
 }
 
 @media (max-width: 1024px) {
@@ -10549,10 +10579,10 @@ h3,
   }
 
   .topbar .brand-lockup .eyebrow {
-    display: block !important;
-    top: calc(50% - clamp(1.82rem, 3.65vw, 2.6rem)) !important;
-    font-size: clamp(0.48rem, 1.15vw, 0.62rem) !important;
-    letter-spacing: clamp(0.12em, 0.55vw, 0.2em) !important;
+    display: none !important;
+    top: calc(50% - clamp(1.78rem, 3.3vw, 2.34rem)) !important;
+    font-size: clamp(0.46rem, 1vw, 0.58rem) !important;
+    letter-spacing: clamp(0.12em, 0.42vw, 0.18em) !important;
   }
 }
 
@@ -10567,13 +10597,97 @@ h3,
   }
 
   .topbar .brand-lockup .eyebrow {
-    display: block !important;
-    top: calc(50% - clamp(1.72rem, 8.6vw, 2.2rem)) !important;
-    font-size: clamp(0.42rem, 2vw, 0.58rem) !important;
-    letter-spacing: 0.14em !important;
+    display: none !important;
+    top: calc(50% - clamp(1.58rem, 7.8vw, 2rem)) !important;
+    font-size: clamp(0.36rem, 1.62vw, 0.5rem) !important;
+    letter-spacing: 0.115em !important;
   }
 
   .topbar .brand-lockup h1 {
     font-size: clamp(2.15rem, 10.8vw, 3rem) !important;
+  }
+}
+
+/* Compact topbar pass: slightly lower header and smaller account launcher */
+.topbar {
+  min-height: 74px !important;
+  padding-top: 10px !important;
+  padding-bottom: 10px !important;
+}
+
+.topbar .icon-account-switch {
+  width: 48px !important;
+  min-width: 48px !important;
+  height: 48px !important;
+  min-height: 48px !important;
+  padding: 4px !important;
+}
+
+.topbar .icon-account-switch:hover::before,
+.topbar .icon-account-switch:focus-within::before {
+  inset: 0 0 -96px 0 !important;
+}
+
+.topbar .account-drawer {
+  gap: 6px !important;
+  padding: 8px 0 6px !important;
+}
+
+.topbar .icon-account-switch .account-nav-button,
+.topbar .icon-account-switch .account-nav-button.active,
+.topbar .icon-account-switch .account-main,
+.topbar .icon-account-switch .account-main.active,
+.topbar .account-drawer .account-nav-button,
+.topbar .account-drawer .account-nav-button.active,
+.topbar .account-drawer .settings-toggle {
+  width: 40px !important;
+  min-width: 40px !important;
+  height: 40px !important;
+  min-height: 40px !important;
+}
+
+@media (max-width: 1024px) {
+  .topbar {
+    height: 68px !important;
+    min-height: 68px !important;
+    max-height: 68px !important;
+    padding-top: 7px !important;
+    padding-bottom: 7px !important;
+  }
+
+  .topbar .icon-account-switch {
+    width: 46px !important;
+    min-width: 46px !important;
+    height: 46px !important;
+    min-height: 46px !important;
+    padding: 4px !important;
+  }
+
+  .topbar .icon-account-switch:hover::before,
+  .topbar .icon-account-switch:focus-within::before {
+    inset: 0 0 -90px 0 !important;
+  }
+
+  .topbar .icon-account-switch .account-nav-button,
+  .topbar .icon-account-switch .account-nav-button.active,
+  .topbar .icon-account-switch .account-main,
+  .topbar .icon-account-switch .account-main.active,
+  .topbar .account-drawer .account-nav-button,
+  .topbar .account-drawer .account-nav-button.active,
+  .topbar .account-drawer .settings-toggle {
+    width: 38px !important;
+    min-width: 38px !important;
+    height: 38px !important;
+    min-height: 38px !important;
+  }
+}
+
+@media (max-width: 720px) {
+  .topbar {
+    height: 66px !important;
+    min-height: 66px !important;
+    max-height: 66px !important;
+    padding-top: 7px !important;
+    padding-bottom: 7px !important;
   }
 }
