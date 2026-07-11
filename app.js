@@ -407,6 +407,7 @@ const state = {
   studentRecording: [],
   lastRecordAt: -1,
   recordingEnd: 0,
+  lastStudentPoseTimestamp: 0,
   activeTeacherVideo: "exam",
   learning: {
     objectUrl: "",
@@ -1019,17 +1020,26 @@ async function startCamera() {
   }
 
   try {
+    const ready = await initPose();
+    if (!ready) {
+      els.taskStatus.textContent = "модель трекинга не готова";
+      return;
+    }
     const stream = await openStudentCamera();
 
+    resetStudentPoseTracking();
     studentVideo.srcObject = stream;
     studentVideo.muted = true;
     studentVideo.controls = false;
     studentVideo.removeAttribute("controls");
     studentVideo.setAttribute("playsinline", "");
+    studentVideo.setAttribute("webkit-playsinline", "");
     await studentVideo.play();
     state.cameraReady = true;
     els.studentEmpty.hidden = true;
     els.modelStatus.textContent = "Камера готова";
+    resizeCanvasToVideo(studentCanvas, studentVideo);
+    analyzeStudentPoseFrame(studentVideo.currentTime, { force: true });
     updateMirror();
     loop();
   } catch (error) {
@@ -1045,8 +1055,9 @@ async function openStudentCamera() {
   const frontCamera = {
     video: {
       facingMode: { ideal: "user" },
-      width: { ideal: 1280 },
-      height: { ideal: 720 },
+      width: { ideal: 640, max: 960 },
+      height: { ideal: 480, max: 720 },
+      frameRate: { ideal: 30, max: 30 },
     },
     audio: false,
   };
@@ -1057,8 +1068,9 @@ async function openStudentCamera() {
     console.warn("Фронтальная камера не выбрана, пробую любую доступную", error);
     return navigator.mediaDevices.getUserMedia({
       video: {
-        width: { ideal: 1280 },
-        height: { ideal: 720 },
+        width: { ideal: 640, max: 960 },
+        height: { ideal: 480, max: 720 },
+        frameRate: { ideal: 30, max: 30 },
       },
       audio: false,
     });
@@ -1077,6 +1089,7 @@ async function onStudentVideoUpload(event) {
   state.studentVideoFileSize = file.size;
   state.studentScanId += 1;
   state.studentSkeleton = [];
+  resetStudentPoseTracking();
   studentVideo.srcObject = null;
   studentVideo.src = state.studentVideoObjectUrl;
   studentVideo.muted = true;
@@ -1500,6 +1513,7 @@ async function toggleDance() {
   state.studentRecording = [];
   state.lastRecordAt = -1;
   state.lastVideoTime = -1;
+  resetStudentPoseTracking();
   state.startedAt = performance.now();
   teacherVideo.playbackRate = 1;
   state.recordingEnd = examEnd();
@@ -1709,7 +1723,7 @@ function analyzeStudentPoseFrame(frameTime = studentVideo.currentTime, options =
 
   resizeCanvasToVideo(studentCanvas, studentVideo);
   clearCanvas(studentCtx, studentCanvas);
-  const result = safeDetectPoseForVideo(state.liveLandmarker, studentVideo, performance.now());
+  const result = safeDetectPoseForVideo(state.liveLandmarker, studentVideo, studentPoseTimestamp(mediaTime));
   const student = result.landmarks?.[0];
   if (student) {
     drawPose(studentCtx, studentCanvas, student, "#2dd4bf");
@@ -1717,6 +1731,28 @@ function analyzeStudentPoseFrame(frameTime = studentVideo.currentTime, options =
       recordStudentFrame(student);
     }
   }
+}
+
+function resetStudentPoseTracking() {
+  state.lastVideoTime = -1;
+  state.lastStudentPoseTimestamp = 0;
+}
+
+function studentPoseTimestamp(mediaTime = studentVideo.currentTime) {
+  const mediaTimestamp = Number.isFinite(mediaTime) ? mediaTime * 1000 : 0;
+  const liveTimestamp = performance.now();
+  let timestamp = state.cameraReady && !state.studentVideoObjectUrl ? liveTimestamp : mediaTimestamp;
+
+  if (!Number.isFinite(timestamp) || timestamp <= 0) {
+    timestamp = liveTimestamp;
+  }
+
+  if (timestamp <= state.lastStudentPoseTimestamp) {
+    timestamp = state.lastStudentPoseTimestamp + 16.7;
+  }
+
+  state.lastStudentPoseTimestamp = timestamp;
+  return timestamp;
 }
 
 function nearestReference(time) {
