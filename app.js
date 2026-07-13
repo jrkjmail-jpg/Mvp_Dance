@@ -1638,7 +1638,9 @@ function loop() {
 }
 
 function processFrame() {
-  if (!("requestVideoFrameCallback" in HTMLVideoElement.prototype)) {
+  if (state.cameraReady && !state.studentVideoObjectUrl) {
+    analyzeStudentPoseFrame(performance.now() / 1000);
+  } else if (!("requestVideoFrameCallback" in HTMLVideoElement.prototype)) {
     analyzeStudentPoseFrame(studentVideo.currentTime);
   }
 
@@ -1708,7 +1710,11 @@ function onTeacherVideoFrame(_now, metadata) {
 }
 
 function onStudentVideoFrame(_now, metadata) {
-  if (!studentVideo.paused || state.cameraReady) {
+  if (state.cameraReady && !state.studentVideoObjectUrl) {
+    studentVideo.requestVideoFrameCallback(onStudentVideoFrame);
+    return;
+  }
+  if (!studentVideo.paused) {
     analyzeStudentPoseFrame(metadata?.mediaTime ?? studentVideo.currentTime);
   }
   studentVideo.requestVideoFrameCallback(onStudentVideoFrame);
@@ -1717,13 +1723,24 @@ function onStudentVideoFrame(_now, metadata) {
 function analyzeStudentPoseFrame(frameTime = studentVideo.currentTime, options = {}) {
   const canAnalyzeStudent = (state.cameraReady || state.studentVideoObjectUrl) && state.liveLandmarker;
   if (!canAnalyzeStudent || !studentVideo.videoWidth) return;
-  const mediaTime = Number.isFinite(frameTime) ? frameTime : studentVideo.currentTime;
-  if (!options.force && Math.abs(mediaTime - state.lastVideoTime) < 0.0005) return;
-  state.lastVideoTime = mediaTime;
+  const isLiveCamera = state.cameraReady && !state.studentVideoObjectUrl;
+  const now = performance.now();
+  const mediaTime = isLiveCamera
+    ? now / 1000
+    : Number.isFinite(frameTime)
+      ? frameTime
+      : studentVideo.currentTime;
+
+  if (isLiveCamera) {
+    if (!options.force && now - state.lastStudentPoseTimestamp < 33) return;
+  } else {
+    if (!options.force && Math.abs(mediaTime - state.lastVideoTime) < 0.0005) return;
+    state.lastVideoTime = mediaTime;
+  }
 
   resizeCanvasToVideo(studentCanvas, studentVideo);
   clearCanvas(studentCtx, studentCanvas);
-  const result = safeDetectPoseForVideo(state.liveLandmarker, studentVideo, studentPoseTimestamp(mediaTime));
+  const result = safeDetectPoseForVideo(state.liveLandmarker, studentVideo, studentPoseTimestamp(mediaTime, now));
   const student = result.landmarks?.[0];
   if (student) {
     drawPose(studentCtx, studentCanvas, student, "#2dd4bf");
@@ -1738,9 +1755,9 @@ function resetStudentPoseTracking() {
   state.lastStudentPoseTimestamp = 0;
 }
 
-function studentPoseTimestamp(mediaTime = studentVideo.currentTime) {
+function studentPoseTimestamp(mediaTime = studentVideo.currentTime, liveNow = performance.now()) {
   const mediaTimestamp = Number.isFinite(mediaTime) ? mediaTime * 1000 : 0;
-  const liveTimestamp = performance.now();
+  const liveTimestamp = liveNow;
   let timestamp = state.cameraReady && !state.studentVideoObjectUrl ? liveTimestamp : mediaTimestamp;
 
   if (!Number.isFinite(timestamp) || timestamp <= 0) {
@@ -5489,6 +5506,12 @@ function seekTeacherFromTimeline() {
 }
 
 function updateStudentVideoTime() {
+  if (state.cameraReady && !state.studentVideoObjectUrl) {
+    els.studentVideoTime.textContent = "Live";
+    els.studentSeekRange.value = "0";
+    els.studentSeekRange.style.setProperty("--progress", "0%");
+    return;
+  }
   const current = studentVideo.currentTime || 0;
   const duration = studentVideo.duration || 0;
   els.studentVideoTime.textContent = `${formatTime(current)} / ${formatTime(duration)}`;
@@ -5499,7 +5522,7 @@ function updateStudentVideoTime() {
 }
 
 function syncStudentTimeline() {
-  const duration = Math.max(0, studentVideo.duration || 0);
+  const duration = Number.isFinite(studentVideo.duration) ? Math.max(0, studentVideo.duration || 0) : 0;
   els.studentSeekRange.max = String(duration);
   els.studentSeekRange.value = String(studentVideo.currentTime || 0);
   updateStudentVideoTime();
