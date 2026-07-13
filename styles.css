@@ -10567,8 +10567,10 @@ h3,
   min-height: 0.35em !important;
   aspect-ratio: 1 / 1 !important;
   border-radius: 50% !important;
-  outline: 1.5px solid #ff684d !important;
-  outline-offset: 2px !important;
+  outline: none !important;
+  box-shadow:
+    0 0 0 2px var(--surface),
+    0 0 0 3.5px #ff684d !important;
   transform: translate(0, -50%) scaleX(0.88) scaleY(1.06) !important;
   transform-origin: center !important;
 }
