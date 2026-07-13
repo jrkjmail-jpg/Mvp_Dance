@@ -10560,6 +10560,7 @@ h3,
 }
 
 .topbar .brand-lockup h1::after {
+  /* keep the brand dot ring visible on Cloudflare deployments */
   top: 70% !important;
   width: 0.35em !important;
   height: 0.35em !important;
